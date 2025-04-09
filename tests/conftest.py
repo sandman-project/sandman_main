@@ -2,8 +2,8 @@
 
 import pytest
 
-import sandman_main
 import sandman_main.sandman as sandman
+
 
 @pytest.fixture
 def sandman() -> sandman.Sandman:

@@ -36,8 +36,11 @@ class Sandman:
 
         self.__logger = logger
 
-    def run(self) -> None:
-        """Run the program."""
+    def initialize(self, options: dict[any] = None) -> bool:
+        """Initialize the app.
+
+        Returns True if initialization was successful, False otherwise.
+        """
         self.__base_dir = str(pathlib.Path.home()) + "/.sandman/"
 
         base_path = pathlib.Path(self.__base_dir)
@@ -50,14 +53,32 @@ class Sandman:
                 base_path.mkdir()
             except Exception:
                 print(f"Failed to create base directory '{self.__base_dir}'")
-                return
+                return False
 
         # Now that we have a base directory, set up logging.
         self.__setup_logging()
 
+        return True
+
+    def run(self) -> None:
+        """Run the program."""
         self.__logger.info("Starting Sandman...")
 
 
+def create_app(options: dict[any] = None) -> Sandman:
+    """Create an instance of the app.
+
+    NOTE - If the options dictionary does not contain a key BASE_DIR, the base
+    directory will become ~/.sandman/.
+    """
+    app = Sandman()
+
+    if app.initialize(options) == False:
+        return None
+
+    return app
+
+
 if __name__ == "__main__":
-    sandman = Sandman()
+    sandman = create_app()
     sandman.run()
