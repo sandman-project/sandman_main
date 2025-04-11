@@ -41,9 +41,13 @@ class Sandman:
 
         Returns True if initialization was successful, False otherwise.
         """
+        self.__is_testing = False
         self.__base_dir = str(pathlib.Path.home()) + "/.sandman/"
 
         if options is not None:
+            if "TESTING" in options:
+                self.__is_testing = options["TESTING"]
+
             if "BASE_DIR" in options:
                 self.__base_dir = options["BASE_DIR"]
 
@@ -67,6 +71,10 @@ class Sandman:
     def run(self) -> None:
         """Run the program."""
         self.__logger.info("Starting Sandman...")
+
+    def is_testing(self) -> bool:
+        """Return whether the app is in test mode."""
+        return self.__is_testing
 
 
 def create_app(options: dict[any] = None) -> Sandman:
