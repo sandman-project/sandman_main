@@ -43,6 +43,10 @@ class Sandman:
         """
         self.__base_dir = str(pathlib.Path.home()) + "/.sandman/"
 
+        if options is not None:
+            if "BASE_DIR" in options:
+                self.__base_dir = options["BASE_DIR"]
+
         base_path = pathlib.Path(self.__base_dir)
 
         # If the base directory doesn't exist, try to create it.
