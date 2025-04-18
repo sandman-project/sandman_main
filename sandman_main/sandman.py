@@ -75,7 +75,9 @@ class Sandman:
         self.__logger.info("Starting Sandman...")
 
         self.__mqtt_client = mqtt.MQTTClient()
-        self.__mqtt_client.connect()
+
+        if self.__mqtt_client.connect() == False:
+            return
 
     def is_testing(self) -> bool:
         """Return whether the app is in test mode."""
