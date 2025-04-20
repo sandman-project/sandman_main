@@ -64,3 +64,25 @@ class MQTTClient:
             "Failed to connect to MQTT host after %d attempts.", num_attempts
         )
         return False
+
+    def start(self) -> bool:
+        """Start MQTT services after connecting."""
+        if self.__client is None:
+            return False
+
+        # Start processing in another thread.
+        start_result = self.__client.loop_start()
+
+        if start_result != paho.mqtt.enums.MQTTErrorCode.MQTT_ERR_SUCCESS:
+            return False
+
+        return True
+
+    def handle_intent_message(
+        self,
+        client: paho.mqtt.client.Client,
+        userdata: any,
+        message: paho.mqtt.client.MQTTMessage,
+    ) -> None:
+        """Handle intent messages."""
+        print(message)
