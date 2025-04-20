@@ -19,6 +19,8 @@ class MQTTClient:
         """Connect to the broker."""
         self.__client = paho.mqtt.client.Client()
 
+        self.__client.on_connect = self.handle_connect
+
         host = "localhost"
         port = 12183
 
@@ -77,6 +79,22 @@ class MQTTClient:
             return False
 
         return True
+
+    def handle_connect(
+        self,
+        client: paho.mqtt.client.Client,
+        userdata: any,
+        flags: paho.mqtt.client.ConnectFlags,
+        reason_code: paho.mqtt.reasoncodes.ReasonCode,
+    ) -> None:
+        """Handle connecting to the MQTT host."""
+        if reason_code != 0:
+            self.__logger.warning(
+                "Host connection failed with reason code %d.", reason_code
+            )
+            return
+
+        self.__logger.info("Finished connecting to MQTT host.")
 
     def handle_intent_message(
         self,
