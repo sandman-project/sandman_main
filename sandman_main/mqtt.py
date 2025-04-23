@@ -96,6 +96,20 @@ class MQTTClient:
 
         self.__logger.info("Finished connecting to MQTT host.")
 
+        # Register callbacks for the topics.
+        self.__client.message_callback_add(
+            "hermes/intent/#", self.handle_intent_message
+        )
+
+        # Subscribe all of the topics in one go.
+        qos = 0
+        subscribe_result, message_id = self.__client.subscribe(
+            [("hermes/intent/#", qos)]
+        )
+
+        if subscribe_result != paho.mqtt.enums.MQTTErrorCode.MQTT_ERR_SUCCESS:
+            self.__logger.error("Failed to subscribe to topics.")
+
     def handle_intent_message(
         self,
         client: paho.mqtt.client.Client,
@@ -103,4 +117,8 @@ class MQTTClient:
         message: paho.mqtt.client.MQTTMessage,
     ) -> None:
         """Handle intent messages."""
-        print(message)
+        self.__logger.debug(
+            "Received a message on topic '%s': %s",
+            message.topic,
+            message.payload.decode(),
+        )
