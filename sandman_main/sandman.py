@@ -5,6 +5,7 @@ import logging.handlers
 import pathlib
 import time
 
+import commands
 import mqtt
 
 
@@ -98,6 +99,9 @@ class Sandman:
         command = self.__mqtt_client.pop_command()
 
         while command is not None:
+            if isinstance(command, commands.StatusCommand):
+                print("Status command")
+
             command = self.__mqtt_client.pop_command()
 
 

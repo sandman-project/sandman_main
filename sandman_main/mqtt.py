@@ -4,6 +4,7 @@ import collections
 import logging
 import time
 
+import commands
 import paho.mqtt.client
 import paho.mqtt.enums
 
@@ -131,8 +132,14 @@ class MQTTClient:
         message: paho.mqtt.client.MQTTMessage,
     ) -> None:
         """Handle intent messages."""
-        self.__logger.debug(
+        payload = message.payload.decode("utf8")
+
+        self.__logger.info(
             "Received a message on topic '%s': %s",
             message.topic,
-            message.payload.decode(),
+            payload,
         )
+
+        # The payload needs to be converted to JSON.
+        if payload["topic"] == "GetStatus":
+            self.__pending_commands.append(commands.StatusCommand())
