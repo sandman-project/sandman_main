@@ -84,12 +84,21 @@ class Sandman:
             return
 
         while True:
+            self.__process_commands()
+
             # Sleep for 10 µs.
             time.sleep(0.01)
 
     def is_testing(self) -> bool:
         """Return whether the app is in test mode."""
         return self.__is_testing
+
+    def __process_commands(self) -> None:
+        """Process pending commands."""
+        command = self.__mqtt_client.pop_command()
+
+        while command is not None:
+            command = self.__mqtt_client.pop_command()
 
 
 def create_app(options: dict[any] = None) -> Sandman:

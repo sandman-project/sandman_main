@@ -1,5 +1,6 @@
 """Everything needed to use MQTT."""
 
+import collections
 import logging
 import time
 
@@ -13,13 +14,14 @@ class MQTTClient:
     def __init__(self) -> None:
         """Initialize the instance."""
         self.__logger = logging.getLogger("sandman.mqtt_client")
+        self.__pending_commands = collections.deque()
         pass
 
     def connect(self) -> bool:
         """Connect to the broker."""
         self.__client = paho.mqtt.client.Client()
 
-        self.__client.on_connect = self.handle_connect
+        self.__client.on_connect = self.__handle_connect
 
         host = "localhost"
         port = 12183
@@ -80,7 +82,19 @@ class MQTTClient:
 
         return True
 
-    def handle_connect(
+    def pop_command(self) -> None:
+        """Pop the next pending command off the queue, if there is one.
+
+        Returns the command or None if the queue is empty.
+        """
+        try:
+            command = self.__pending_commands.popleft()
+        except IndexError:
+            return None
+
+        return command
+
+    def __handle_connect(
         self,
         client: paho.mqtt.client.Client,
         userdata: any,
@@ -98,7 +112,7 @@ class MQTTClient:
 
         # Register callbacks for the topics.
         self.__client.message_callback_add(
-            "hermes/intent/#", self.handle_intent_message
+            "hermes/intent/#", self.__handle_intent_message
         )
 
         # Subscribe all of the topics in one go.
@@ -110,7 +124,7 @@ class MQTTClient:
         if subscribe_result != paho.mqtt.enums.MQTTErrorCode.MQTT_ERR_SUCCESS:
             self.__logger.error("Failed to subscribe to topics.")
 
-    def handle_intent_message(
+    def __handle_intent_message(
         self,
         client: paho.mqtt.client.Client,
         userdata: any,
