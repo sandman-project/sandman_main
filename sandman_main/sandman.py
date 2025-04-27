@@ -100,7 +100,7 @@ class Sandman:
 
         while command is not None:
             if isinstance(command, commands.StatusCommand):
-                print("Status command")
+                pass
 
             command = self.__mqtt_client.pop_command()
 

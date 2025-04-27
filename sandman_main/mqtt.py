@@ -1,6 +1,7 @@
 """Everything needed to use MQTT."""
 
 import collections
+import json
 import logging
 import time
 
@@ -134,12 +135,39 @@ class MQTTClient:
         """Handle intent messages."""
         payload = message.payload.decode("utf8")
 
-        self.__logger.info(
+        self.__logger.debug(
             "Received a message on topic '%s': %s",
             message.topic,
             payload,
         )
 
         # The payload needs to be converted to JSON.
-        if payload["topic"] == "GetStatus":
+        try:
+            payload_json = json.loads(payload)
+
+        except json.JSONDecodeError as exception:
+            self.__logger.warning(
+                "JSON decode exception raised while handling intent "
+                + "message: %s",
+                exception,
+            )
+            return
+
+        # Try to get the intent name.
+        try:
+            intent = payload_json["intent"]
+
+        except KeyError:
+            self.__logger.warning("Invalid intent message received.")
+            return
+
+        try:
+            intent_name = intent["intentName"]
+
+        except KeyError:
+            self.__logger.warning("Invalid intent message received.")
+            return
+
+        if intent_name == "GetStatus":
+            self.__logger.info("Received a get status intent.")
             self.__pending_commands.append(commands.StatusCommand())
