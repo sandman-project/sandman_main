@@ -84,8 +84,12 @@ class Sandman:
         if self.__mqtt_client.start() == False:
             return
 
+        self.__mqtt_client.play_notification("Sandman initialized.")
+
         while True:
             self.__process_commands()
+
+            self.__mqtt_client.process()
 
             # Sleep for 10 µs.
             time.sleep(0.01)
@@ -100,7 +104,7 @@ class Sandman:
 
         while command is not None:
             if isinstance(command, commands.StatusCommand):
-                pass
+                self.__mqtt_client.play_notification("Sandman is running.")
 
             command = self.__mqtt_client.pop_command()
 

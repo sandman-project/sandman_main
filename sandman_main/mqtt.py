@@ -1,6 +1,7 @@
 """Everything needed to use MQTT."""
 
 import collections
+import dataclasses
 import json
 import logging
 import time
@@ -10,6 +11,14 @@ import paho.mqtt.client
 import paho.mqtt.enums
 
 
+@dataclasses.dataclass
+class _MessageInfo:
+    """Represents a message that has been received or needs to be sent."""
+
+    topic: str
+    payload: str
+
+
 class MQTTClient:
     """Functionality to communicate with an MQTT broker."""
 
@@ -17,6 +26,8 @@ class MQTTClient:
         """Initialize the instance."""
         self.__logger = logging.getLogger("sandman.mqtt_client")
         self.__pending_commands = collections.deque()
+        self.__pending_publish_messages = collections.deque()
+        self.__is_connected = False
         pass
 
     def connect(self) -> bool:
@@ -96,6 +107,31 @@ class MQTTClient:
 
         return command
 
+    def play_notification(self, text: str) -> None:
+        """Play the provided notification using the dialogue manager."""
+        payload_json = {
+            "init": {"type": "notification", "text": text},
+            "siteId": "default",
+        }
+        payload = json.dumps(payload_json)
+
+        message = _MessageInfo("hermes/dialogueManager/startSession", payload)
+        self.__pending_publish_messages.append(message)
+
+    def process(self) -> None:
+        """Process things like pending messages, etc."""
+        if self.__is_connected == False:
+            return
+
+        # Publish all of the pending messages.
+        while True:
+            try:
+                message = self.__pending_publish_messages.popleft()
+            except IndexError:
+                break
+
+            self.__client.publish(message.topic, message.payload)
+
     def __handle_connect(
         self,
         client: paho.mqtt.client.Client,
@@ -111,6 +147,7 @@ class MQTTClient:
             return
 
         self.__logger.info("Finished connecting to MQTT host.")
+        self.__is_connected = True
 
         # Register callbacks for the topics.
         self.__client.message_callback_add(
