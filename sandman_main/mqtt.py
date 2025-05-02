@@ -95,6 +95,14 @@ class MQTTClient:
 
         return True
 
+    def stop(self) -> None:
+        """Stop MQTT services."""
+        if self.__client is None:
+            return
+
+        self.__client.loop_stop()
+        self.__client.disconnect()
+
     def pop_command(self) -> None:
         """Pop the next pending command off the queue, if there is one.
 

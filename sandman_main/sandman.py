@@ -96,6 +96,10 @@ class Sandman:
         except KeyboardInterrupt:
             pass
 
+        self.__mqtt_client.stop()
+
+        self.__logger.info("Sandman exiting.")
+
     def is_testing(self) -> bool:
         """Return whether the app is in test mode."""
         return self.__is_testing
