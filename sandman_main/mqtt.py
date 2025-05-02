@@ -26,7 +26,7 @@ class MQTTClient:
         """Initialize the instance."""
         self.__logger = logging.getLogger("sandman.mqtt_client")
         self.__pending_commands = collections.deque()
-        self.__pending_publish_messages = collections.deque()
+        self.__pending_notifications = collections.deque()
         self.__is_connected = False
         pass
 
@@ -67,7 +67,7 @@ class MQTTClient:
                 )
 
             if connect_failed == False:
-                self.__logger.info("Connected to MQTT host.")
+                self.__logger.info("Initiated connection to MQTT host.")
                 return True
 
             self.__logger.info(
@@ -107,30 +107,23 @@ class MQTTClient:
 
         return command
 
-    def play_notification(self, text: str) -> None:
+    def play_notification(self, notification: str) -> None:
         """Play the provided notification using the dialogue manager."""
-        payload_json = {
-            "init": {"type": "notification", "text": text},
-            "siteId": "default",
-        }
-        payload = json.dumps(payload_json)
-
-        message = _MessageInfo("hermes/dialogueManager/startSession", payload)
-        self.__pending_publish_messages.append(message)
+        self.__pending_notifications.append(notification)
 
     def process(self) -> None:
         """Process things like pending messages, etc."""
         if self.__is_connected == False:
             return
 
-        # Publish all of the pending messages.
+        # Publish all of the pending notifications.
         while True:
             try:
-                message = self.__pending_publish_messages.popleft()
+                notification = self.__pending_notifications.popleft()
             except IndexError:
                 break
 
-            self.__client.publish(message.topic, message.payload)
+            self._publish_notification(notification)
 
     def __handle_connect(
         self,
@@ -208,3 +201,13 @@ class MQTTClient:
         if intent_name == "GetStatus":
             self.__logger.info("Received a get status intent.")
             self.__pending_commands.append(commands.StatusCommand())
+
+    def _publish_notification(self, text: str) -> None:
+        """Publish the provided notification to the dialogue manager."""
+        payload_json = {
+            "init": {"type": "notification", "text": text},
+            "siteId": "default",
+        }
+        payload = json.dumps(payload_json)
+
+        self.__client.publish("hermes/dialogueManager/startSession", payload)
