@@ -123,7 +123,7 @@ class MQTTClient:
             except IndexError:
                 break
 
-            self._publish_notification(notification)
+            self.__publish_notification(notification)
 
     def __handle_connect(
         self,
@@ -202,7 +202,7 @@ class MQTTClient:
             self.__logger.info("Received a get status intent.")
             self.__pending_commands.append(commands.StatusCommand())
 
-    def _publish_notification(self, text: str) -> None:
+    def __publish_notification(self, text: str) -> None:
         """Publish the provided notification to the dialogue manager."""
         payload_json = {
             "init": {"type": "notification", "text": text},

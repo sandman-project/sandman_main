@@ -86,17 +86,25 @@ class Sandman:
 
         self.__mqtt_client.play_notification("Sandman initialized.")
 
-        while True:
-            self.__process_commands()
+        try:
+            while True:
+                self.__process()
 
-            self.__mqtt_client.process()
+                # Sleep for 10 µs.
+                time.sleep(0.01)
 
-            # Sleep for 10 µs.
-            time.sleep(0.01)
+        except KeyboardInterrupt:
+            pass
 
     def is_testing(self) -> bool:
         """Return whether the app is in test mode."""
         return self.__is_testing
+
+    def __process(self) -> None:
+        """Process during the main loop."""
+        self.__process_commands()
+
+        self.__mqtt_client.process()
 
     def __process_commands(self) -> None:
         """Process pending commands."""
