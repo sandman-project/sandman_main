@@ -191,101 +191,10 @@ class MQTTClient:
             )
             return
 
-        command = self.__parse_intent(payload_json)
+        command = commands.parse_from_intent(payload_json)
 
         if command is not None:
             self.__pending_commands.append(command)
-
-    def __parse_intent(
-        self, intent_json: dict[any]
-    ) -> None | commands.StatusCommand | commands.MoveControlCommand:
-        """Parse an intent from JSON.
-
-        Return a command if one is recognized.
-        """
-        # Try to get the intent name.
-        try:
-            intent = intent_json["intent"]
-
-        except KeyError:
-            self.__logger.warning("Invalid intent message received.")
-            return None
-
-        try:
-            intent_name = intent["intentName"]
-
-        except KeyError:
-            self.__logger.warning("Invalid intent message received.")
-            return None
-
-        if intent_name == "GetStatus":
-            self.__logger.info("Received a get status intent.")
-            return commands.StatusCommand()
-
-        elif intent_name == "MovePart":
-            self.__logger.info("Received a move control intent.")
-            return self.__parse_move_control(intent_json)
-
-        self.__logger.warning("Unrecognized intent '%s'.", intent_name)
-        return None
-
-    def __parse_move_control(self, intent_json: dict[any]) -> None:
-        """Parse a move control intent from JSON."""
-        try:
-            slots = intent_json["slots"]
-
-        except KeyError:
-            self.__logger.warning(
-                "Invalid move control intent: missing slots."
-            )
-            return None
-
-        # Try to find the control name and direction in the slots.
-        control_name = None
-        direction = None
-
-        for slot in slots:
-            # Each slot must have a name and a value.
-            try:
-                slot_name = slot["slotName"]
-
-            except KeyError:
-                continue
-
-            try:
-                slot_value = slot["rawValue"]
-
-            except KeyError:
-                continue
-
-            if slot_name == "name":
-                control_name = slot_value
-
-            elif slot_name == "direction":
-                if slot_value == "raise":
-                    direction = "up"
-
-                elif slot_value == "lower":
-                    direction = "down"
-
-        if control_name is None:
-            self.__logger.warning(
-                "Invalid move control intent: missing control name."
-            )
-            return None
-
-        if direction is None:
-            self.__logger.warning(
-                "Invalid move control intent: missing direction."
-            )
-            return None
-
-        self.__logger.info(
-            "Recognized move control intent: move '%s' '%s'.",
-            control_name,
-            direction,
-        )
-        return commands.MoveControlCommand(control_name, direction)
 
     def __publish_notification(self, text: str) -> None:
         """Publish the provided notification to the dialogue manager."""
