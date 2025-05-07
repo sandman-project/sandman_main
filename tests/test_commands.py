@@ -22,3 +22,12 @@ def test_get_status_intent() -> None:
         {"intent": {"intentName": "GetStatus"}}
     )
     assert isinstance(command, commands.StatusCommand)
+
+
+def test_move_control_intents() -> None:
+    """Test move control intent constructions."""
+    # These intents must have a slots key.
+    assert (
+        commands.parse_from_intent({"intent": {"intentName": "MovePart"}})
+        is None
+    )
