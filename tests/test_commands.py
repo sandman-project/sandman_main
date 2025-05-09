@@ -31,3 +31,82 @@ def test_move_control_intents() -> None:
         commands.parse_from_intent({"intent": {"intentName": "MovePart"}})
         is None
     )
+
+    # Which is expected to be a list.
+    assert (
+        commands.parse_from_intent(
+            {"intent": {"intentName": "MovePart"}, "slots": None}
+        )
+        is None
+    )
+
+    # Which must contain at least two objects with slotName and rawValue keys.
+    # One slot name must be name and another must be direction.
+    assert (
+        commands.parse_from_intent(
+            {"intent": {"intentName": "MovePart"}, "slots": None}
+        )
+        is None
+    )
+
+    assert (
+        commands.parse_from_intent(
+            {
+                "intent": {"intentName": "MovePart"},
+                "slots": [{"rawValue": 1}, {"slotName": 1}],
+            }
+        )
+        is None
+    )
+
+    # The raw value of the name slot must be a string and the direction slot
+    # must be either raise or lower.
+    assert (
+        commands.parse_from_intent(
+            {
+                "intent": {"intentName": "MovePart"},
+                "slots": [
+                    {"slotName": "direction", "rawValue": "chicken"},
+                    {"slotName": "name", "rawValue": -1},
+                ],
+            }
+        )
+        is None
+    )
+    assert (
+        commands.parse_from_intent(
+            {
+                "intent": {"intentName": "MovePart"},
+                "slots": [
+                    {"slotName": "direction", "rawValue": "chicken"},
+                    {"slotName": "name", "rawValue": "legs"},
+                ],
+            }
+        )
+        is None
+    )
+
+    # Okay, now let's check some valid ones.
+    command = commands.parse_from_intent(
+        {
+            "intent": {"intentName": "MovePart"},
+            "slots": [
+                {"slotName": "direction", "rawValue": "raise"},
+                {"slotName": "name", "rawValue": "legs"},
+            ],
+        }
+    )
+    assert command.control_name == "legs"
+    assert command.direction == "up"
+
+    command = commands.parse_from_intent(
+        {
+            "intent": {"intentName": "MovePart"},
+            "slots": [
+                {"slotName": "direction", "rawValue": "lower"},
+                {"slotName": "name", "rawValue": "legs"},
+            ],
+        }
+    )
+    assert command.control_name == "legs"
+    assert command.direction == "down"

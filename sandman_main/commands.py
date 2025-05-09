@@ -66,6 +66,10 @@ def _parse_from_move_control_intent(
         _logger.warning("Invalid move control intent: missing slots.")
         return None
 
+    if isinstance(slots, list) == False:
+        _logger.warning("Invalid move control intent: slots is not a list.")
+        return None
+
     # Try to find the control name and direction in the slots.
     control_name = None
     direction = None
@@ -85,7 +89,8 @@ def _parse_from_move_control_intent(
             continue
 
         if slot_name == "name":
-            control_name = slot_value
+            if type(slot_value) is str:
+                control_name = slot_value
 
         elif slot_name == "direction":
             if slot_value == "raise":
