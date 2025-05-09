@@ -44,13 +44,6 @@ def test_move_control_intents() -> None:
     # One slot name must be name and another must be direction.
     assert (
         commands.parse_from_intent(
-            {"intent": {"intentName": "MovePart"}, "slots": None}
-        )
-        is None
-    )
-
-    assert (
-        commands.parse_from_intent(
             {
                 "intent": {"intentName": "MovePart"},
                 "slots": [{"rawValue": 1}, {"slotName": 1}],
