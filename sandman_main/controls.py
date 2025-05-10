@@ -20,8 +20,13 @@ class Control:
         """Initialize the instance."""
         self.__logger = logging.getLogger("sandman.control." + name)
         self.__state = ControlState.IDLE
+        self.__desired_state = ControlState.IDLE
         self.__name = name
 
     def get_state(self) -> ControlState:
         """Get the current state."""
         return self.__state
+
+    def process(self) -> None:
+        """Process the control."""
+        pass
