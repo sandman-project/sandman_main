@@ -23,3 +23,7 @@ def test_control_state_transitions() -> None:
     # processing.
     control.set_desired_state(controls.ControlState.MOVE_UP)
     assert control.get_state() == controls.ControlState.IDLE
+
+    # Immediately after processing the state should change.
+    control.process()
+    assert control.get_state() == controls.ControlState.MOVE_UP

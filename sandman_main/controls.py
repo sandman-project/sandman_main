@@ -52,4 +52,34 @@ class Control:
 
     def process(self) -> None:
         """Process the control."""
-        pass
+        if self.__state == ControlState.IDLE:
+            self.__process_idle_state()
+            return
+
+        self.__logger.warning(
+            "Unhandled state '%s'.", _state_names[self.__state.value]
+        )
+
+    def __set_state(self, state: ControlState) -> None:
+        """Trigger a state transition."""
+        self.__logger.info(
+            "State transition from '%s' to '%s'.",
+            _state_names[self.__state.value],
+            _state_names[state.value],
+        )
+
+        self.__state = state
+
+    def __process_idle_state(self) -> None:
+        """Process the idle state."""
+        if self.__desired_state == ControlState.IDLE:
+            return
+
+        # Only transitions to moving up or down are allowed.
+        if (self.__desired_state != ControlState.MOVE_UP) and (
+            self.__desired_state != ControlState.MOVE_DOWN
+        ):
+            self.__desired_state = ControlState.IDLE
+            return
+
+        self.__set_state(self.__desired_state)
