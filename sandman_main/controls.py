@@ -6,6 +6,8 @@ Controls are used to manipulate parts of the bed.
 import enum
 import logging
 
+import timer
+
 
 @enum.unique
 class ControlState(enum.Enum):
@@ -28,12 +30,13 @@ _state_names = [
 class Control:
     """The state and logic for a control that manages a part of the bed."""
 
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: str, timer: timer.Timer) -> None:
         """Initialize the instance."""
         self.__logger = logging.getLogger("sandman.control." + name)
         self.__state = ControlState.IDLE
         self.__desired_state = ControlState.IDLE
         self.__name = name
+        self.__timer = timer
 
     def get_state(self) -> ControlState:
         """Get the current state."""
@@ -69,6 +72,7 @@ class Control:
         )
 
         self.__state = state
+        self.__state_start_time = self.__timer.get_current_time()
 
     def __process_idle_state(self) -> None:
         """Process the idle state."""
