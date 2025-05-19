@@ -33,4 +33,15 @@ def test_timer() -> None:
     duration_ms = test_timer.get_time_since_ms(initial_time)
     assert duration_ms == 0
 
+    # Advance the time the duration should reflect that.
     test_timer.set_current_time_ms(15)
+    duration_ms = test_timer.get_time_since_ms(initial_time)
+    assert duration_ms == 15
+
+    # Advance again.
+    second_time = test_timer.get_current_time()
+    test_timer.set_current_time_ms(16)
+    duration_ms = test_timer.get_time_since_ms(initial_time)
+    assert duration_ms == 16
+    duration_ms = test_timer.get_time_since_ms(second_time)
+    assert duration_ms == 1
