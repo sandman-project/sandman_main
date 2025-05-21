@@ -30,13 +30,21 @@ _state_names = [
 class Control:
     """The state and logic for a control that manages a part of the bed."""
 
-    def __init__(self, name: str, timer: timer.Timer) -> None:
+    def __init__(
+        self, name: str, timer: timer.Timer, moving_duration_ms: int
+    ) -> None:
         """Initialize the instance."""
         self.__logger = logging.getLogger("sandman.control." + name)
         self.__state = ControlState.IDLE
         self.__desired_state = ControlState.IDLE
         self.__name = name
         self.__timer = timer
+        self.__moving_duration_ms = moving_duration_ms
+
+        self.__logger.info(
+            "Initialized control with moving duration %d ms.",
+            self.__moving_duration_ms,
+        )
 
     def get_state(self) -> ControlState:
         """Get the current state."""
@@ -57,6 +65,12 @@ class Control:
         """Process the control."""
         if self.__state == ControlState.IDLE:
             self.__process_idle_state()
+            return
+
+        if (self.__state == ControlState.MOVE_UP) or (
+            self.__state == ControlState.MOVE_DOWN
+        ):
+            self.__process_moving_states()
             return
 
         self.__logger.warning(
@@ -87,3 +101,25 @@ class Control:
             return
 
         self.__set_state(self.__desired_state)
+
+    def __process_moving_states(self) -> None:
+        """Process the moving states."""
+        # Allow immediate transitions to idle or the other moving state.
+        if self.__desired_state != self.__state:
+            if self.__desired_state in [
+                ControlState.IDLE,
+                ControlState.MOVE_UP,
+                ControlState.MOVE_DOWN,
+            ]:
+                self.__set_state(self.__desired_state)
+                return
+
+        # Otherwise automatically transition when the time is up.
+        elapsed_time_ms = self.__timer.get_time_since_ms(
+            self.__state_start_time
+        )
+
+        if elapsed_time_ms < self.__moving_duration_ms:
+            return
+
+        self.__set_state(ControlState.COOL_DOWN)
