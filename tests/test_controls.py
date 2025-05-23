@@ -157,3 +157,46 @@ def test_control_moving_stop() -> None:
     assert control.get_state() == controls.ControlState.MOVE_DOWN
     control.process()
     assert control.get_state() == controls.ControlState.IDLE
+
+
+def test_control_cool_down() -> None:
+    """Test the cool down state."""
+    timer = test_timer.TestTimer()
+
+    moving_duration_ms = 4
+    cool_down_duration_ms = 10
+    control = controls.Control(
+        "test_cool_down", timer, moving_duration_ms, cool_down_duration_ms
+    )
+    assert control.get_state() == controls.ControlState.IDLE
+
+    # First we need to get into the cool down state.
+    control.set_desired_state(controls.ControlState.MOVE_DOWN)
+    control.process()
+    assert control.get_state() == controls.ControlState.MOVE_DOWN
+    timer.set_current_time_ms(moving_duration_ms)
+    control.process()
+    assert control.get_state() == controls.ControlState.COOL_DOWN
+
+    # We cannot change the state during the cool down.
+    for time_ms in range(cool_down_duration_ms):
+        timer.set_current_time_ms(moving_duration_ms + time_ms)
+
+        control.set_desired_state(controls.ControlState.IDLE)
+        control.process()
+        assert control.get_state() == controls.ControlState.COOL_DOWN
+
+        control.set_desired_state(controls.ControlState.MOVE_UP)
+        control.process()
+        assert control.get_state() == controls.ControlState.COOL_DOWN
+
+        control.set_desired_state(controls.ControlState.MOVE_DOWN)
+        control.process()
+        assert control.get_state() == controls.ControlState.COOL_DOWN
+
+    # After the cool down is over, we should go idle and stay there.
+    timer.set_current_time_ms(moving_duration_ms + cool_down_duration_ms)
+    control.process()
+    assert control.get_state() == controls.ControlState.IDLE
+    control.process()
+    assert control.get_state() == controls.ControlState.IDLE

@@ -146,4 +146,5 @@ class Control:
         if elapsed_time_ms < self.__cool_down_duration_ms:
             return
 
+        self.__desired_state = ControlState.IDLE
         self.__set_state(ControlState.IDLE)
