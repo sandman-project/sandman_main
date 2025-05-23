@@ -31,7 +31,11 @@ class Control:
     """The state and logic for a control that manages a part of the bed."""
 
     def __init__(
-        self, name: str, timer: timer.Timer, moving_duration_ms: int
+        self,
+        name: str,
+        timer: timer.Timer,
+        moving_duration_ms: int,
+        cool_down_duration_ms: int,
     ) -> None:
         """Initialize the instance."""
         self.__logger = logging.getLogger("sandman.control." + name)
@@ -40,10 +44,13 @@ class Control:
         self.__name = name
         self.__timer = timer
         self.__moving_duration_ms = moving_duration_ms
+        self.__cool_down_duration_ms = cool_down_duration_ms
 
         self.__logger.info(
-            "Initialized control with moving duration %d ms.",
+            "Initialized control with moving duration %d ms and cool down "
+            + "duration %d ms.",
             self.__moving_duration_ms,
+            self.__cool_down_duration_ms,
         )
 
     def get_state(self) -> ControlState:
@@ -71,6 +78,10 @@ class Control:
             self.__state == ControlState.MOVE_DOWN
         ):
             self.__process_moving_states()
+            return
+
+        if self.__state == ControlState.COOL_DOWN:
+            self.__process_cool_down_state()
             return
 
         self.__logger.warning(
@@ -122,4 +133,17 @@ class Control:
         if elapsed_time_ms < self.__moving_duration_ms:
             return
 
+        self.__desired_state = ControlState.IDLE
         self.__set_state(ControlState.COOL_DOWN)
+
+    def __process_cool_down_state(self) -> None:
+        """Process the cool down state."""
+        # Automatically transition when the time is up.
+        elapsed_time_ms = self.__timer.get_time_since_ms(
+            self.__state_start_time
+        )
+
+        if elapsed_time_ms < self.__cool_down_duration_ms:
+            return
+
+        self.__set_state(ControlState.IDLE)

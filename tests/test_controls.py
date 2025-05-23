@@ -10,7 +10,10 @@ def test_control_initialization() -> None:
 
     # A control should start off idle.
     control = controls.Control(
-        "test_initialization", timer, moving_duration_ms=10
+        "test_initialization",
+        timer,
+        moving_duration_ms=10,
+        cool_down_duration_ms=5,
     )
     assert control.get_state() == controls.ControlState.IDLE
 
@@ -27,11 +30,14 @@ def _test_control_moving_flow(
     control_name: str,
     desired_state: controls.ControlState,
     moving_duration_ms: int,
+    cool_down_duration_ms: int,
 ) -> None:
     """Test control moving state flow."""
     timer = test_timer.TestTimer()
 
-    control = controls.Control(control_name, timer, moving_duration_ms)
+    control = controls.Control(
+        control_name, timer, moving_duration_ms, cool_down_duration_ms
+    )
     assert control.get_state() == controls.ControlState.IDLE
 
     # There should be no state change after setting the desired state without
@@ -60,20 +66,38 @@ def _test_control_moving_flow(
     control.process()
     assert control.get_state() == controls.ControlState.COOL_DOWN
 
-    # Finish testing cool down.
+    # We should remain in this state until just before the cooldown duration
+    # is over.
+    for time_ms in range(cool_down_duration_ms):
+        timer.set_current_time_ms(moving_duration_ms + time_ms)
+        control.process()
+        assert control.get_state() == controls.ControlState.COOL_DOWN
+
+    # After time is up, we should transition to idle.
+    timer.set_current_time_ms(moving_duration_ms + cool_down_duration_ms)
+    control.process()
+    assert control.get_state() == controls.ControlState.IDLE
 
 
 def test_control_moving_up() -> None:
     """Test control moving up state flow."""
     moving_duration_ms = 10
+    cool_down_duration_ms = 4
     _test_control_moving_flow(
-        "test_moving_up", controls.ControlState.MOVE_UP, moving_duration_ms
+        "test_moving_up",
+        controls.ControlState.MOVE_UP,
+        moving_duration_ms,
+        cool_down_duration_ms,
     )
 
 
 def test_control_moving_down() -> None:
     """Test control moving down state flow."""
     moving_duration_ms = 10
+    cool_down_duration_ms = 4
     _test_control_moving_flow(
-        "test_moving_down", controls.ControlState.MOVE_DOWN, moving_duration_ms
+        "test_moving_down",
+        controls.ControlState.MOVE_DOWN,
+        moving_duration_ms,
+        cool_down_duration_ms,
     )
