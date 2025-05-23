@@ -101,3 +101,59 @@ def test_control_moving_down() -> None:
         moving_duration_ms,
         cool_down_duration_ms,
     )
+
+
+def test_control_moving_switch() -> None:
+    """Test that we can alternate between moving directions."""
+    control = controls.Control(
+        "test_moving_switch",
+        test_timer.TestTimer(),
+        moving_duration_ms=10,
+        cool_down_duration_ms=5,
+    )
+
+    # We should be able to immediately transition between direction without
+    # changing time, but processing steps are required.
+    control.set_desired_state(controls.ControlState.MOVE_UP)
+    control.process()
+    assert control.get_state() == controls.ControlState.MOVE_UP
+
+    control.set_desired_state(controls.ControlState.MOVE_DOWN)
+    assert control.get_state() == controls.ControlState.MOVE_UP
+    control.process()
+    assert control.get_state() == controls.ControlState.MOVE_DOWN
+
+    control.set_desired_state(controls.ControlState.MOVE_UP)
+    assert control.get_state() == controls.ControlState.MOVE_DOWN
+    control.process()
+    assert control.get_state() == controls.ControlState.MOVE_UP
+
+
+def test_control_moving_stop() -> None:
+    """Test that we can stop moving."""
+    control = controls.Control(
+        "test_moving_stop",
+        test_timer.TestTimer(),
+        moving_duration_ms=10,
+        cool_down_duration_ms=5,
+    )
+
+    # We should be able to immediately stop moving without changing time, but
+    # processing steps are required.
+    control.set_desired_state(controls.ControlState.MOVE_UP)
+    control.process()
+    assert control.get_state() == controls.ControlState.MOVE_UP
+
+    control.set_desired_state(controls.ControlState.IDLE)
+    assert control.get_state() == controls.ControlState.MOVE_UP
+    control.process()
+    assert control.get_state() == controls.ControlState.IDLE
+
+    control.set_desired_state(controls.ControlState.MOVE_DOWN)
+    control.process()
+    assert control.get_state() == controls.ControlState.MOVE_DOWN
+
+    control.set_desired_state(controls.ControlState.IDLE)
+    assert control.get_state() == controls.ControlState.MOVE_DOWN
+    control.process()
+    assert control.get_state() == controls.ControlState.IDLE
