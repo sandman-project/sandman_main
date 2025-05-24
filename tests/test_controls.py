@@ -233,3 +233,32 @@ def test_control_cool_down() -> None:
     assert control.get_state() == controls.ControlState.IDLE
     control.process()
     assert control.get_state() == controls.ControlState.IDLE
+
+
+def test_control_no_desired_cool_down() -> None:
+    """Test that we cannot set cool down as a desired state."""
+    control = controls.Control(
+        "test_desired_cool_down",
+        test_timer.TestTimer(),
+        moving_duration_ms=10,
+        cool_down_duration_ms=5,
+    )
+
+    assert control.get_state() == controls.ControlState.IDLE
+    control.set_desired_state(controls.ControlState.COOL_DOWN)
+    control.process()
+    assert control.get_state() == controls.ControlState.IDLE
+
+    control.set_desired_state(controls.ControlState.MOVE_DOWN)
+    control.process()
+    assert control.get_state() == controls.ControlState.MOVE_DOWN
+    control.set_desired_state(controls.ControlState.COOL_DOWN)
+    control.process()
+    assert control.get_state() == controls.ControlState.MOVE_DOWN
+
+    control.set_desired_state(controls.ControlState.MOVE_UP)
+    control.process()
+    assert control.get_state() == controls.ControlState.MOVE_UP
+    control.set_desired_state(controls.ControlState.COOL_DOWN)
+    control.process()
+    assert control.get_state() == controls.ControlState.MOVE_UP
