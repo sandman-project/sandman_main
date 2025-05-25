@@ -6,7 +6,9 @@ import pathlib
 import time
 
 import commands
+import controls
 import mqtt
+import timer
 
 
 class Sandman:
@@ -14,7 +16,7 @@ class Sandman:
 
     def __init__(self) -> None:
         """Initialize the instance."""
-        pass
+        self.__timer = timer.Timer()
 
     def __setup_logging(self) -> None:
         """Set up logging."""
@@ -76,6 +78,24 @@ class Sandman:
         """Run the program."""
         self.__logger.info("Starting Sandman...")
 
+        # Create some controls (manually for now).
+        cool_down_duration_ms = 25
+        self.__controls = {}
+
+        self.__controls["back"] = controls.Control(
+            "back",
+            self.__timer,
+            moving_duration_ms=7000,
+            cool_down_duration_ms=cool_down_duration_ms,
+        )
+
+        self.__controls["legs"] = controls.Control(
+            "legs",
+            self.__timer,
+            moving_duration_ms=4000,
+            cool_down_duration_ms=cool_down_duration_ms,
+        )
+
         self.__mqtt_client = mqtt.MQTTClient()
 
         if self.__mqtt_client.connect() == False:
@@ -108,6 +128,8 @@ class Sandman:
         """Process during the main loop."""
         self.__process_commands()
 
+        self.__process_controls()
+
         self.__mqtt_client.process()
 
     def __process_commands(self) -> None:
@@ -118,7 +140,35 @@ class Sandman:
             if isinstance(command, commands.StatusCommand):
                 self.__mqtt_client.play_notification("Sandman is running.")
 
+            elif isinstance(command, commands.MoveControlCommand):
+                self.__process_move_control_command(command)
+
             command = self.__mqtt_client.pop_command()
+
+    def __process_move_control_command(
+        self, command: commands.MoveControlCommand
+    ) -> None:
+        """Process a move control command."""
+        # See if we have a control with a matching name.
+        try:
+            control = self.__controls[command.control_name]
+
+        except KeyError:
+            self.__logger.warning(
+                "No control with name '%s' found.", command.control_name
+            )
+            return
+
+        if command.direction == "up":
+            control.set_desired_state(controls.ControlState.MOVE_UP)
+
+        elif command.direction == "down":
+            control.set_desired_state(controls.ControlState.MOVE_DOWN)
+
+    def __process_controls(self) -> None:
+        """Process controls."""
+        for _name, control in self.__controls.items():
+            control.process()
 
 
 def create_app(options: dict[any] = None) -> Sandman:
