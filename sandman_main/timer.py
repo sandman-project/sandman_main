@@ -18,4 +18,4 @@ class Timer:
         """Get the time in milliseconds since another point in time."""
         curr_time = self.get_current_time()
 
-        return (curr_time - other_time) // 1000
+        return (curr_time - other_time) // 1000000

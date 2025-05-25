@@ -20,7 +20,7 @@ class TestTimer(timer.Timer):
 
     def set_current_time_ms(self, curr_time_ms: int) -> None:
         """Set the current point in time in milliseconds."""
-        self.__curr_time_ns = curr_time_ms * 1000
+        self.__curr_time_ns = curr_time_ms * 1000000
 
 
 def test_timer() -> None:
