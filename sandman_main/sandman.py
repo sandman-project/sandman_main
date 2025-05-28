@@ -96,6 +96,13 @@ class Sandman:
             cool_down_duration_ms=cool_down_duration_ms,
         )
 
+        self.__controls["elevation"] = controls.Control(
+            "elevation",
+            self.__timer,
+            moving_duration_ms=4000,
+            cool_down_duration_ms=cool_down_duration_ms,
+        )
+
         self.__mqtt_client = mqtt.MQTTClient()
 
         if self.__mqtt_client.connect() == False:
@@ -167,8 +174,13 @@ class Sandman:
 
     def __process_controls(self) -> None:
         """Process controls."""
+        notifications = []
+
         for _name, control in self.__controls.items():
-            control.process()
+            control.process(notifications)
+
+        for notification in notifications:
+            self.__mqtt_client.play_notification(notification)
 
 
 def create_app(options: dict[any] = None) -> Sandman:
