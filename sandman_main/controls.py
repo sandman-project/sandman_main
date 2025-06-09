@@ -129,11 +129,14 @@ class Control:
         # Allow immediate transitions to idle or the other moving state.
         if self.__desired_state != self.__state:
             if self.__desired_state in [
-                ControlState.IDLE,
                 ControlState.MOVE_UP,
                 ControlState.MOVE_DOWN,
             ]:
                 self.__set_state(notifications, self.__desired_state)
+                return
+
+            if self.__desired_state == ControlState.IDLE:
+                self.__set_state(notifications, ControlState.COOL_DOWN)
                 return
 
         # Otherwise automatically transition when the time is up.

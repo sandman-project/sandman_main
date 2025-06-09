@@ -190,7 +190,14 @@ def test_control_moving_stop() -> None:
     control.set_desired_state(controls.ControlState.IDLE)
     assert control.get_state() == controls.ControlState.MOVE_UP
     control.process(notifications)
-    assert control.get_state() == controls.ControlState.IDLE
+    assert control.get_state() == controls.ControlState.COOL_DOWN
+
+    control = controls.Control(
+        "test_moving_stop",
+        test_timer.TestTimer(),
+        moving_duration_ms=10,
+        cool_down_duration_ms=5,
+    )
 
     control.set_desired_state(controls.ControlState.MOVE_DOWN)
     control.process(notifications)
@@ -199,7 +206,7 @@ def test_control_moving_stop() -> None:
     control.set_desired_state(controls.ControlState.IDLE)
     assert control.get_state() == controls.ControlState.MOVE_DOWN
     control.process(notifications)
-    assert control.get_state() == controls.ControlState.IDLE
+    assert control.get_state() == controls.ControlState.COOL_DOWN
 
 
 def test_control_cool_down() -> None:
