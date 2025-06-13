@@ -21,5 +21,19 @@ class GPIOManager:
         except OSError:
             self.__logger.warning("Failed to open GPIO chip %s", chip_path)
 
+        if self.__chip is None:
+            return
+
+        with self.__chip.request_lines(
+            consumer="sandman-test",
+            config={
+                20: gpiod.LineSettings(
+                    direction=gpiod.line.Direction.OUTPUT,
+                    output_value=gpiod.line.Value.ACTIVE,
+                )
+            },
+        ) as request:
+            request.set_value(20, gpiod.line.Value.ACTIVE)
+
         # Cleanup on destruction?
         self.__chip.close()
