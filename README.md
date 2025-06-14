@@ -7,3 +7,22 @@ Sandman main is part of the [Sandman Project](https://github.com/sandman-project
 ## License
 
 [MIT](https://choosealicense.com/licenses/mit/)
+
+# Getting Started with Development
+
+[Install `uv`.](https://docs.astral.sh/uv/getting-started/installation/)
+
+```shell
+# Create a virtual environment (optional, but recommended).
+uv venv
+
+# Install the dependencies.
+uv sync
+
+# Run the Sandman application.
+# (Assuming that you are at the root of the repository.)
+uv run sandman_main/sandman.py
+
+# Run the tests.
+uv run pytest
+```
