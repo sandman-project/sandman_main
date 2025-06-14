@@ -6,7 +6,7 @@ Controls are used to manipulate parts of the bed.
 import enum
 import logging
 
-from . import timer
+from sandman_main import timer
 
 
 @enum.unique
