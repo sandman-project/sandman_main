@@ -5,7 +5,8 @@ import dataclasses
 import json
 import logging
 import time
-from typing import Any, Dict
+from typing import Any
+from collections.abc import Mapping
 
 import paho.mqtt.reasoncodes
 
@@ -140,7 +141,7 @@ class MQTTClient:
         self,
         client: paho.mqtt.client.Client,
         userdata: Any,
-        flags: paho.mqtt.client.ConnectFlags | Dict[str, Any],
+        flags: paho.mqtt.client.ConnectFlags | Mapping[str, Any],
         reason_code: paho.mqtt.reasoncodes.ReasonCode | paho.mqtt.enums.MQTTErrorCode,
     ) -> None:
         """Handle connecting to the MQTT host."""
