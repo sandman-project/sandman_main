@@ -6,7 +6,7 @@ Controls are used to manipulate parts of the bed.
 import enum
 import logging
 
-import timer
+from . import timer
 
 
 @enum.unique

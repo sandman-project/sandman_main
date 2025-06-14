@@ -8,7 +8,7 @@ import time
 import commands
 import controls
 import mqtt
-import timer
+from . import timer
 
 
 class Sandman:
