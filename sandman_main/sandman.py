@@ -1,9 +1,11 @@
 """Entry point for the Sandman application."""
 
+from collections.abc import Mapping
 import logging
 import logging.handlers
 import pathlib
 import time
+from typing import Any
 
 import commands
 import controls
@@ -42,7 +44,7 @@ class Sandman:
 
         self.__logger = logger
 
-    def initialize(self, options: dict[any] = None) -> bool:
+    def initialize(self, options: Mapping[str, Any] | None = None) -> bool:
         """Initialize the app.
 
         Returns True if initialization was successful, False otherwise.
@@ -183,7 +185,7 @@ class Sandman:
             self.__mqtt_client.play_notification(notification)
 
 
-def create_app(options: dict[any] = None) -> Sandman:
+def create_app(options: Mapping[str, Any] | None = None) -> Sandman | None:
     """Create an instance of the app.
 
     NOTE - If the options dictionary does not contain a key BASE_DIR, the base
@@ -199,4 +201,5 @@ def create_app(options: dict[any] = None) -> Sandman:
 
 if __name__ == "__main__":
     sandman = create_app()
+    assert sandman is not None, "Failed to create Sandman application."
     sandman.run()

@@ -5,6 +5,9 @@ import dataclasses
 import json
 import logging
 import time
+from typing import Any, Dict
+
+import paho.mqtt.reasoncodes
 
 import commands
 import paho.mqtt.client
@@ -136,9 +139,9 @@ class MQTTClient:
     def __handle_connect(
         self,
         client: paho.mqtt.client.Client,
-        userdata: any,
-        flags: paho.mqtt.client.ConnectFlags,
-        reason_code: paho.mqtt.reasoncodes.ReasonCode,
+        userdata: Any,
+        flags: paho.mqtt.client.ConnectFlags | Dict[str, Any],
+        reason_code: paho.mqtt.reasoncodes.ReasonCode | paho.mqtt.enums.MQTTErrorCode,
     ) -> None:
         """Handle connecting to the MQTT host."""
         if reason_code != 0:
@@ -167,7 +170,7 @@ class MQTTClient:
     def __handle_intent_message(
         self,
         client: paho.mqtt.client.Client,
-        userdata: any,
+        userdata: Any,
         message: paho.mqtt.client.MQTTMessage,
     ) -> None:
         """Handle intent messages."""
