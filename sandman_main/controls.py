@@ -19,7 +19,7 @@ class ControlState(enum.Enum):
     COOL_DOWN = 3
 
     @property
-    def name(self) -> str:
+    def label(self) -> str:
         match self:
             case self.IDLE     : return "idle"
             case self.MOVE_UP  : return "move up"
@@ -64,7 +64,7 @@ class Control:
         self.__desired_state = state
 
         self.__logger.info(
-            "Set desired state to '%s'.", state.name
+            "Set desired state to '%s'.", state.label
         )
 
     def process(self, notifications: list[str]) -> None:
@@ -84,7 +84,7 @@ class Control:
             return
 
         self.__logger.warning(
-            "Unhandled state '%s'.", self.__state.name
+            "Unhandled state '%s'.", self.__state.label
         )
 
     def __set_state(
@@ -93,8 +93,8 @@ class Control:
         """Trigger a state transition."""
         self.__logger.info(
             "State transition from '%s' to '%s'.",
-            self.__state.name,
-            state.name,
+            self.__state.label,
+            state.label,
         )
 
         if state == ControlState.MOVE_UP:
