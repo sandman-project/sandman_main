@@ -69,23 +69,16 @@ class Control:
 
     def process(self, notifications: list[str]) -> None:
         """Process the control."""
-        if self.__state == ControlState.IDLE:
-            self.__process_idle_state(notifications)
-            return
 
-        if (self.__state == ControlState.MOVE_UP) or (
-            self.__state == ControlState.MOVE_DOWN
-        ):
-            self.__process_moving_states(notifications)
-            return
-
-        if self.__state == ControlState.COOL_DOWN:
-            self.__process_cool_down_state(notifications)
-            return
-
-        self.__logger.warning(
-            "Unhandled state '%s'.", self.__state.label
-        )
+        match self.__state:
+            case ControlState.IDLE:
+                self.__process_idle_state(notifications)
+            case ControlState.MOVE_UP | ControlState.MOVE_DOWN:
+                self.__process_moving_states(notifications)
+            case ControlState.COOL_DOWN:
+                self.__process_cool_down_state(notifications)
+            case _:
+                self.__logger.warning("Unhandled state '%s'.", self.__state.label)
 
     def __set_state(
         self, notifications: list[str], state: ControlState
@@ -97,14 +90,13 @@ class Control:
             state.label,
         )
 
-        if state == ControlState.MOVE_UP:
-            notifications.append(f"Raising the {self.__name}.")
-
-        elif state == ControlState.MOVE_DOWN:
-            notifications.append(f"Lowering the {self.__name}.")
-
-        elif state == ControlState.COOL_DOWN:
-            notifications.append(f"{self.__name} stopped.")
+        match state:
+            case ControlState.MOVE_UP:
+                notifications.append(f"Raising the {self.__name}.")
+            case ControlState.MOVE_DOWN:
+                notifications.append(f"Lowering the {self.__name}.")
+            case ControlState.COOL_DOWN:
+                notifications.append(f"{self.__name} stopped.")
 
         self.__state = state
         self.__state_start_time = self.__timer.get_current_time()
@@ -127,16 +119,13 @@ class Control:
         """Process the moving states."""
         # Allow immediate transitions to idle or the other moving state.
         if self.__desired_state != self.__state:
-            if self.__desired_state in [
-                ControlState.MOVE_UP,
-                ControlState.MOVE_DOWN,
-            ]:
-                self.__set_state(notifications, self.__desired_state)
-                return
-
-            if self.__desired_state == ControlState.IDLE:
-                self.__set_state(notifications, ControlState.COOL_DOWN)
-                return
+            match self.__desired_state:
+                case ControlState.MOVE_UP | ControlState.MOVE_DOWN:
+                    self.__set_state(notifications, self.__desired_state)
+                    return
+                case ControlState.IDLE:
+                    self.__set_state(notifications, ControlState.COOL_DOWN)
+                    return
 
         # Otherwise automatically transition when the time is up.
         elapsed_time_ms = self.__timer.get_time_since_ms(
