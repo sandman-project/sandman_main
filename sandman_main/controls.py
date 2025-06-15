@@ -40,7 +40,7 @@ class Control:
     def __init__(
         self,
         name: Name,
-        timer: timer.Timer,
+        timer: timing.Timer,
         moving_duration_ms: int,
         cool_down_duration_ms: int,
     ) -> None:
