@@ -11,6 +11,7 @@ class TestTimer(timing.Timer):
     # Despite its name, this class should not be collected for testing.
     __test__ = False
 
+    @override
     def __init__(self) -> None:
         """Initialize the instance."""
         super().__init__()
