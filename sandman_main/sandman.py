@@ -211,5 +211,8 @@ def create_app(options: Mapping[str, Any] | None = None) -> Sandman | None:
 
 if __name__ == "__main__":
     sandman = create_app()
-    assert sandman is not None, "Failed to create Sandman application."
+
+    if sandman is None:
+        raise ValueError("Failed to create Sandman application.")
+
     sandman.run()
