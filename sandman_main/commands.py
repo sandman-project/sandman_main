@@ -1,11 +1,13 @@
 """All of the commands that can be processed."""
 
-from collections.abc import Mapping
 import dataclasses
 import enum
 import logging
+from collections.abc import Mapping
 from typing import Any
+
 from controls import Control
+
 
 class StatusCommand:
     """A command to get the status."""
@@ -19,6 +21,8 @@ class MoveControlCommand:
 
     @enum.unique
     class Direction(enum.Enum):
+        """Value indicating a direction in which the bed can move."""
+
         UP = enum.auto()
         DOWN = enum.auto()
 
@@ -98,7 +102,8 @@ def _parse_from_move_control_intent(
 
         if slot_name == "name":
             if type(slot_value) is str:
-                # TODO: Handle the error if the slot value is not a valid control name.
+                # TODO: Handle the error if the slot value
+                # is not a valid control name.
                 control_name = Control.Name(slot_value)
 
         elif slot_name == "direction":

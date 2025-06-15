@@ -5,15 +5,14 @@ import dataclasses
 import json
 import logging
 import time
-from typing import Any
 from collections.abc import Mapping
-from commands import StatusCommand, MoveControlCommand
-
-import paho.mqtt.reasoncodes
+from typing import Any
 
 import commands
 import paho.mqtt.client
 import paho.mqtt.enums
+import paho.mqtt.reasoncodes
+from commands import MoveControlCommand, StatusCommand
 
 
 @dataclasses.dataclass
@@ -30,7 +29,9 @@ class MQTTClient:
     def __init__(self) -> None:
         """Initialize the instance."""
         self.__logger = logging.getLogger("sandman.mqtt_client")
-        self.__pending_commands = collections.deque[StatusCommand | MoveControlCommand]()
+        self.__pending_commands = collections.deque[
+            StatusCommand | MoveControlCommand
+        ]()
         self.__pending_notifications = collections.deque[str]()
         self.__is_connected: bool = False
         pass
@@ -143,7 +144,8 @@ class MQTTClient:
         client: paho.mqtt.client.Client,
         userdata: Any,
         flags: paho.mqtt.client.ConnectFlags | Mapping[str, Any],
-        reason_code: paho.mqtt.reasoncodes.ReasonCode | paho.mqtt.enums.MQTTErrorCode,
+        reason_code: paho.mqtt.reasoncodes.ReasonCode
+        | paho.mqtt.enums.MQTTErrorCode,
     ) -> None:
         """Handle connecting to the MQTT host."""
         if reason_code != 0:

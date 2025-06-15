@@ -11,6 +11,8 @@ def test_create() -> None:
     assert regular_app is not None
     assert regular_app.is_testing() == False
 
-    testing_app = sandman.create_app({"BASE_DIR": "tests/data/", "TESTING": True})
+    testing_app = sandman.create_app(
+        {"BASE_DIR": "tests/data/", "TESTING": True}
+    )
     assert testing_app is not None
     assert testing_app.is_testing() == True

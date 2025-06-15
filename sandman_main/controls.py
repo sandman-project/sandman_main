@@ -5,7 +5,7 @@ Controls are used to manipulate parts of the bed.
 
 import enum
 import logging
-from typing import Literal, assert_never
+from typing import assert_never
 
 import timing
 
@@ -14,25 +14,34 @@ import timing
 class ControlState(enum.Enum):
     """The various states a control can be in."""
 
-    IDLE      = enum.auto()
-    MOVE_UP   = enum.auto()
+    IDLE = enum.auto()
+    MOVE_UP = enum.auto()
     MOVE_DOWN = enum.auto()
     COOL_DOWN = enum.auto()
 
     @property
     def label(self) -> str:
+        """Human readable phrase describing the control state."""
         match self:
-            case self.IDLE     : return "idle"
-            case self.MOVE_UP  : return "move up"
-            case self.MOVE_DOWN: return "move down"
-            case self.COOL_DOWN: return "cool down"
-            case        unknown: assert_never(unknown)
+            case self.IDLE:
+                return "idle"
+            case self.MOVE_UP:
+                return "move up"
+            case self.MOVE_DOWN:
+                return "move down"
+            case self.COOL_DOWN:
+                return "cool down"
+            case unknown:
+                assert_never(unknown)
+
 
 class Control:
     """The state and logic for a control that manages a part of the bed."""
 
     @enum.unique
     class Name(enum.StrEnum):
+        """Value indicating the name of the type of control."""
+
         BACK = "back"
         LEGS = "legs"
         ELEVATION = "elevation"
@@ -76,13 +85,10 @@ class Control:
 
         self.__desired_state = state
 
-        self.__logger.info(
-            "Set desired state to '%s'.", state.label
-        )
+        self.__logger.info("Set desired state to '%s'.", state.label)
 
     def process(self, notifications: list[str]) -> None:
         """Process the control."""
-
         match self.__state:
             case ControlState.IDLE:
                 self.__process_idle_state(notifications)
@@ -91,7 +97,9 @@ class Control:
             case ControlState.COOL_DOWN:
                 self.__process_cool_down_state(notifications)
             case unknown:
-                self.__logger.error("Unhandled state '%s'.", self.__state.label)
+                self.__logger.error(
+                    "Unhandled state '%s'.", self.__state.label
+                )
                 assert_never(unknown)
 
     def __set_state(
