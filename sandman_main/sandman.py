@@ -178,9 +178,9 @@ class Sandman:
 
         match command.direction:
             case commands.MoveControlCommand.Direction.UP:
-                control.set_desired_state(controls.ControlState.MOVE_UP)
+                control.set_desired_state(controls.Control.State.MOVE_UP)
             case commands.MoveControlCommand.Direction.DOWN:
-                control.set_desired_state(controls.ControlState.MOVE_DOWN)
+                control.set_desired_state(controls.Control.State.MOVE_DOWN)
             case unknown:
                 assert_never(unknown)
 

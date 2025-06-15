@@ -11,43 +11,43 @@ from typing import assert_never
 import timing
 
 
-@enum.unique
-class ControlState(enum.Enum):
-    """The various states a control can be in."""
-
-    IDLE = enum.auto()
-    MOVE_UP = enum.auto()
-    MOVE_DOWN = enum.auto()
-    COOL_DOWN = enum.auto()
-
-    @property
-    def label(self) -> str:
-        """Human readable phrase describing the control state."""
-        match self:
-            case self.IDLE:
-                return "idle"
-            case self.MOVE_UP:
-                return "move up"
-            case self.MOVE_DOWN:
-                return "move down"
-            case self.COOL_DOWN:
-                return "cool down"
-            case unknown:
-                assert_never(unknown)
-
-
 class Control:
     """The state and logic for a control that manages a part of the bed."""
 
     @enum.unique
     class Type(enum.StrEnum):
-        """Value indicating the name of the type of control."""
+        """Value indicating a known name of the type of control."""
 
         BACK = "back"
         LEGS = "legs"
         ELEVATION = "elevation"
 
     type Name = Type | str
+    """String-like value indicating the name of a type of control."""
+
+    @enum.unique
+    class State(enum.Enum):
+        """The various states a control can be in."""
+
+        IDLE = enum.auto()
+        MOVE_UP = enum.auto()
+        MOVE_DOWN = enum.auto()
+        COOL_DOWN = enum.auto()
+
+        @property
+        def label(self) -> str:
+            """Human readable phrase describing the control state."""
+            match self:
+                case self.IDLE:
+                    return "idle"
+                case self.MOVE_UP:
+                    return "move up"
+                case self.MOVE_DOWN:
+                    return "move down"
+                case self.COOL_DOWN:
+                    return "cool down"
+                case unknown:
+                    assert_never(unknown)
 
     def __init__(
         self,
@@ -58,8 +58,8 @@ class Control:
     ) -> None:
         """Initialize the instance."""
         self.__logger = logging.getLogger("sandman.control." + name)
-        self.__state = ControlState.IDLE
-        self.__desired_state = ControlState.IDLE
+        self.__state = Control.State.IDLE
+        self.__desired_state = Control.State.IDLE
         self.__name = name
         self.__timer = timer
         self.__moving_duration_ms = moving_duration_ms
@@ -78,13 +78,13 @@ class Control:
         return self.__name
 
     @property
-    def state(self) -> ControlState:
+    def state(self) -> State:
         """Get the current state."""
         return self.__state
 
-    def set_desired_state(self, state: ControlState) -> None:
+    def set_desired_state(self, state: State) -> None:
         """Set the next state."""
-        if state == ControlState.COOL_DOWN:
+        if state == Control.State.COOL_DOWN:
             return
 
         self.__desired_state = state
@@ -94,11 +94,11 @@ class Control:
     def process(self, notifications: MutableSequence[str]) -> None:
         """Process the control."""
         match self.__state:
-            case ControlState.IDLE:
+            case Control.State.IDLE:
                 self.__process_idle_state(notifications)
-            case ControlState.MOVE_UP | ControlState.MOVE_DOWN:
+            case Control.State.MOVE_UP | Control.State.MOVE_DOWN:
                 self.__process_moving_states(notifications)
-            case ControlState.COOL_DOWN:
+            case Control.State.COOL_DOWN:
                 self.__process_cool_down_state(notifications)
             case unknown:
                 self.__logger.error(
@@ -107,7 +107,7 @@ class Control:
                 assert_never(unknown)
 
     def __set_state(
-        self, notifications: MutableSequence[str], state: ControlState
+        self, notifications: MutableSequence[str], state: State
     ) -> None:
         """Trigger a state transition."""
         self.__logger.info(
@@ -117,11 +117,11 @@ class Control:
         )
 
         match state:
-            case ControlState.MOVE_UP:
+            case Control.State.MOVE_UP:
                 notifications.append(f"Raising the {self.__name}.")
-            case ControlState.MOVE_DOWN:
+            case Control.State.MOVE_DOWN:
                 notifications.append(f"Lowering the {self.__name}.")
-            case ControlState.COOL_DOWN:
+            case Control.State.COOL_DOWN:
                 notifications.append(f"{self.__name} stopped.")
 
         self.__state = state
@@ -131,14 +131,14 @@ class Control:
         self, notifications: MutableSequence[str]
     ) -> None:
         """Process the idle state."""
-        if self.__desired_state == ControlState.IDLE:
+        if self.__desired_state == Control.State.IDLE:
             return
 
         # Only transitions to moving up or down are allowed.
-        if (self.__desired_state != ControlState.MOVE_UP) and (
-            self.__desired_state != ControlState.MOVE_DOWN
+        if (self.__desired_state != Control.State.MOVE_UP) and (
+            self.__desired_state != Control.State.MOVE_DOWN
         ):
-            self.__desired_state = ControlState.IDLE
+            self.__desired_state = Control.State.IDLE
             return
 
         self.__set_state(notifications, self.__desired_state)
@@ -150,11 +150,11 @@ class Control:
         # Allow immediate transitions to idle or the other moving state.
         if self.__desired_state != self.__state:
             match self.__desired_state:
-                case ControlState.MOVE_UP | ControlState.MOVE_DOWN:
+                case Control.State.MOVE_UP | Control.State.MOVE_DOWN:
                     self.__set_state(notifications, self.__desired_state)
                     return
-                case ControlState.IDLE:
-                    self.__set_state(notifications, ControlState.COOL_DOWN)
+                case Control.State.IDLE:
+                    self.__set_state(notifications, Control.State.COOL_DOWN)
                     return
 
         # Otherwise automatically transition when the time is up.
@@ -165,8 +165,8 @@ class Control:
         if elapsed_time_ms < self.__moving_duration_ms:
             return
 
-        self.__desired_state = ControlState.IDLE
-        self.__set_state(notifications, ControlState.COOL_DOWN)
+        self.__desired_state = Control.State.IDLE
+        self.__set_state(notifications, Control.State.COOL_DOWN)
 
     def __process_cool_down_state(
         self, notifications: MutableSequence[str]
@@ -180,5 +180,5 @@ class Control:
         if elapsed_time_ms < self.__cool_down_duration_ms:
             return
 
-        self.__desired_state = ControlState.IDLE
-        self.__set_state(notifications, ControlState.IDLE)
+        self.__desired_state = Control.State.IDLE
+        self.__set_state(notifications, Control.State.IDLE)
