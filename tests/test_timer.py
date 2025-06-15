@@ -1,5 +1,7 @@
 """A timer for use during testing."""
 
+from typing import override
+
 import sandman_main.timing as timing
 
 
@@ -12,24 +14,25 @@ class TestTimer(timing.Timer):
     def __init__(self) -> None:
         """Initialize the instance."""
         super().__init__()
-        self.__curr_time_ns = 0
+        self.__current_time_ns = 0
 
-    def get_current_time(self) -> int:
+    @override
+    def get_current_time_ns(self) -> int:
         """Get the current point in time."""
-        return self.__curr_time_ns
+        return self.__current_time_ns
 
     def set_current_time_ms(self, curr_time_ms: int) -> None:
         """Set the current point in time in milliseconds."""
-        self.__curr_time_ns = curr_time_ms * 1000000
+        self.__current_time_ns = curr_time_ms * 1000000
 
 
 def test_timer() -> None:
     """Test the test timer."""
     test_timer = TestTimer()
-    assert test_timer.get_current_time() == 0
+    assert test_timer.get_current_time_ns() == 0
 
     # The time since initialization should be zero.
-    initial_time = test_timer.get_current_time()
+    initial_time = test_timer.get_current_time_ns()
     duration_ms = test_timer.get_time_since_ms(initial_time)
     assert duration_ms == 0
 
@@ -39,7 +42,7 @@ def test_timer() -> None:
     assert duration_ms == 15
 
     # Advance again.
-    second_time = test_timer.get_current_time()
+    second_time = test_timer.get_current_time_ns()
     test_timer.set_current_time_ms(16)
     duration_ms = test_timer.get_time_since_ms(initial_time)
     assert duration_ms == 16

@@ -125,7 +125,7 @@ class Control:
                 notifications.append(f"{self.__name} stopped.")
 
         self.__state = state
-        self.__state_start_time = self.__timer.get_current_time()
+        self.__state_start_time = self.__timer.get_current_time_ns()
 
     def __process_idle_state(
         self, notifications: MutableSequence[str]
