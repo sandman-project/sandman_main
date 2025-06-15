@@ -1,7 +1,12 @@
 """All of the commands that can be processed."""
 
 import dataclasses
+import enum
 import logging
+from collections.abc import Mapping
+from typing import Any
+
+from controls import Control
 
 
 class StatusCommand:
@@ -14,15 +19,22 @@ class StatusCommand:
 class MoveControlCommand:
     """A command to move a control."""
 
-    control_name: str
-    direction: str
+    @enum.unique
+    class Direction(enum.Enum):
+        """Value indicating a direction in which the bed can move."""
+
+        UP = enum.auto()
+        DOWN = enum.auto()
+
+    control_name: Control.Name
+    direction: Direction
 
 
 _logger = logging.getLogger("sandman.commands")
 
 
 def parse_from_intent(
-    intent_json: dict[any],
+    intent_json: Mapping[str, Any],
 ) -> None | StatusCommand | MoveControlCommand:
     """Parse an intent from JSON.
 
@@ -56,7 +68,7 @@ def parse_from_intent(
 
 
 def _parse_from_move_control_intent(
-    intent_json: dict[any],
+    intent_json: Mapping[str, Any],
 ) -> None | MoveControlCommand:
     """Parse a move control intent from JSON."""
     try:
@@ -71,8 +83,8 @@ def _parse_from_move_control_intent(
         return None
 
     # Try to find the control name and direction in the slots.
-    control_name = None
-    direction = None
+    control_name: Control.Name | None = None
+    direction: MoveControlCommand.Direction | None = None
 
     for slot in slots:
         # Each slot must have a name and a value.
@@ -90,14 +102,16 @@ def _parse_from_move_control_intent(
 
         if slot_name == "name":
             if type(slot_value) is str:
-                control_name = slot_value
+                # TODO: Handle the error if the slot value
+                # is not a valid control name.
+                control_name = Control.Type(slot_value)
 
         elif slot_name == "direction":
             if slot_value == "raise":
-                direction = "up"
+                direction = MoveControlCommand.Direction.UP
 
             elif slot_value == "lower":
-                direction = "down"
+                direction = MoveControlCommand.Direction.DOWN
 
     if control_name is None:
         _logger.warning("Invalid move control intent: missing control name.")

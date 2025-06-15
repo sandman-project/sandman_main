@@ -5,10 +5,14 @@ import dataclasses
 import json
 import logging
 import time
+from collections.abc import Mapping
+from typing import Any, Protocol
 
 import commands
 import paho.mqtt.client
 import paho.mqtt.enums
+import paho.mqtt.reasoncodes
+from commands import MoveControlCommand, StatusCommand
 
 
 @dataclasses.dataclass
@@ -25,9 +29,11 @@ class MQTTClient:
     def __init__(self) -> None:
         """Initialize the instance."""
         self.__logger = logging.getLogger("sandman.mqtt_client")
-        self.__pending_commands = collections.deque()
-        self.__pending_notifications = collections.deque()
-        self.__is_connected = False
+        self.__pending_commands = collections.deque[
+            StatusCommand | MoveControlCommand
+        ]()
+        self.__pending_notifications = collections.deque[str]()
+        self.__is_connected: bool = False
         pass
 
     def connect(self) -> bool:
@@ -103,7 +109,7 @@ class MQTTClient:
         self.__client.loop_stop()
         self.__client.disconnect()
 
-    def pop_command(self) -> None:
+    def pop_command(self) -> StatusCommand | MoveControlCommand | None:
         """Pop the next pending command off the queue, if there is one.
 
         Returns the command or None if the queue is empty.
@@ -127,18 +133,22 @@ class MQTTClient:
         # Publish all of the pending notifications.
         while True:
             try:
-                notification = self.__pending_notifications.popleft()
+                notification: str = self.__pending_notifications.popleft()
             except IndexError:
                 break
 
             self.__publish_notification(notification)
 
+    class _UserDataForConnectHandle(Protocol):
+        pass
+
     def __handle_connect(
         self,
         client: paho.mqtt.client.Client,
-        userdata: any,
-        flags: paho.mqtt.client.ConnectFlags,
-        reason_code: paho.mqtt.reasoncodes.ReasonCode,
+        userdata: _UserDataForConnectHandle,
+        flags: paho.mqtt.client.ConnectFlags | Mapping[str, Any],
+        reason_code: paho.mqtt.reasoncodes.ReasonCode
+        | paho.mqtt.enums.MQTTErrorCode,
     ) -> None:
         """Handle connecting to the MQTT host."""
         if reason_code != 0:
@@ -164,10 +174,13 @@ class MQTTClient:
         if subscribe_result != paho.mqtt.enums.MQTTErrorCode.MQTT_ERR_SUCCESS:
             self.__logger.error("Failed to subscribe to topics.")
 
+    class _UserDataForIntentMessageHandle(Protocol):
+        pass
+
     def __handle_intent_message(
         self,
         client: paho.mqtt.client.Client,
-        userdata: any,
+        userdata: _UserDataForIntentMessageHandle,
         message: paho.mqtt.client.MQTTMessage,
     ) -> None:
         """Handle intent messages."""

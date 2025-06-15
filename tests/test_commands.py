@@ -1,6 +1,7 @@
 """Tests commands."""
 
 import sandman_main.commands as commands
+from sandman_main.controls import Control
 
 
 def test_invalid_intents() -> None:
@@ -89,8 +90,11 @@ def test_move_control_intents() -> None:
             ],
         }
     )
-    assert command.control_name == "legs"
-    assert command.direction == "up"
+    assert isinstance(command, commands.MoveControlCommand), (
+        f'command is invalid: "{command}"'
+    )
+    assert command.control_name == Control.Type.LEGS
+    assert command.direction == commands.MoveControlCommand.Direction.UP
 
     command = commands.parse_from_intent(
         {
@@ -101,5 +105,8 @@ def test_move_control_intents() -> None:
             ],
         }
     )
-    assert command.control_name == "legs"
-    assert command.direction == "down"
+    assert isinstance(command, commands.MoveControlCommand), (
+        f'command is invalid: "{command}"'
+    )
+    assert command.control_name == Control.Type.LEGS
+    assert command.direction == commands.MoveControlCommand.Direction.DOWN
