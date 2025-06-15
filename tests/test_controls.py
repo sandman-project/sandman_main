@@ -220,7 +220,7 @@ def test_control_cool_down() -> None:
     )
     assert control.state == controls.ControlState.IDLE
 
-    notifications = []
+    notifications: list[str] = []
 
     # First we need to get into the cool down state.
     control.set_desired_state(controls.ControlState.MOVE_DOWN)
@@ -263,7 +263,7 @@ def test_control_no_desired_cool_down() -> None:
         cool_down_duration_ms=5,
     )
 
-    notifications = []
+    notifications: list[str] = []
 
     assert control.state == controls.ControlState.IDLE
     control.set_desired_state(controls.ControlState.COOL_DOWN)
