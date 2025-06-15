@@ -7,6 +7,7 @@ import logging
 import time
 from typing import Any
 from collections.abc import Mapping
+from commands import StatusCommand, MoveControlCommand
 
 import paho.mqtt.reasoncodes
 
@@ -29,9 +30,9 @@ class MQTTClient:
     def __init__(self) -> None:
         """Initialize the instance."""
         self.__logger = logging.getLogger("sandman.mqtt_client")
-        self.__pending_commands = collections.deque()
-        self.__pending_notifications = collections.deque()
-        self.__is_connected = False
+        self.__pending_commands = collections.deque[StatusCommand | MoveControlCommand]()
+        self.__pending_notifications = collections.deque[str]()
+        self.__is_connected: bool = False
         pass
 
     def connect(self) -> bool:
@@ -107,7 +108,7 @@ class MQTTClient:
         self.__client.loop_stop()
         self.__client.disconnect()
 
-    def pop_command(self) -> None:
+    def pop_command(self) -> StatusCommand | MoveControlCommand | None:
         """Pop the next pending command off the queue, if there is one.
 
         Returns the command or None if the queue is empty.
@@ -131,7 +132,7 @@ class MQTTClient:
         # Publish all of the pending notifications.
         while True:
             try:
-                notification = self.__pending_notifications.popleft()
+                notification: str = self.__pending_notifications.popleft()
             except IndexError:
                 break
 

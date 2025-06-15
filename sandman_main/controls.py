@@ -5,6 +5,7 @@ Controls are used to manipulate parts of the bed.
 
 import enum
 import logging
+from typing import Literal, assert_never
 
 import timing
 
@@ -13,10 +14,10 @@ import timing
 class ControlState(enum.Enum):
     """The various states a control can be in."""
 
-    IDLE = 0
-    MOVE_UP = 1
-    MOVE_DOWN = 2
-    COOL_DOWN = 3
+    IDLE      = enum.auto()
+    MOVE_UP   = enum.auto()
+    MOVE_DOWN = enum.auto()
+    COOL_DOWN = enum.auto()
 
     @property
     def label(self) -> str:
@@ -25,13 +26,20 @@ class ControlState(enum.Enum):
             case self.MOVE_UP  : return "move up"
             case self.MOVE_DOWN: return "move down"
             case self.COOL_DOWN: return "cool down"
+            case        unknown: assert_never(unknown)
 
 class Control:
     """The state and logic for a control that manages a part of the bed."""
 
+    @enum.unique
+    class Name(enum.StrEnum):
+        BACK = "back"
+        LEGS = "legs"
+        ELEVATION = "elevation"
+
     def __init__(
         self,
-        name: str,
+        name: Name,
         timer: timer.Timer,
         moving_duration_ms: int,
         cool_down_duration_ms: int,
@@ -51,6 +59,11 @@ class Control:
             self.__moving_duration_ms,
             self.__cool_down_duration_ms,
         )
+
+    @property
+    def name(self) -> Name:
+        """Get the name."""
+        return self.__name
 
     def get_state(self) -> ControlState:
         """Get the current state."""
@@ -77,8 +90,9 @@ class Control:
                 self.__process_moving_states(notifications)
             case ControlState.COOL_DOWN:
                 self.__process_cool_down_state(notifications)
-            case _:
-                self.__logger.warning("Unhandled state '%s'.", self.__state.label)
+            case unknown:
+                self.__logger.error("Unhandled state '%s'.", self.__state.label)
+                assert_never(unknown)
 
     def __set_state(
         self, notifications: list[str], state: ControlState

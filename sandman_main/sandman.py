@@ -1,11 +1,11 @@
 """Entry point for the Sandman application."""
 
-from collections.abc import Mapping
+from collections.abc import Mapping, MutableMapping
 import logging
 import logging.handlers
 import pathlib
 import time
-from typing import Any
+from typing import Any, assert_never
 
 import commands
 import controls
@@ -19,6 +19,7 @@ class Sandman:
     def __init__(self) -> None:
         """Initialize the instance."""
         self.__timer = timer.Timer()
+        self.__controls: MutableMapping[controls.Control.Name, controls.Control] = {}
 
     def __setup_logging(self) -> None:
         """Set up logging."""
@@ -82,28 +83,27 @@ class Sandman:
 
         # Create some controls (manually for now).
         cool_down_duration_ms = 25
-        self.__controls = {}
 
-        self.__controls["back"] = controls.Control(
-            "back",
-            self.__timer,
-            moving_duration_ms=7000,
-            cool_down_duration_ms=cool_down_duration_ms,
-        )
-
-        self.__controls["legs"] = controls.Control(
-            "legs",
-            self.__timer,
-            moving_duration_ms=4000,
-            cool_down_duration_ms=cool_down_duration_ms,
-        )
-
-        self.__controls["elevation"] = controls.Control(
-            "elevation",
-            self.__timer,
-            moving_duration_ms=4000,
-            cool_down_duration_ms=cool_down_duration_ms,
-        )
+        self.__controls.update({control.name: control for control in (
+            controls.Control(
+                controls.Control.Name.BACK,
+                self.__timer,
+                moving_duration_ms=7000,
+                cool_down_duration_ms=cool_down_duration_ms,
+            ),
+            controls.Control(
+                controls.Control.Name.LEGS,
+                self.__timer,
+                moving_duration_ms=4000,
+                cool_down_duration_ms=cool_down_duration_ms,
+            ),
+            controls.Control(
+                controls.Control.Name.ELEVATION,
+                self.__timer,
+                moving_duration_ms=4000,
+                cool_down_duration_ms=cool_down_duration_ms,
+            ),
+        )})
 
         self.__mqtt_client = mqtt.MQTTClient()
 
@@ -146,11 +146,13 @@ class Sandman:
         command = self.__mqtt_client.pop_command()
 
         while command is not None:
-            if isinstance(command, commands.StatusCommand):
-                self.__mqtt_client.play_notification("Sandman is running.")
-
-            elif isinstance(command, commands.MoveControlCommand):
-                self.__process_move_control_command(command)
+            match command:
+                case commands.StatusCommand():
+                    self.__mqtt_client.play_notification("Sandman is running.")
+                case commands.MoveControlCommand():
+                    self.__process_move_control_command(command)
+                case unknown:
+                    assert_never(unknown)
 
             command = self.__mqtt_client.pop_command()
 
@@ -168,15 +170,18 @@ class Sandman:
             )
             return
 
-        if command.direction == "up":
-            control.set_desired_state(controls.ControlState.MOVE_UP)
-
-        elif command.direction == "down":
-            control.set_desired_state(controls.ControlState.MOVE_DOWN)
+        Direction = commands.MoveControlCommand.Direction
+        match command.direction:
+            case Direction.UP:
+                control.set_desired_state(controls.ControlState.MOVE_UP)
+            case Direction.DOWN:
+                control.set_desired_state(controls.ControlState.MOVE_DOWN)
+            case unknown:
+                assert_never(unknown)
 
     def __process_controls(self) -> None:
         """Process controls."""
-        notifications = []
+        notifications: list[str] = []
 
         for _name, control in self.__controls.items():
             control.process(notifications)
