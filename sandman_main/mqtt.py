@@ -6,7 +6,7 @@ import json
 import logging
 import time
 from collections.abc import Mapping
-from typing import Any
+from typing import Any, Protocol
 
 import commands
 import paho.mqtt.client
@@ -139,10 +139,13 @@ class MQTTClient:
 
             self.__publish_notification(notification)
 
+    class _UserDataForConnectHandle(Protocol):
+        pass
+
     def __handle_connect(
         self,
         client: paho.mqtt.client.Client,
-        userdata: Any,
+        userdata: _UserDataForConnectHandle,
         flags: paho.mqtt.client.ConnectFlags | Mapping[str, Any],
         reason_code: paho.mqtt.reasoncodes.ReasonCode
         | paho.mqtt.enums.MQTTErrorCode,
@@ -171,10 +174,13 @@ class MQTTClient:
         if subscribe_result != paho.mqtt.enums.MQTTErrorCode.MQTT_ERR_SUCCESS:
             self.__logger.error("Failed to subscribe to topics.")
 
+    class _UserDataForIntentMessageHandle(Protocol):
+        pass
+
     def __handle_intent_message(
         self,
         client: paho.mqtt.client.Client,
-        userdata: Any,
+        userdata: _UserDataForIntentMessageHandle,
         message: paho.mqtt.client.MQTTMessage,
     ) -> None:
         """Handle intent messages."""
