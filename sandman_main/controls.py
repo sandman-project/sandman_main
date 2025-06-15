@@ -5,6 +5,7 @@ Controls are used to manipulate parts of the bed.
 
 import enum
 import logging
+from collections.abc import MutableSequence
 from typing import assert_never
 
 import timing
@@ -90,7 +91,7 @@ class Control:
 
         self.__logger.info("Set desired state to '%s'.", state.label)
 
-    def process(self, notifications: list[str]) -> None:
+    def process(self, notifications: MutableSequence[str]) -> None:
         """Process the control."""
         match self.__state:
             case ControlState.IDLE:
@@ -106,7 +107,7 @@ class Control:
                 assert_never(unknown)
 
     def __set_state(
-        self, notifications: list[str], state: ControlState
+        self, notifications: MutableSequence[str], state: ControlState
     ) -> None:
         """Trigger a state transition."""
         self.__logger.info(
@@ -126,7 +127,9 @@ class Control:
         self.__state = state
         self.__state_start_time = self.__timer.get_current_time()
 
-    def __process_idle_state(self, notifications: list[str]) -> None:
+    def __process_idle_state(
+        self, notifications: MutableSequence[str]
+    ) -> None:
         """Process the idle state."""
         if self.__desired_state == ControlState.IDLE:
             return
@@ -140,7 +143,9 @@ class Control:
 
         self.__set_state(notifications, self.__desired_state)
 
-    def __process_moving_states(self, notifications: list[str]) -> None:
+    def __process_moving_states(
+        self, notifications: MutableSequence[str]
+    ) -> None:
         """Process the moving states."""
         # Allow immediate transitions to idle or the other moving state.
         if self.__desired_state != self.__state:
@@ -163,7 +168,9 @@ class Control:
         self.__desired_state = ControlState.IDLE
         self.__set_state(notifications, ControlState.COOL_DOWN)
 
-    def __process_cool_down_state(self, notifications: list[str]) -> None:
+    def __process_cool_down_state(
+        self, notifications: MutableSequence[str]
+    ) -> None:
         """Process the cool down state."""
         # Automatically transition when the time is up.
         elapsed_time_ms = self.__timer.get_time_since_ms(
