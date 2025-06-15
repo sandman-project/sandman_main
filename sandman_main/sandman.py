@@ -10,7 +10,7 @@ from typing import Any
 import commands
 import controls
 import mqtt
-from sandman_main import timer
+import timing
 
 
 class Sandman:

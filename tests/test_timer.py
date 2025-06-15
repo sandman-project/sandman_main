@@ -1,9 +1,9 @@
 """A timer for use during testing."""
 
-import sandman_main.timer as timer
+import sandman_main.timing as timing
 
 
-class TestTimer(timer.Timer):
+class TestTimer(timing.Timer):
     """A special-purpose timer for use with testing."""
 
     # Despite its name, this class should not be collected for testing.
