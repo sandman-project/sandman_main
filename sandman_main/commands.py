@@ -104,7 +104,7 @@ def _parse_from_move_control_intent(
             if type(slot_value) is str:
                 # TODO: Handle the error if the slot value
                 # is not a valid control name.
-                control_name = Control.Name(slot_value)
+                control_name = Control.Type(slot_value)
 
         elif slot_name == "direction":
             if slot_value == "raise":

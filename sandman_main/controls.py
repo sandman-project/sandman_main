@@ -39,12 +39,14 @@ class Control:
     """The state and logic for a control that manages a part of the bed."""
 
     @enum.unique
-    class Name(enum.StrEnum):
+    class Type(enum.StrEnum):
         """Value indicating the name of the type of control."""
 
         BACK = "back"
         LEGS = "legs"
         ELEVATION = "elevation"
+
+    type Name = Type | str
 
     def __init__(
         self,

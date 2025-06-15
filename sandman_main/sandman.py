@@ -88,19 +88,19 @@ class Sandman:
 
         control_list = (
             controls.Control(
-                controls.Control.Name.BACK,
+                controls.Control.Type.BACK,
                 self.__timer,
                 moving_duration_ms=7000,
                 cool_down_duration_ms=cool_down_duration_ms,
             ),
             controls.Control(
-                controls.Control.Name.LEGS,
+                controls.Control.Type.LEGS,
                 self.__timer,
                 moving_duration_ms=4000,
                 cool_down_duration_ms=cool_down_duration_ms,
             ),
             controls.Control(
-                controls.Control.Name.ELEVATION,
+                controls.Control.Type.ELEVATION,
                 self.__timer,
                 moving_duration_ms=4000,
                 cool_down_duration_ms=cool_down_duration_ms,
@@ -176,11 +176,10 @@ class Sandman:
             )
             return
 
-        type Direction = commands.MoveControlCommand.Direction
         match command.direction:
-            case Direction.UP:
+            case commands.MoveControlCommand.Direction.UP:
                 control.set_desired_state(controls.ControlState.MOVE_UP)
-            case Direction.DOWN:
+            case commands.MoveControlCommand.Direction.DOWN:
                 control.set_desired_state(controls.ControlState.MOVE_DOWN)
             case unknown:
                 assert_never(unknown)
