@@ -76,7 +76,8 @@ class Control:
         """Get the name."""
         return self.__name
 
-    def get_state(self) -> ControlState:
+    @property
+    def state(self) -> ControlState:
         """Get the current state."""
         return self.__state
 
