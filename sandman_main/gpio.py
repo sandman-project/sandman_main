@@ -1,4 +1,7 @@
-"""Manages GPIO, which is used by the controls to move the bed."""
+"""Manages GPIO, which is used by the controls to move the bed.
+
+NOTE - Acquires exclusive access to GPIO lines.
+"""
 
 import logging
 
@@ -14,6 +17,7 @@ class GPIOManager:
             "sandman.gpio_manager"
         )
         self.__chip: gpiod.Chip | None = None
+        self.__line_requests: dict[int, gpiod.line_request.LineRequest] = {}
 
     def initialize(self) -> None:
         """Set up the manager for use."""
@@ -31,3 +35,15 @@ class GPIOManager:
         if self.__chip is not None:
             self.__chip.close()
             self.__chip = None
+
+    @property
+    def acquired_lines(self) -> list[int]:
+        """Access a list of the acquired lines."""
+        return list(self.__line_requests)
+
+    def acquire_output_line(self, line: int) -> bool:
+        """Acquire a line for output."""
+        if self.__chip is None:
+            return False
+
+        return False
