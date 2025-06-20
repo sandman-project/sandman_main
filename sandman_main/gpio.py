@@ -44,6 +44,50 @@ class GPIOManager:
     def acquire_output_line(self, line: int) -> bool:
         """Acquire a line for output."""
         if self.__chip is None:
+            self.__logger.warning(
+                "Tried to acquire output line %d, but there is no chip.", line
+            )
             return False
 
-        return False
+        if line in self.__line_requests:
+            self.__logger.info(
+                "Ignoring request to acquire output line %d because it has "
+                + "already been acquired.",
+                line,
+            )
+            return False
+
+        try:
+            request: gpiod.LineRequest = self.__chip.request_lines(
+                consumer="sandman",
+                config={
+                    line: gpiod.LineSettings(
+                        direction=gpiod.line.Direction.OUTPUT,
+                        output_value=gpiod.line.Value.ACTIVE,
+                    )
+                },
+            )
+
+        except ValueError:
+            self.__logger.warning("Failed to acquire output line %d.", line)
+            return False
+
+        if request == False:
+            self.__logger.warning("Failed to acquire output line %d.", line)
+            return False
+
+        self.__line_requests[line] = request
+        return True
+
+    def release_output_line(self, line: int) -> bool:
+        """Release a line that was acquired output."""
+        if line not in self.__line_requests:
+            self.__logger.info(
+                "Tried to release output line %d, but was not acquired.", line
+            )
+            return False
+
+        self.__line_requests[line].release()
+        del self.__line_requests[line]
+
+        return True
