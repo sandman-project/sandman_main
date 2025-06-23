@@ -32,6 +32,9 @@ class GPIOManager:
 
     def uninitialize(self) -> None:
         """Clean up the manager after use."""
+        for line in self.acquired_lines:
+            self.release_output_line(line)
+
         if self.__chip is not None:
             self.__chip.close()
             self.__chip = None

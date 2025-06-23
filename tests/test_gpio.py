@@ -60,5 +60,12 @@ def test_gpio_acquire_lines() -> None:
     assert len(lines) == 1
     assert 3 in lines
 
+    # Can reacquire a line after it has been released.
+    assert manager.acquire_output_line(1) == True
+    lines = manager.acquired_lines
+    assert len(lines) == 2
+    assert 1 in lines
+    assert 3 in lines
+
     manager.uninitialize()
     assert len(manager.acquired_lines) == 0
