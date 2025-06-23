@@ -34,8 +34,7 @@ class Control:
         MOVE_DOWN = enum.auto()
         COOL_DOWN = enum.auto()
 
-        @property
-        def label(self) -> str:
+        def as_string(self) -> str:
             """Human readable phrase describing the control state."""
             match self:
                 case self.IDLE:
@@ -89,7 +88,7 @@ class Control:
 
         self.__desired_state = state
 
-        self.__logger.info("Set desired state to '%s'.", state.label)
+        self.__logger.info("Set desired state to '%s'.", state.as_string())
 
     def process(
         self, notifications: collections.abc.MutableSequence[str]
@@ -114,8 +113,8 @@ class Control:
         """Trigger a state transition."""
         self.__logger.info(
             "State transition from '%s' to '%s'.",
-            self.__state.label,
-            state.label,
+            self.__state.as_string(),
+            state.as_string(),
         )
 
         match state:
