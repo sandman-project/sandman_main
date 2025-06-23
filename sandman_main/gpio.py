@@ -93,4 +93,19 @@ class GPIOManager:
         self.__line_requests[line].release()
         del self.__line_requests[line]
 
+        if self.__chip is None:
+            return True
+
+        # Set the line back to input.
+        request: gpiod.LineRequest = self.__chip.request_lines(
+            consumer="sandman",
+            config={
+                line: gpiod.LineSettings(
+                    direction=gpiod.line.Direction.INPUT,
+                    output_value=gpiod.line.Value.ACTIVE,
+                )
+            },
+        )
+        request.release()
+
         return True

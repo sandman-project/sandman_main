@@ -32,40 +32,40 @@ def test_gpio_acquire_lines() -> None:
     manager: TestGPIOManager = TestGPIOManager()
 
     # Cannot acquire lines prior to initialization.
-    assert manager.acquire_output_line(1) == False
+    assert manager.acquire_output_line(2) == False
     assert len(manager.acquired_lines) == 0
 
     manager.initialize()
     assert len(manager.acquired_lines) == 0
 
-    assert manager.acquire_output_line(1) == True
+    assert manager.acquire_output_line(2) == True
     lines = manager.acquired_lines
     assert len(lines) == 1
-    assert 1 in lines
+    assert 2 in lines
 
-    assert manager.acquire_output_line(3) == True
+    assert manager.acquire_output_line(4) == True
     lines = manager.acquired_lines
     assert len(lines) == 2
-    assert 1 in lines
-    assert 3 in lines
+    assert 2 in lines
+    assert 4 in lines
 
     # Can't acquire same line twice.
-    assert manager.acquire_output_line(1) == False
+    assert manager.acquire_output_line(2) == False
 
     # Can't release a line that hasn't been acquired.
-    assert manager.release_output_line(2) == False
+    assert manager.release_output_line(3) == False
 
-    assert manager.release_output_line(1) == True
+    assert manager.release_output_line(2) == True
     lines = manager.acquired_lines
     assert len(lines) == 1
-    assert 3 in lines
+    assert 4 in lines
 
     # Can reacquire a line after it has been released.
-    assert manager.acquire_output_line(1) == True
+    assert manager.acquire_output_line(2) == True
     lines = manager.acquired_lines
     assert len(lines) == 2
-    assert 1 in lines
-    assert 3 in lines
+    assert 2 in lines
+    assert 4 in lines
 
     manager.uninitialize()
     assert len(manager.acquired_lines) == 0
