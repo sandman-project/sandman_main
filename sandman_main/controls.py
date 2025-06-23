@@ -22,7 +22,7 @@ class Control:
         LEGS = "legs"
         ELEVATION = "elevation"
 
-    type Name = Type | str
+    Name: typing.TypeAlias = Type | str
     """String-like value indicating the name of a type of control."""
 
     @enum.unique
