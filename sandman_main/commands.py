@@ -21,7 +21,7 @@ class MoveControlCommand:
 
     @enum.unique
     class Direction(enum.Enum):
-        """Value indicating a direction in which the bed can move."""
+        """Value indicating a direction in which the control can move."""
 
         UP = enum.auto()
         DOWN = enum.auto()
