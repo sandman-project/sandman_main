@@ -15,16 +15,16 @@ class TestTimer(timing.Timer):
     def __init__(self) -> None:
         """Initialize the instance."""
         super().__init__()
-        self.__current_time_ns = 0
+        self.__curr_time_ns = 0
 
     @typing.override
     def get_current_time_ns(self) -> int:
         """Get the current point in time."""
-        return self.__current_time_ns
+        return self.__curr_time_ns
 
     def set_current_time_ms(self, curr_time_ms: int) -> None:
         """Set the current point in time in milliseconds."""
-        self.__current_time_ns = curr_time_ms * 1000000
+        self.__curr_time_ns = curr_time_ms * 1000000
 
 
 def test_timer() -> None:
