@@ -90,9 +90,7 @@ def test_move_control_intents() -> None:
             ],
         }
     )
-    assert isinstance(command, commands.MoveControlCommand), (
-        f'command is invalid: "{command}"'
-    )
+    assert isinstance(command, commands.MoveControlCommand)
     assert command.control_name == controls.Control.Type.LEGS
     assert command.direction == commands.MoveControlCommand.Direction.UP
 
@@ -105,8 +103,6 @@ def test_move_control_intents() -> None:
             ],
         }
     )
-    assert isinstance(command, commands.MoveControlCommand), (
-        f'command is invalid: "{command}"'
-    )
+    assert isinstance(command, commands.MoveControlCommand)
     assert command.control_name == controls.Control.Type.LEGS
     assert command.direction == commands.MoveControlCommand.Direction.DOWN
