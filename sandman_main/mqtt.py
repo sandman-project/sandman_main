@@ -1,18 +1,17 @@
 """Everything needed to use MQTT."""
 
 import collections
+import collections.abc
 import dataclasses
 import json
 import logging
 import time
-from collections.abc import Mapping
-from typing import Any, Protocol
+import typing
 
 import commands
 import paho.mqtt.client
 import paho.mqtt.enums
 import paho.mqtt.reasoncodes
-from commands import MoveControlCommand, StatusCommand
 
 
 @dataclasses.dataclass
@@ -30,7 +29,7 @@ class MQTTClient:
         """Initialize the instance."""
         self.__logger = logging.getLogger("sandman.mqtt_client")
         self.__pending_commands = collections.deque[
-            StatusCommand | MoveControlCommand
+            commands.StatusCommand | commands.MoveControlCommand
         ]()
         self.__pending_notifications = collections.deque[str]()
         self.__is_connected: bool = False
@@ -109,7 +108,9 @@ class MQTTClient:
         self.__client.loop_stop()
         self.__client.disconnect()
 
-    def pop_command(self) -> StatusCommand | MoveControlCommand | None:
+    def pop_command(
+        self,
+    ) -> commands.StatusCommand | commands.MoveControlCommand | None:
         """Pop the next pending command off the queue, if there is one.
 
         Returns the command or None if the queue is empty.
@@ -139,14 +140,15 @@ class MQTTClient:
 
             self.__publish_notification(notification)
 
-    class _UserDataForConnectHandle(Protocol):
+    class _UserDataForConnectHandle(typing.Protocol):
         pass
 
     def __handle_connect(
         self,
         client: paho.mqtt.client.Client,
         userdata: _UserDataForConnectHandle,
-        flags: paho.mqtt.client.ConnectFlags | Mapping[str, Any],
+        flags: paho.mqtt.client.ConnectFlags
+        | collections.abc.Mapping[str, typing.Any],
         reason_code: paho.mqtt.reasoncodes.ReasonCode
         | paho.mqtt.enums.MQTTErrorCode,
     ) -> None:
@@ -174,7 +176,7 @@ class MQTTClient:
         if subscribe_result != paho.mqtt.enums.MQTTErrorCode.MQTT_ERR_SUCCESS:
             self.__logger.error("Failed to subscribe to topics.")
 
-    class _UserDataForIntentMessageHandle(Protocol):
+    class _UserDataForIntentMessageHandle(typing.Protocol):
         pass
 
     def __handle_intent_message(

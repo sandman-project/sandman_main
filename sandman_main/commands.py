@@ -1,12 +1,12 @@
 """All of the commands that can be processed."""
 
+import collections.abc
 import dataclasses
 import enum
 import logging
-from collections.abc import Mapping
-from typing import Any
+import typing
 
-from controls import Control
+import controls
 
 
 class StatusCommand:
@@ -26,7 +26,7 @@ class MoveControlCommand:
         UP = enum.auto()
         DOWN = enum.auto()
 
-    control_name: Control.Name
+    control_name: controls.Control.Name
     direction: Direction
 
 
@@ -34,7 +34,7 @@ _logger = logging.getLogger("sandman.commands")
 
 
 def parse_from_intent(
-    intent_json: Mapping[str, Any],
+    intent_json: collections.abc.Mapping[str, typing.Any],
 ) -> None | StatusCommand | MoveControlCommand:
     """Parse an intent from JSON.
 
@@ -68,7 +68,7 @@ def parse_from_intent(
 
 
 def _parse_from_move_control_intent(
-    intent_json: Mapping[str, Any],
+    intent_json: collections.abc.Mapping[str, typing.Any],
 ) -> None | MoveControlCommand:
     """Parse a move control intent from JSON."""
     try:
@@ -83,7 +83,7 @@ def _parse_from_move_control_intent(
         return None
 
     # Try to find the control name and direction in the slots.
-    control_name: Control.Name | None = None
+    control_name: controls.Control.Name | None = None
     direction: MoveControlCommand.Direction | None = None
 
     for slot in slots:
@@ -104,7 +104,7 @@ def _parse_from_move_control_intent(
             if type(slot_value) is str:
                 # TODO: Handle the error if the slot value
                 # is not a valid control name.
-                control_name = Control.Type(slot_value)
+                control_name = controls.Control.Type(slot_value)
 
         elif slot_name == "direction":
             if slot_value == "raise":

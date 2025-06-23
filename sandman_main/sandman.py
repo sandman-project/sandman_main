@@ -1,11 +1,11 @@
 """Entry point for the Sandman application."""
 
+import collections.abc
 import logging
 import logging.handlers
 import pathlib
 import time
-from collections.abc import Mapping, MutableMapping
-from typing import Any, assert_never
+import typing
 
 import commands
 import controls
@@ -19,7 +19,7 @@ class Sandman:
     def __init__(self) -> None:
         """Initialize the instance."""
         self.__timer = timing.Timer()
-        self.__controls: MutableMapping[
+        self.__controls: collections.abc.MutableMapping[
             controls.Control.Name, controls.Control
         ] = {}
 
@@ -47,7 +47,9 @@ class Sandman:
 
         self.__logger = logger
 
-    def initialize(self, options: Mapping[str, Any] | None = None) -> bool:
+    def initialize(
+        self, options: collections.abc.Mapping[str, typing.Any] | None = None
+    ) -> bool:
         """Initialize the app.
 
         Returns True if initialization was successful, False otherwise.
@@ -158,7 +160,7 @@ class Sandman:
                 case commands.MoveControlCommand():
                     self.__process_move_control_command(command)
                 case unknown:
-                    assert_never(unknown)
+                    typing.assert_never(unknown)
 
             command = self.__mqtt_client.pop_command()
 
@@ -182,7 +184,7 @@ class Sandman:
             case commands.MoveControlCommand.Direction.DOWN:
                 control.set_desired_state(controls.Control.State.MOVE_DOWN)
             case unknown:
-                assert_never(unknown)
+                typing.assert_never(unknown)
 
     def __process_controls(self) -> None:
         """Process controls."""
@@ -195,7 +197,9 @@ class Sandman:
             self.__mqtt_client.play_notification(notification)
 
 
-def create_app(options: Mapping[str, Any] | None = None) -> Sandman | None:
+def create_app(
+    options: collections.abc.Mapping[str, typing.Any] | None = None,
+) -> Sandman | None:
     """Create an instance of the app.
 
     NOTE - If the options dictionary does not contain a key BASE_DIR, the base

@@ -1,16 +1,18 @@
 """Home for test fixtures, etc."""
 
-from collections.abc import Generator
+import collections.abc
 
 import pytest
 
-from sandman_main.sandman import Sandman, create_app
+import sandman_main.sandman as sandman_module
 
 
 @pytest.fixture
-def sandman() -> Generator[Sandman]:
+def sandman() -> collections.abc.Generator[sandman_module.Sandman]:
     """Return a test app."""
-    app = create_app({"BASE_DIR": "tests/data/", "TESTING": True})
+    app = sandman_module.create_app(
+        {"BASE_DIR": "tests/data/", "TESTING": True}
+    )
     if app is None:
         raise ValueError("failed to create app")
     yield app
