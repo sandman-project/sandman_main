@@ -140,13 +140,10 @@ class MQTTClient:
 
             self.__publish_notification(notification)
 
-    class _UserDataForConnectHandle(typing.Protocol):
-        pass
-
     def __handle_connect(
         self,
         client: paho.mqtt.client.Client,
-        userdata: _UserDataForConnectHandle,
+        userdata: None,
         flags: paho.mqtt.client.ConnectFlags
         | collections.abc.Mapping[str, typing.Any],
         reason_code: paho.mqtt.reasoncodes.ReasonCode
@@ -176,13 +173,10 @@ class MQTTClient:
         if subscribe_result != paho.mqtt.enums.MQTTErrorCode.MQTT_ERR_SUCCESS:
             self.__logger.error("Failed to subscribe to topics.")
 
-    class _UserDataForIntentMessageHandle(typing.Protocol):
-        pass
-
     def __handle_intent_message(
         self,
         client: paho.mqtt.client.Client,
-        userdata: _UserDataForIntentMessageHandle,
+        userdata: None,
         message: paho.mqtt.client.MQTTMessage,
     ) -> None:
         """Handle intent messages."""
