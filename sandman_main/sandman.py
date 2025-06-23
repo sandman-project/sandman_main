@@ -19,9 +19,7 @@ class Sandman:
     def __init__(self) -> None:
         """Initialize the instance."""
         self.__timer = timing.Timer()
-        self.__controls: collections.abc.MutableMapping[
-            str, controls.Control
-        ] = {}
+        self.__controls: dict[str, controls.Control] = {}
 
     def __setup_logging(self) -> None:
         """Set up logging."""

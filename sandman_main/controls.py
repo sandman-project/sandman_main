@@ -3,7 +3,6 @@
 Controls are used to manipulate parts of the bed.
 """
 
-import collections.abc
 import enum
 import logging
 import typing
@@ -79,9 +78,7 @@ class Control:
 
         self.__logger.info("Set desired state to '%s'.", state.as_string())
 
-    def process(
-        self, notifications: collections.abc.MutableSequence[str]
-    ) -> None:
+    def process(self, notifications: list[str]) -> None:
         """Process the control."""
         match self.__state:
             case Control.State.IDLE:
@@ -96,9 +93,7 @@ class Control:
                 )
                 typing.assert_never(unknown)
 
-    def __set_state(
-        self, notifications: collections.abc.MutableSequence[str], state: State
-    ) -> None:
+    def __set_state(self, notifications: list[str], state: State) -> None:
         """Trigger a state transition."""
         self.__logger.info(
             "State transition from '%s' to '%s'.",
@@ -117,9 +112,7 @@ class Control:
         self.__state = state
         self.__state_start_time = self.__timer.get_current_time()
 
-    def __process_idle_state(
-        self, notifications: collections.abc.MutableSequence[str]
-    ) -> None:
+    def __process_idle_state(self, notifications: list[str]) -> None:
         """Process the idle state."""
         if self.__desired_state == Control.State.IDLE:
             return
@@ -133,9 +126,7 @@ class Control:
 
         self.__set_state(notifications, self.__desired_state)
 
-    def __process_moving_states(
-        self, notifications: collections.abc.MutableSequence[str]
-    ) -> None:
+    def __process_moving_states(self, notifications: list[str]) -> None:
         """Process the moving states."""
         # Allow immediate transitions to idle or the other moving state.
         if self.__desired_state != self.__state:
@@ -158,9 +149,7 @@ class Control:
         self.__desired_state = Control.State.IDLE
         self.__set_state(notifications, Control.State.COOL_DOWN)
 
-    def __process_cool_down_state(
-        self, notifications: collections.abc.MutableSequence[str]
-    ) -> None:
+    def __process_cool_down_state(self, notifications: list[str]) -> None:
         """Process the cool down state."""
         # Automatically transition when the time is up.
         elapsed_time_ms = self.__timer.get_time_since_ms(
