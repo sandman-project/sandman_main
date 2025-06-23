@@ -15,17 +15,6 @@ class Control:
     """The state and logic for a control that manages a part of the bed."""
 
     @enum.unique
-    class Type(enum.StrEnum):
-        """Value indicating a known name of the type of control."""
-
-        BACK = "back"
-        LEGS = "legs"
-        ELEVATION = "elevation"
-
-    Name: typing.TypeAlias = Type | str
-    """String-like value indicating the name of a type of control."""
-
-    @enum.unique
     class State(enum.Enum):
         """The various states a control can be in."""
 
@@ -50,7 +39,7 @@ class Control:
 
     def __init__(
         self,
-        name: Name,
+        name: typing.Literal["back", "legs", "elevation"] | str,
         timer: timing.Timer,
         moving_duration_ms: int,
         cool_down_duration_ms: int,
@@ -72,7 +61,7 @@ class Control:
         )
 
     @property
-    def name(self) -> Name:
+    def name(self) -> str:
         """Get the name."""
         return self.__name
 

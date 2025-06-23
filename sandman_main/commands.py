@@ -6,8 +6,6 @@ import enum
 import logging
 import typing
 
-import controls
-
 
 class StatusCommand:
     """A command to get the status."""
@@ -26,7 +24,7 @@ class MoveControlCommand:
         UP = enum.auto()
         DOWN = enum.auto()
 
-    control_name: controls.Control.Name
+    control_name: str
     direction: Direction
 
 
@@ -83,7 +81,7 @@ def _parse_from_move_control_intent(
         return None
 
     # Try to find the control name and direction in the slots.
-    control_name: controls.Control.Name | None = None
+    control_name: str | None = None
     direction: MoveControlCommand.Direction | None = None
 
     for slot in slots:
@@ -102,9 +100,7 @@ def _parse_from_move_control_intent(
 
         if slot_name == "name":
             if type(slot_value) is str:
-                # TODO: Handle the error if the slot value
-                # is not a valid control name.
-                control_name = controls.Control.Type(slot_value)
+                control_name = slot_value
 
         elif slot_name == "direction":
             if slot_value == "raise":

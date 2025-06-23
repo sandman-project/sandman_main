@@ -20,7 +20,7 @@ class Sandman:
         """Initialize the instance."""
         self.__timer = timing.Timer()
         self.__controls: collections.abc.MutableMapping[
-            controls.Control.Name, controls.Control
+            str, controls.Control
         ] = {}
 
     def __setup_logging(self) -> None:
@@ -90,19 +90,19 @@ class Sandman:
 
         control_list = (
             controls.Control(
-                controls.Control.Type.BACK,
+                "back",
                 self.__timer,
                 moving_duration_ms=7000,
                 cool_down_duration_ms=cool_down_duration_ms,
             ),
             controls.Control(
-                controls.Control.Type.LEGS,
+                "legs",
                 self.__timer,
                 moving_duration_ms=4000,
                 cool_down_duration_ms=cool_down_duration_ms,
             ),
             controls.Control(
-                controls.Control.Type.ELEVATION,
+                "elevation",
                 self.__timer,
                 moving_duration_ms=4000,
                 cool_down_duration_ms=cool_down_duration_ms,
