@@ -18,7 +18,7 @@ class TestTimer(timing.Timer):
         self.__curr_time_ns = 0
 
     @typing.override
-    def get_current_time_ns(self) -> int:
+    def get_current_time(self) -> int:
         """Get the current point in time."""
         return self.__curr_time_ns
 
@@ -30,10 +30,10 @@ class TestTimer(timing.Timer):
 def test_timer() -> None:
     """Test the test timer."""
     test_timer = TestTimer()
-    assert test_timer.get_current_time_ns() == 0
+    assert test_timer.get_current_time() == 0
 
     # The time since initialization should be zero.
-    initial_time = test_timer.get_current_time_ns()
+    initial_time = test_timer.get_current_time()
     duration_ms = test_timer.get_time_since_ms(initial_time)
     assert duration_ms == 0
 
@@ -43,7 +43,7 @@ def test_timer() -> None:
     assert duration_ms == 15
 
     # Advance again.
-    second_time = test_timer.get_current_time_ns()
+    second_time = test_timer.get_current_time()
     test_timer.set_current_time_ms(16)
     duration_ms = test_timer.get_time_since_ms(initial_time)
     assert duration_ms == 16
