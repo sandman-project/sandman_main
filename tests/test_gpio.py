@@ -69,3 +69,31 @@ def test_gpio_acquire_lines() -> None:
 
     manager.uninitialize()
     assert len(manager.acquired_lines) == 0
+
+
+def test_gpio_line_values() -> None:
+    """Test setting values on GPIO lines."""
+    manager: TestGPIOManager = TestGPIOManager()
+
+    # Cannot set lines before initialization.
+    assert manager.set_line_active(2) == False
+    assert manager.set_line_inactive(4) == False
+    manager.initialize()
+
+    # Cannot set lines before acquiring.
+    assert manager.set_line_active(3) == False
+    assert manager.set_line_inactive(2) == False
+
+    assert manager.acquire_output_line(3) == True
+    assert manager.set_line_active(3) == True
+    assert manager.set_line_inactive(3) == True
+
+    # Cannot set lines after releasing.
+    assert manager.release_output_line(3) == True
+    assert manager.set_line_active(3) == False
+    assert manager.set_line_inactive(3) == False
+
+    # Cannot set lines after uninitialization.
+    manager.uninitialize()
+    assert manager.set_line_active(3) == False
+    assert manager.set_line_inactive(4) == False

@@ -86,7 +86,8 @@ class GPIOManager:
         """Release a line that was acquired output."""
         if line not in self.__line_requests:
             self.__logger.info(
-                "Tried to release output line %d, but was not acquired.", line
+                "Tried to release output line %d, but it is not acquired.",
+                line,
             )
             return False
 
@@ -108,4 +109,28 @@ class GPIOManager:
         )
         request.release()
 
+        return True
+
+    def set_line_active(self, line: int) -> bool:
+        """Set the line to active (high)."""
+        # For some reason our values need to be inverted. This may be an issue
+        # with the hardware set up.
+        return self.__set_line_value(line, gpiod.line.Value.INACTIVE)
+
+    def set_line_inactive(self, line: int) -> bool:
+        """Set the line to inactive (low)."""
+        # For some reason our values need to be inverted. This may be an issue
+        # with the hardware set up.
+        return self.__set_line_value(line, gpiod.line.Value.ACTIVE)
+
+    def __set_line_value(self, line: int, value: gpiod.line.Value) -> bool:
+        """Set the value of an output line."""
+        if line not in self.__line_requests:
+            self.__logger.info(
+                "Tried to set output line %d value, but it is not acquired.",
+                line,
+            )
+            return False
+
+        self.__line_requests[line].set_value(line, value)
         return True
