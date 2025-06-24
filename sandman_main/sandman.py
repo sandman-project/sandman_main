@@ -82,7 +82,6 @@ class Sandman:
 
         # Create some controls (manually for now).
         cool_down_duration_ms = 25
-
         control_list = (
             controls.Control(
                 "back",
