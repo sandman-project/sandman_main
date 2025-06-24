@@ -1,6 +1,5 @@
 """Entry point for the Sandman application."""
 
-import collections.abc
 import logging
 import logging.handlers
 import pathlib
@@ -45,9 +44,7 @@ class Sandman:
 
         self.__logger = logger
 
-    def initialize(
-        self, options: collections.abc.Mapping[str, typing.Any] | None = None
-    ) -> bool:
+    def initialize(self, options: dict[str, typing.Any] | None = None) -> bool:
         """Initialize the app.
 
         Returns True if initialization was successful, False otherwise.
@@ -196,7 +193,7 @@ class Sandman:
 
 
 def create_app(
-    options: collections.abc.Mapping[str, typing.Any] | None = None,
+    options: dict[str, typing.Any] | None = None,
 ) -> Sandman | None:
     """Create an instance of the app.
 

@@ -1,6 +1,5 @@
 """All of the commands that can be processed."""
 
-import collections.abc
 import dataclasses
 import enum
 import logging
@@ -32,7 +31,7 @@ _logger = logging.getLogger("sandman.commands")
 
 
 def parse_from_intent(
-    intent_json: collections.abc.Mapping[str, typing.Any],
+    intent_json: dict[str, typing.Any],
 ) -> None | StatusCommand | MoveControlCommand:
     """Parse an intent from JSON.
 
@@ -66,7 +65,7 @@ def parse_from_intent(
 
 
 def _parse_from_move_control_intent(
-    intent_json: collections.abc.Mapping[str, typing.Any],
+    intent_json: dict[str, typing.Any],
 ) -> None | MoveControlCommand:
     """Parse a move control intent from JSON."""
     try:

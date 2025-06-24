@@ -1,7 +1,6 @@
 """Everything needed to use MQTT."""
 
 import collections
-import collections.abc
 import dataclasses
 import json
 import logging
@@ -144,8 +143,7 @@ class MQTTClient:
         self,
         client: paho.mqtt.client.Client,
         userdata: None,
-        flags: paho.mqtt.client.ConnectFlags
-        | collections.abc.Mapping[str, typing.Any],
+        flags: paho.mqtt.client.ConnectFlags | dict[str, typing.Any],
         reason_code: paho.mqtt.reasoncodes.ReasonCode
         | paho.mqtt.enums.MQTTErrorCode,
     ) -> None:
