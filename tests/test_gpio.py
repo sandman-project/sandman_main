@@ -3,20 +3,9 @@
 import sandman_main.gpio as gpio
 
 
-class TestGPIOManager(gpio.GPIOManager):
-    """A special-purpose manager for use with testing."""
-
-    # Despite its name, this class should not be collected for testing.
-    __test__ = False
-
-    def __init__(self) -> None:
-        """Initialize the instance."""
-        super().__init__()
-
-
 def test_gpio_initialization() -> None:
     """Test GPIO initialization."""
-    manager: TestGPIOManager = TestGPIOManager()
+    manager: gpio.GPIOManager = gpio.GPIOManager(is_live_mode=False)
     assert manager is not None
     assert len(manager.acquired_lines) == 0
 
@@ -29,7 +18,7 @@ def test_gpio_initialization() -> None:
 
 def test_gpio_acquire_lines() -> None:
     """Test acquiring GPIO lines."""
-    manager: TestGPIOManager = TestGPIOManager()
+    manager: gpio.GPIOManager = gpio.GPIOManager(is_live_mode=False)
 
     # Cannot acquire lines prior to initialization.
     assert manager.acquire_output_line(2) == False
@@ -73,7 +62,7 @@ def test_gpio_acquire_lines() -> None:
 
 def test_gpio_line_values() -> None:
     """Test setting values on GPIO lines."""
-    manager: TestGPIOManager = TestGPIOManager()
+    manager: gpio.GPIOManager = gpio.GPIOManager(is_live_mode=False)
 
     # Cannot set lines before initialization.
     assert manager.set_line_active(2) == False

@@ -11,16 +11,29 @@ import gpiod
 class GPIOManager:
     """Manages access to GPIO functionality."""
 
-    def __init__(self) -> None:
-        """Initialize the instance."""
+    def __init__(self, is_live_mode: bool) -> None:
+        """Initialize the instance.
+
+        is_live_mode - If this is True, then actions will affect the actual
+            GPIO chip, otherwise they will not (which is appropriate for
+            running tests off device).
+        """
         self.__logger: logging.Logger = logging.getLogger(
             "sandman.gpio_manager"
         )
         self.__chip: gpiod.Chip | None = None
-        self.__line_requests: dict[int, gpiod.line_request.LineRequest] = {}
+        self.__line_requests: dict[
+            int, gpiod.line_request.LineRequest | None
+        ] = {}
+        self.__is_live_mode: bool = is_live_mode
+        self.__initialized: bool = False
 
     def initialize(self) -> None:
         """Set up the manager for use."""
+        if self.__is_live_mode == False:
+            self.__initialized = True
+            return
+
         chip_path: str = "/dev/gpiochip0"
 
         try:
@@ -29,6 +42,8 @@ class GPIOManager:
         except OSError:
             self.__logger.warning("Failed to open GPIO chip %s", chip_path)
             return
+
+        self.__initialized = True
 
     def uninitialize(self) -> None:
         """Clean up the manager after use."""
@@ -39,6 +54,8 @@ class GPIOManager:
             self.__chip.close()
             self.__chip = None
 
+        self.__initialized = False
+
     @property
     def acquired_lines(self) -> list[int]:
         """Access a list of the acquired lines."""
@@ -46,7 +63,10 @@ class GPIOManager:
 
     def acquire_output_line(self, line: int) -> bool:
         """Acquire a line for output."""
-        if self.__chip is None:
+        if self.__initialized == False:
+            return False
+
+        if (self.__chip is None) and (self.__is_live_mode == True):
             self.__logger.warning(
                 "Tried to acquire output line %d, but there is no chip.", line
             )
@@ -59,6 +79,11 @@ class GPIOManager:
                 line,
             )
             return False
+
+        # When not in live mode, pretend that the line was requested.
+        if self.__is_live_mode == False:
+            self.__line_requests[line] = None
+            return True
 
         try:
             request: gpiod.LineRequest = self.__chip.request_lines(
@@ -91,7 +116,10 @@ class GPIOManager:
             )
             return False
 
-        self.__line_requests[line].release()
+        # Only release the line in live mode (it will be None otherwise).
+        if self.__is_live_mode == True:
+            self.__line_requests[line].release()
+
         del self.__line_requests[line]
 
         if self.__chip is None:
@@ -132,5 +160,8 @@ class GPIOManager:
             )
             return False
 
-        self.__line_requests[line].set_value(line, value)
+        # Only set the value in live mode (it will be None otherwise).
+        if self.__is_live_mode == True:
+            self.__line_requests[line].set_value(line, value)
+
         return True
