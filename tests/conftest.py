@@ -4,13 +4,13 @@ import collections.abc
 
 import pytest
 
-import sandman_main.sandman as sandman_module
+import sandman_main.sandman as sandman
 
 
 @pytest.fixture
-def sandman() -> collections.abc.Generator[sandman_module.Sandman]:
+def sandman_instance() -> collections.abc.Generator[sandman.Sandman]:
     """Return a test app."""
-    app = sandman_module.create_app(
+    app = sandman.create_app(
         {"BASE_DIR": "tests/data/", "TESTING": True}
     )
     if app is None:
