@@ -6,6 +6,7 @@ Controls are used to manipulate parts of the bed.
 import enum
 import logging
 
+import gpio
 import timer
 
 
@@ -34,6 +35,9 @@ class Control:
         self,
         name: str,
         timer: timer.Timer,
+        gpio_manager: gpio.GPIOManager,
+        up_gpio_line: int,
+        down_gpio_line: int,
         moving_duration_ms: int,
         cool_down_duration_ms: int,
     ) -> None:
@@ -43,12 +47,17 @@ class Control:
         self.__desired_state = ControlState.IDLE
         self.__name = name
         self.__timer = timer
+        self.__gpio_manager: gpio.GPIOManager = gpio_manager
+        self.__up_gpio_line: int = up_gpio_line
+        self.__down_gpio_line: int = down_gpio_line
         self.__moving_duration_ms = moving_duration_ms
         self.__cool_down_duration_ms = cool_down_duration_ms
 
         self.__logger.info(
-            "Initialized control with moving duration %d ms and cool down "
-            + "duration %d ms.",
+            "Initialized control with GPIO lines [up %d, down %d] and with "
+            + "moving duration %d ms and cool down duration %d ms.",
+            self.__up_gpio_line,
+            self.__down_gpio_line,
             self.__moving_duration_ms,
             self.__cool_down_duration_ms,
         )

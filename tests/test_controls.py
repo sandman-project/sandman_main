@@ -1,17 +1,22 @@
 """Tests controls."""
 
 import sandman_main.controls as controls
+import sandman_main.gpio as gpio
 import tests.test_timer as test_timer
 
 
 def test_control_initialization() -> None:
     """Test control initialization."""
     timer = test_timer.TestTimer()
+    gpio_manager = gpio.GPIOManager(is_live_mode=False)
 
     # A control should start off idle.
     control = controls.Control(
         "test_initialization",
         timer,
+        gpio_manager,
+        up_gpio_line=1,
+        down_gpio_line=2,
         moving_duration_ms=10,
         cool_down_duration_ms=5,
     )
@@ -38,7 +43,13 @@ def _test_control_moving_flow(
     timer = test_timer.TestTimer()
 
     control = controls.Control(
-        control_name, timer, moving_duration_ms, cool_down_duration_ms
+        control_name,
+        timer,
+        gpio.GPIOManager(is_live_mode=False),
+        up_gpio_line=1,
+        down_gpio_line=2,
+        moving_duration_ms=moving_duration_ms,
+        cool_down_duration_ms=cool_down_duration_ms,
     )
     assert control.get_state() == controls.ControlState.IDLE
 
@@ -112,6 +123,9 @@ def test_control_moving_switch() -> None:
     control = controls.Control(
         "test_moving_switch",
         test_timer.TestTimer(),
+        gpio.GPIOManager(is_live_mode=False),
+        up_gpio_line=1,
+        down_gpio_line=2,
         moving_duration_ms=10,
         cool_down_duration_ms=5,
     )
@@ -143,7 +157,10 @@ def test_control_moving_switch_time() -> None:
     control = controls.Control(
         "test_moving_switch_time",
         timer,
-        moving_duration_ms,
+        gpio.GPIOManager(is_live_mode=False),
+        up_gpio_line=1,
+        down_gpio_line=2,
+        moving_duration_ms=moving_duration_ms,
         cool_down_duration_ms=5,
     )
 
@@ -172,9 +189,14 @@ def test_control_moving_switch_time() -> None:
 
 def test_control_moving_stop() -> None:
     """Test that we can stop moving."""
+    gpio_manager = gpio.GPIOManager(is_live_mode=False)
+
     control = controls.Control(
         "test_moving_stop",
         test_timer.TestTimer(),
+        gpio_manager,
+        up_gpio_line=1,
+        down_gpio_line=2,
         moving_duration_ms=10,
         cool_down_duration_ms=5,
     )
@@ -195,6 +217,9 @@ def test_control_moving_stop() -> None:
     control = controls.Control(
         "test_moving_stop",
         test_timer.TestTimer(),
+        gpio_manager,
+        up_gpio_line=1,
+        down_gpio_line=2,
         moving_duration_ms=10,
         cool_down_duration_ms=5,
     )
@@ -216,7 +241,13 @@ def test_control_cool_down() -> None:
     moving_duration_ms = 4
     cool_down_duration_ms = 10
     control = controls.Control(
-        "test_cool_down", timer, moving_duration_ms, cool_down_duration_ms
+        "test_cool_down",
+        timer,
+        gpio.GPIOManager(is_live_mode=False),
+        up_gpio_line=1,
+        down_gpio_line=2,
+        moving_duration_ms=moving_duration_ms,
+        cool_down_duration_ms=cool_down_duration_ms,
     )
     assert control.get_state() == controls.ControlState.IDLE
 
@@ -259,6 +290,9 @@ def test_control_no_desired_cool_down() -> None:
     control = controls.Control(
         "test_desired_cool_down",
         test_timer.TestTimer(),
+        gpio.GPIOManager(is_live_mode=False),
+        up_gpio_line=1,
+        down_gpio_line=2,
         moving_duration_ms=10,
         cool_down_duration_ms=5,
     )
