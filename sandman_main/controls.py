@@ -60,11 +60,6 @@ class Control:
         )
 
     @property
-    def name(self) -> str:
-        """Get the name."""
-        return self.__name
-
-    @property
     def state(self) -> State:
         """Get the current state."""
         return self.__state
