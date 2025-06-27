@@ -18,7 +18,7 @@ class Sandman:
     def __init__(self) -> None:
         """Initialize the instance."""
         self.__timer = timing.Timer()
-        self.__controls: dict[str, controls.Control] = {}
+        self.__controls: dict[str, controls.Control]
 
     def __setup_logging(self) -> None:
         """Set up logging."""
@@ -82,29 +82,27 @@ class Sandman:
 
         # Create some controls (manually for now).
         cool_down_duration_ms = 25
-        control_list = (
-            controls.Control(
-                "back",
-                self.__timer,
-                moving_duration_ms=7000,
-                cool_down_duration_ms=cool_down_duration_ms,
-            ),
-            controls.Control(
-                "legs",
-                self.__timer,
-                moving_duration_ms=4000,
-                cool_down_duration_ms=cool_down_duration_ms,
-            ),
-            controls.Control(
-                "elevation",
-                self.__timer,
-                moving_duration_ms=4000,
-                cool_down_duration_ms=cool_down_duration_ms,
-            ),
+        self.__controls = {}
+
+        self.__controls["back"] = controls.Control(
+            "back",
+            self.__timer,
+            moving_duration_ms=7000,
+            cool_down_duration_ms=cool_down_duration_ms,
         )
 
-        self.__controls.update(
-            {control.name: control for control in control_list}
+        self.__controls["legs"] = controls.Control(
+            "legs",
+            self.__timer,
+            moving_duration_ms=4000,
+            cool_down_duration_ms=cool_down_duration_ms,
+        )
+
+        self.__controls["elevation"] = controls.Control(
+            "elevation",
+            self.__timer,
+            moving_duration_ms=4000,
+            cool_down_duration_ms=cool_down_duration_ms,
         )
 
         self.__mqtt_client = mqtt.MQTTClient()
