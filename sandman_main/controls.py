@@ -7,7 +7,7 @@ import enum
 import logging
 import typing
 
-import timing
+import timer
 
 
 class Control:
@@ -39,7 +39,7 @@ class Control:
     def __init__(
         self,
         name: str,
-        timer: timing.Timer,
+        timer: timer.Timer,
         moving_duration_ms: int,
         cool_down_duration_ms: int,
     ) -> None:

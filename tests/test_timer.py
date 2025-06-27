@@ -2,10 +2,10 @@
 
 import typing
 
-import sandman_main.timing as timing
+import sandman_main.timer as timer
 
 
-class TestTimer(timing.Timer):
+class TestTimer(timer.Timer):
     """A special-purpose timer for use with testing."""
 
     # Despite its name, this class should not be collected for testing.

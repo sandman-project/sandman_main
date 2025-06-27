@@ -9,7 +9,8 @@ import typing
 import commands
 import controls
 import mqtt
-import timing
+
+import sandman_main.timer as timer
 
 
 class Sandman:
@@ -17,7 +18,7 @@ class Sandman:
 
     def __init__(self) -> None:
         """Initialize the instance."""
-        self.__timer = timing.Timer()
+        self.__timer = timer.Timer()
         self.__controls: dict[str, controls.Control]
 
     def __setup_logging(self) -> None:
