@@ -38,7 +38,7 @@ class Control:
 
     def __init__(
         self,
-        name: typing.Literal["back", "legs", "elevation"] | str,
+        name: str,
         timer: timing.Timer,
         moving_duration_ms: int,
         cool_down_duration_ms: int,
