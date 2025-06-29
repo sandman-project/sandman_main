@@ -1,5 +1,7 @@
 """Tests controls."""
 
+import pytest
+
 import sandman_main.controls as controls
 import sandman_main.gpio as gpio
 import tests.test_timer as test_timer
@@ -15,14 +17,24 @@ def test_control_initialization() -> None:
         "test_initialization",
         timer,
         gpio_manager,
-        up_gpio_line=1,
-        down_gpio_line=2,
         moving_duration_ms=10,
         cool_down_duration_ms=5,
     )
     assert control.get_state() == controls.ControlState.IDLE
 
     notifications = []
+
+    # We cannot use the control before it is initialized.
+    with pytest.raises(ValueError):
+        control.set_desired_state(controls.ControlState.IDLE)
+
+    with pytest.raises(ValueError):
+        control.process(notifications)
+
+    # Initialization will fail if either line is negative or if the lines are
+    # the same.
+    assert control.initialize(up_gpio_line=-1, down_gpio_line=-5) == False
+    # Missing tests!
 
     # It should remain idle without change.
     control.process(notifications)

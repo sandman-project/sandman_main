@@ -36,8 +36,6 @@ class Control:
         name: str,
         timer: timer.Timer,
         gpio_manager: gpio.GPIOManager,
-        up_gpio_line: int,
-        down_gpio_line: int,
         moving_duration_ms: int,
         cool_down_duration_ms: int,
     ) -> None:
@@ -48,10 +46,30 @@ class Control:
         self.__name = name
         self.__timer = timer
         self.__gpio_manager: gpio.GPIOManager = gpio_manager
-        self.__up_gpio_line: int = up_gpio_line
-        self.__down_gpio_line: int = down_gpio_line
+        self.__up_gpio_line: int = -1
+        self.__down_gpio_line: int = -1
         self.__moving_duration_ms = moving_duration_ms
         self.__cool_down_duration_ms = cool_down_duration_ms
+        self.__initialized = False
+
+    def initialize(self, up_gpio_line: int, down_gpio_line: int) -> bool:
+        """Initialize the control for use."""
+        if self.__initialized == True:
+            self.__logger.error(
+                "Tried to initialize control, but it's already initialized."
+            )
+            return False
+
+        if up_gpio_line < 0:
+            return False
+
+        if down_gpio_line < 0:
+            return False
+
+        self.__up_gpio_line = up_gpio_line
+        self.__down_gpio_line = down_gpio_line
+
+        self.__initialized = True
 
         self.__logger.info(
             "Initialized control with GPIO lines [up %d, down %d] and with "
@@ -62,12 +80,19 @@ class Control:
             self.__cool_down_duration_ms,
         )
 
+        return True
+
     def get_state(self) -> ControlState:
         """Get the current state."""
         return self.__state
 
     def set_desired_state(self, state: ControlState) -> None:
         """Set the next state."""
+        if self.__initialized == False:
+            raise ValueError(
+                "Attempted to set state on an uninitialized control."
+            )
+
         if state == ControlState.COOL_DOWN:
             return
 
@@ -79,6 +104,9 @@ class Control:
 
     def process(self, notifications: list[str]) -> None:
         """Process the control."""
+        if self.__initialized == False:
+            raise ValueError("Attempted to process an uninitialized control.")
+
         if self.__state == ControlState.IDLE:
             self.__process_idle_state(notifications)
             return
