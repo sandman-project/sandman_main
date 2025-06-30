@@ -36,8 +36,6 @@ class Control:
         name: str,
         timer: timer.Timer,
         gpio_manager: gpio.GPIOManager,
-        moving_duration_ms: int,
-        cool_down_duration_ms: int,
     ) -> None:
         """Initialize the instance."""
         self.__logger = logging.getLogger("sandman.control." + name)
@@ -48,11 +46,17 @@ class Control:
         self.__gpio_manager: gpio.GPIOManager = gpio_manager
         self.__up_gpio_line: int = -1
         self.__down_gpio_line: int = -1
-        self.__moving_duration_ms = moving_duration_ms
-        self.__cool_down_duration_ms = cool_down_duration_ms
+        self.__moving_duration_ms: int = -1
+        self.__cool_down_duration_ms: int = -1
         self.__initialized = False
 
-    def initialize(self, up_gpio_line: int, down_gpio_line: int) -> bool:
+    def initialize(
+        self,
+        up_gpio_line: int,
+        down_gpio_line: int,
+        moving_duration_ms: int,
+        cool_down_duration_ms: int,
+    ) -> bool:
         """Initialize the control for use."""
         if self.__initialized == True:
             self.__logger.error(
@@ -61,13 +65,41 @@ class Control:
             return False
 
         if up_gpio_line < 0:
+            self.__logger.error(
+                "Invalid GPIO line for moving up: %d.", up_gpio_line
+            )
             return False
 
         if down_gpio_line < 0:
+            self.__logger.error(
+                "Invalid GPIO line for moving down: %d.", down_gpio_line
+            )
+            return False
+
+        if up_gpio_line == down_gpio_line:
+            self.__logger.error(
+                "Control must use different GPIO lines for moving up and down."
+            )
+            return False
+
+        if moving_duration_ms < 1:
+            self.__logger.error(
+                "Invalid moving duration for control: %d ms.",
+                moving_duration_ms,
+            )
+            return False
+
+        if cool_down_duration_ms < 0:
+            self.__logger.error(
+                "Invalid cool down duration for control: %d ms.",
+                cool_down_duration_ms,
+            )
             return False
 
         self.__up_gpio_line = up_gpio_line
         self.__down_gpio_line = down_gpio_line
+        self.__moving_duration_ms = moving_duration_ms
+        self.__cool_down_duration_ms = cool_down_duration_ms
 
         self.__initialized = True
 
@@ -80,6 +112,18 @@ class Control:
             self.__cool_down_duration_ms,
         )
 
+        return True
+
+    def uninitialize(self) -> bool:
+        """Uninitialize the control after use."""
+        if self.__initialized == False:
+            self.__logger.error(
+                "Tried to uninitialize control, but it's already "
+                + "uninitialized."
+            )
+            return False
+
+        self.__initialized = False
         return True
 
     def get_state(self) -> ControlState:
