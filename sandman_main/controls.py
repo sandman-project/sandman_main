@@ -101,6 +101,22 @@ class Control:
         self.__moving_duration_ms = moving_duration_ms
         self.__cool_down_duration_ms = cool_down_duration_ms
 
+        # Try to acquire the GPIO lines.
+        if (
+            self.__gpio_manager.acquire_output_line(self.__up_gpio_line)
+            == False
+        ):
+            self.__logger.error("Failed to acquire up GPIO line.")
+            return False
+
+        if (
+            self.__gpio_manager.acquire_output_line(self.__down_gpio_line)
+            == False
+        ):
+            self.__logger.error("Failed to acquire down GPIO line.")
+            self.__gpio_manager.release_output_line(self.__up_gpio_line)
+            return False
+
         self.__initialized = True
 
         self.__logger.info(
@@ -123,7 +139,28 @@ class Control:
             )
             return False
 
+        # Try to release both GPIO lines.
+        release_failed = False
+
+        if (
+            self.__gpio_manager.release_output_line(self.__up_gpio_line)
+            == False
+        ):
+            self.__logger.error("Failed to release up GPIO line.")
+            release_failed = True
+
+        if (
+            self.__gpio_manager.release_output_line(self.__down_gpio_line)
+            == False
+        ):
+            self.__logger.error("Failed to release down GPIO line.")
+            release_failed = True
+
         self.__initialized = False
+
+        if release_failed == True:
+            return False
+
         return True
 
     def get_state(self) -> ControlState:
