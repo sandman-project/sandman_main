@@ -117,6 +117,11 @@ class Control:
             self.__gpio_manager.release_output_line(self.__up_gpio_line)
             return False
 
+        # This should be redundant, but set both lines to an active just in
+        # case.
+        self.__gpio_manager.set_line_inactive(self.__up_gpio_line)
+        self.__gpio_manager.set_line_inactive(self.__down_gpio_line)
+
         self.__initialized = True
 
         self.__logger.info(
@@ -216,14 +221,25 @@ class Control:
             _state_names[state.value],
         )
 
-        if state == ControlState.MOVE_UP:
-            notifications.append(f"Raising the {self.__name}.")
+        match state:
+            case ControlState.MOVE_UP:
+                self.__gpio_manager.set_line_inactive(self.__down_gpio_line)
+                self.__gpio_manager.set_line_active(self.__up_gpio_line)
+                notifications.append(f"Raising the {self.__name}.")
 
-        elif state == ControlState.MOVE_DOWN:
-            notifications.append(f"Lowering the {self.__name}.")
+            case ControlState.MOVE_DOWN:
+                self.__gpio_manager.set_line_inactive(self.__up_gpio_line)
+                self.__gpio_manager.set_line_active(self.__down_gpio_line)
+                notifications.append(f"Lowering the {self.__name}.")
 
-        elif state == ControlState.COOL_DOWN:
-            notifications.append(f"{self.__name} stopped.")
+            case ControlState.COOL_DOWN:
+                self.__gpio_manager.set_line_inactive(self.__up_gpio_line)
+                self.__gpio_manager.set_line_inactive(self.__down_gpio_line)
+                notifications.append(f"{self.__name} stopped.")
+
+            case _:
+                self.__gpio_manager.set_line_inactive(self.__up_gpio_line)
+                self.__gpio_manager.set_line_inactive(self.__down_gpio_line)
 
         self.__state = state
         self.__state_start_time = self.__timer.get_current_time()
