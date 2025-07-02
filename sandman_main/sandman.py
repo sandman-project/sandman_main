@@ -7,6 +7,7 @@ import time
 
 import commands
 import controls
+import gpio
 import mqtt
 import timer
 
@@ -17,6 +18,9 @@ class Sandman:
     def __init__(self) -> None:
         """Initialize the instance."""
         self.__timer = timer.Timer()
+        # Change this if you want to run off device.
+        self.__gpio_manager = gpio.GPIOManager(is_live_mode=True)
+        self.__controls: dict[str, controls.Control] = {}
 
     def __setup_logging(self) -> None:
         """Set up logging."""
@@ -72,6 +76,7 @@ class Sandman:
         # Now that we have a base directory, set up logging.
         self.__setup_logging()
 
+        self.__gpio_manager.initialize()
         return True
 
     def run(self) -> None:
@@ -80,28 +85,53 @@ class Sandman:
 
         # Create some controls (manually for now).
         cool_down_duration_ms = 25
-        self.__controls = {}
 
-        self.__controls["back"] = controls.Control(
-            "back",
-            self.__timer,
-            moving_duration_ms=7000,
-            cool_down_duration_ms=cool_down_duration_ms,
+        back_control = controls.Control(
+            "back", self.__timer, self.__gpio_manager
         )
 
-        self.__controls["legs"] = controls.Control(
-            "legs",
-            self.__timer,
-            moving_duration_ms=4000,
-            cool_down_duration_ms=cool_down_duration_ms,
+        if (
+            back_control.initialize(
+                up_gpio_line=20,
+                down_gpio_line=16,
+                moving_duration_ms=7000,
+                cool_down_duration_ms=cool_down_duration_ms,
+            )
+            == True
+        ):
+            self.__controls["back"] = back_control
+
+        legs_control = controls.Control(
+            "legs", self.__timer, self.__gpio_manager
         )
 
-        self.__controls["elevation"] = controls.Control(
+        if (
+            legs_control.initialize(
+                up_gpio_line=13,
+                down_gpio_line=26,
+                moving_duration_ms=4000,
+                cool_down_duration_ms=cool_down_duration_ms,
+            )
+            == True
+        ):
+            self.__controls["legs"] = legs_control
+
+        elevation_control = controls.Control(
             "elevation",
             self.__timer,
-            moving_duration_ms=4000,
-            cool_down_duration_ms=cool_down_duration_ms,
+            self.__gpio_manager,
         )
+
+        if (
+            elevation_control.initialize(
+                up_gpio_line=5,
+                down_gpio_line=19,
+                moving_duration_ms=4000,
+                cool_down_duration_ms=cool_down_duration_ms,
+            )
+            == True
+        ):
+            self.__controls["elevation"] = elevation_control
 
         self.__mqtt_client = mqtt.MQTTClient()
 
@@ -126,6 +156,10 @@ class Sandman:
         self.__mqtt_client.stop()
 
         self.__logger.info("Sandman exiting.")
+
+        # Uninitialize the controls.
+
+        self.__gpio_manager.uninitialize()
 
     def is_testing(self) -> bool:
         """Return whether the app is in test mode."""
