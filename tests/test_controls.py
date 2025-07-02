@@ -16,6 +16,7 @@ def test_control_initialization() -> None:
     # A control should start off idle.
     control = controls.Control("test_initialization", timer, gpio_manager)
     assert control.get_state() == controls.ControlState.IDLE
+    assert len(gpio_manager.acquired_lines) == 0
 
     notifications = []
 
@@ -40,6 +41,8 @@ def test_control_initialization() -> None:
         )
         == False
     )
+    assert len(gpio_manager.acquired_lines) == 0
+
     assert (
         control.initialize(
             up_gpio_line=1,
@@ -49,6 +52,8 @@ def test_control_initialization() -> None:
         )
         == False
     )
+    assert len(gpio_manager.acquired_lines) == 0
+
     assert (
         control.initialize(
             up_gpio_line=1,
@@ -58,6 +63,8 @@ def test_control_initialization() -> None:
         )
         == False
     )
+    assert len(gpio_manager.acquired_lines) == 0
+
     # The moving duration must be greater than zero and cool down must not be
     # negative.
     assert (
@@ -69,6 +76,8 @@ def test_control_initialization() -> None:
         )
         == False
     )
+    assert len(gpio_manager.acquired_lines) == 0
+
     assert (
         control.initialize(
             up_gpio_line=1,
@@ -78,6 +87,7 @@ def test_control_initialization() -> None:
         )
         == False
     )
+    assert len(gpio_manager.acquired_lines) == 0
 
     # This one should finally succeeded.
     assert (
@@ -89,6 +99,11 @@ def test_control_initialization() -> None:
         )
         == True
     )
+    acquired_lines = gpio_manager.acquired_lines
+    assert len(acquired_lines) == 2
+    assert 1 in acquired_lines
+    assert 2 in acquired_lines
+
     # But we can't initialize again.
     assert (
         control.initialize(
@@ -99,6 +114,10 @@ def test_control_initialization() -> None:
         )
         == False
     )
+    acquired_lines = gpio_manager.acquired_lines
+    assert len(acquired_lines) == 2
+    assert 1 in acquired_lines
+    assert 2 in acquired_lines
 
     # It should remain idle without change.
     control.process(notifications)
@@ -108,8 +127,65 @@ def test_control_initialization() -> None:
     control.process(notifications)
     assert control.get_state() == controls.ControlState.IDLE
 
+    # Make another control to test that different controls cannot use the same
+    # GPIO lines.
+    control2 = controls.Control("test_initialization2", timer, gpio_manager)
+
+    assert (
+        control2.initialize(
+            up_gpio_line=1,
+            down_gpio_line=3,
+            moving_duration_ms=10,
+            cool_down_duration_ms=5,
+        )
+        == False
+    )
+    acquired_lines = gpio_manager.acquired_lines
+    assert len(acquired_lines) == 2
+    assert 1 in acquired_lines
+    assert 2 in acquired_lines
+
+    assert (
+        control2.initialize(
+            up_gpio_line=3,
+            down_gpio_line=2,
+            moving_duration_ms=10,
+            cool_down_duration_ms=5,
+        )
+        == False
+    )
+    acquired_lines = gpio_manager.acquired_lines
+    assert len(acquired_lines) == 2
+    assert 1 in acquired_lines
+    assert 2 in acquired_lines
+
+    # This one should succeed.
+    assert (
+        control2.initialize(
+            up_gpio_line=3,
+            down_gpio_line=4,
+            moving_duration_ms=10,
+            cool_down_duration_ms=5,
+        )
+        == True
+    )
+    acquired_lines = gpio_manager.acquired_lines
+    assert len(acquired_lines) == 4
+    assert 1 in acquired_lines
+    assert 2 in acquired_lines
+    assert 3 in acquired_lines
+    assert 4 in acquired_lines
+
+    assert control2.uninitialize() == True
+    acquired_lines = gpio_manager.acquired_lines
+    assert len(acquired_lines) == 2
+    assert 1 in acquired_lines
+    assert 2 in acquired_lines
+
     assert control.uninitialize() == True
+    assert len(gpio_manager.acquired_lines) == 0
     assert control.uninitialize() == False
+    assert len(gpio_manager.acquired_lines) == 0
 
     gpio_manager.uninitialize()
 
