@@ -1,7 +1,5 @@
 """A timer for use during testing."""
 
-import typing
-
 import sandman_main.timer as timer
 
 
@@ -11,13 +9,13 @@ class TestTimer(timer.Timer):
     # Despite its name, this class should not be collected for testing.
     __test__ = False
 
-    @typing.override
+    # @typing.override
     def __init__(self) -> None:
         """Initialize the instance."""
         super().__init__()
         self.__curr_time_ns = 0
 
-    @typing.override
+    # @typing.override
     def get_current_time(self) -> int:
         """Get the current point in time."""
         return self.__curr_time_ns

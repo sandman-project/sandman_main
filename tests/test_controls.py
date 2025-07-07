@@ -22,7 +22,7 @@ def test_control_initialization() -> None:
 
     # We cannot use the control before it is initialized.
     with pytest.raises(ValueError):
-        control.set_desired_state(controls.ControlState.IDLE)
+        control.set_desired_state(controls.Control.State.IDLE)
 
     with pytest.raises(ValueError):
         control.process(notifications)
@@ -521,7 +521,7 @@ def test_control_no_desired_cool_down() -> None:
     assert control.state == controls.Control.State.MOVE_UP
     control.set_desired_state(controls.Control.State.COOL_DOWN)
     control.process(notifications)
-    assert control.get_state() == controls.Control.State.MOVE_UP
+    assert control.state == controls.Control.State.MOVE_UP
 
     assert control.uninitialize() == True
     gpio_manager.uninitialize()
