@@ -1,0 +1,26 @@
+root = true
+
+[*]
+indent_style = tab
+indent_size = 4
+trim_trailing_whitespace = true
+
+[*.py]
+indent_style = space
+indent_size = 4
+
+[*.{yaml,toml}]
+indent_style = space
+indent_size = 2
+
+[*.md]
+indent_style = unset
+indent_size = unset
+# In Markdown, two or more trailing spaces at the end of a line indicates a line break.
+trim_trailing_whitespace = false
+
+[uv.lock]
+indent_style = unset
+indent_size = unset
+trim_trailing_whitespace = unset
+insert_final_newline = unset

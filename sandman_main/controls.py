@@ -5,31 +5,37 @@ Controls are used to manipulate parts of the bed.
 
 import enum
 import logging
+import typing
 
 import gpio
 import timer
 
 
-@enum.unique
-class ControlState(enum.Enum):
-    """The various states a control can be in."""
-
-    IDLE = 0
-    MOVE_UP = 1
-    MOVE_DOWN = 2
-    COOL_DOWN = 3
-
-
-_state_names = [
-    "idle",  # IDLE
-    "move up",  # MOVE_UP
-    "move down",  # MOVE_DOWN
-    "cool down",  # COOL_DOWN
-]
-
-
 class Control:
     """The state and logic for a control that manages a part of the bed."""
+
+    @enum.unique
+    class State(enum.Enum):
+        """The various states a control can be in."""
+
+        IDLE = enum.auto()
+        MOVE_UP = enum.auto()
+        MOVE_DOWN = enum.auto()
+        COOL_DOWN = enum.auto()
+
+        def as_string(self) -> str:
+            """Human readable phrase describing the control state."""
+            match self:
+                case self.IDLE:
+                    return "idle"
+                case self.MOVE_UP:
+                    return "move up"
+                case self.MOVE_DOWN:
+                    return "move down"
+                case self.COOL_DOWN:
+                    return "cool down"
+                case unknown:
+                    typing.assert_never(unknown)
 
     def __init__(
         self,
@@ -39,8 +45,8 @@ class Control:
     ) -> None:
         """Initialize the instance."""
         self.__logger = logging.getLogger("sandman.control." + name)
-        self.__state = ControlState.IDLE
-        self.__desired_state = ControlState.IDLE
+        self.__state = Control.State.IDLE
+        self.__desired_state = Control.State.IDLE
         self.__name = name
         self.__timer = timer
         self.__gpio_manager: gpio.GPIOManager = gpio_manager
@@ -168,71 +174,63 @@ class Control:
 
         return True
 
-    def get_state(self) -> ControlState:
+    @property
+    def state(self) -> State:
         """Get the current state."""
         return self.__state
 
-    def set_desired_state(self, state: ControlState) -> None:
+    def set_desired_state(self, state: State) -> None:
         """Set the next state."""
         if self.__initialized == False:
             raise ValueError(
                 "Attempted to set state on an uninitialized control."
             )
 
-        if state == ControlState.COOL_DOWN:
+        if state == Control.State.COOL_DOWN:
             return
 
         self.__desired_state = state
 
-        self.__logger.info(
-            "Set desired state to '%s'.", _state_names[state.value]
-        )
+        self.__logger.info("Set desired state to '%s'.", state.as_string())
 
     def process(self, notifications: list[str]) -> None:
         """Process the control."""
         if self.__initialized == False:
             raise ValueError("Attempted to process an uninitialized control.")
 
-        if self.__state == ControlState.IDLE:
-            self.__process_idle_state(notifications)
-            return
+        match self.__state:
+            case Control.State.IDLE:
+                self.__process_idle_state(notifications)
+            case Control.State.MOVE_UP | Control.State.MOVE_DOWN:
+                self.__process_moving_states(notifications)
+            case Control.State.COOL_DOWN:
+                self.__process_cool_down_state(notifications)
+            case unknown:
+                self.__logger.error(
+                    "Unhandled state '%s'.", self.__state.label
+                )
+                typing.assert_never(unknown)
 
-        if (self.__state == ControlState.MOVE_UP) or (
-            self.__state == ControlState.MOVE_DOWN
-        ):
-            self.__process_moving_states(notifications)
-            return
-
-        if self.__state == ControlState.COOL_DOWN:
-            self.__process_cool_down_state(notifications)
-            return
-
-        self.__logger.warning(
-            "Unhandled state '%s'.", _state_names[self.__state.value]
-        )
-
-    def __set_state(
-        self, notifications: list[str], state: ControlState
-    ) -> None:
+    def __set_state(self, notifications: list[str], state: State) -> None:
         """Trigger a state transition."""
         self.__logger.info(
             "State transition from '%s' to '%s'.",
-            _state_names[self.__state.value],
-            _state_names[state.value],
+            self.__state.as_string(),
+            state.as_string(),
         )
 
         match state:
-            case ControlState.MOVE_UP:
+            case Control.State.MOVE_UP:
                 self.__gpio_manager.set_line_inactive(self.__down_gpio_line)
                 self.__gpio_manager.set_line_active(self.__up_gpio_line)
                 notifications.append(f"Raising the {self.__name}.")
 
-            case ControlState.MOVE_DOWN:
+            case Control.State.MOVE_DOWN:
                 self.__gpio_manager.set_line_inactive(self.__up_gpio_line)
                 self.__gpio_manager.set_line_active(self.__down_gpio_line)
                 notifications.append(f"Lowering the {self.__name}.")
 
-            case ControlState.COOL_DOWN:
+            case Control.State.COOL_DOWN:
                 self.__gpio_manager.set_line_inactive(self.__up_gpio_line)
                 self.__gpio_manager.set_line_inactive(self.__down_gpio_line)
                 notifications.append(f"{self.__name} stopped.")
@@ -246,14 +244,14 @@ class Control:
 
     def __process_idle_state(self, notifications: list[str]) -> None:
         """Process the idle state."""
-        if self.__desired_state == ControlState.IDLE:
+        if self.__desired_state == Control.State.IDLE:
             return
 
         # Only transitions to moving up or down are allowed.
-        if (self.__desired_state != ControlState.MOVE_UP) and (
-            self.__desired_state != ControlState.MOVE_DOWN
+        if (self.__desired_state != Control.State.MOVE_UP) and (
+            self.__desired_state != Control.State.MOVE_DOWN
         ):
-            self.__desired_state = ControlState.IDLE
+            self.__desired_state = Control.State.IDLE
             return
 
         self.__set_state(notifications, self.__desired_state)
@@ -262,16 +260,13 @@ class Control:
         """Process the moving states."""
         # Allow immediate transitions to idle or the other moving state.
         if self.__desired_state != self.__state:
-            if self.__desired_state in [
-                ControlState.MOVE_UP,
-                ControlState.MOVE_DOWN,
-            ]:
-                self.__set_state(notifications, self.__desired_state)
-                return
-
-            if self.__desired_state == ControlState.IDLE:
-                self.__set_state(notifications, ControlState.COOL_DOWN)
-                return
+            match self.__desired_state:
+                case Control.State.MOVE_UP | Control.State.MOVE_DOWN:
+                    self.__set_state(notifications, self.__desired_state)
+                    return
+                case Control.State.IDLE:
+                    self.__set_state(notifications, Control.State.COOL_DOWN)
+                    return
 
         # Otherwise automatically transition when the time is up.
         elapsed_time_ms = self.__timer.get_time_since_ms(
@@ -281,8 +276,8 @@ class Control:
         if elapsed_time_ms < self.__moving_duration_ms:
             return
 
-        self.__desired_state = ControlState.IDLE
-        self.__set_state(notifications, ControlState.COOL_DOWN)
+        self.__desired_state = Control.State.IDLE
+        self.__set_state(notifications, Control.State.COOL_DOWN)
 
     def __process_cool_down_state(self, notifications: list[str]) -> None:
         """Process the cool down state."""
@@ -294,5 +289,5 @@ class Control:
         if elapsed_time_ms < self.__cool_down_duration_ms:
             return
 
-        self.__desired_state = ControlState.IDLE
-        self.__set_state(notifications, ControlState.IDLE)
+        self.__desired_state = Control.State.IDLE
+        self.__set_state(notifications, Control.State.IDLE)

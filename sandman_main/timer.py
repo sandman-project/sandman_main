@@ -16,6 +16,5 @@ class Timer:
 
     def get_time_since_ms(self, other_time: int) -> int:
         """Get the time in milliseconds since another point in time."""
-        curr_time = self.get_current_time()
-
-        return (curr_time - other_time) // 1000000
+        current_time_ns = self.get_current_time()
+        return (current_time_ns - other_time) // 1000000

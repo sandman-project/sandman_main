@@ -38,7 +38,7 @@ Comparing against True and False is acceptable.
 
 ```python
 # Okay:
-if (skip == True):
-   return
+if skip == True:
+    return
 ```
 

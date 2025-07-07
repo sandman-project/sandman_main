@@ -1,7 +1,9 @@
 """All of the commands that can be processed."""
 
 import dataclasses
+import enum
 import logging
+import typing
 
 
 class StatusCommand:
@@ -14,15 +16,22 @@ class StatusCommand:
 class MoveControlCommand:
     """A command to move a control."""
 
+    @enum.unique
+    class Direction(enum.Enum):
+        """Value indicating a direction in which the control can move."""
+
+        UP = enum.auto()
+        DOWN = enum.auto()
+
     control_name: str
-    direction: str
+    direction: Direction
 
 
 _logger = logging.getLogger("sandman.commands")
 
 
 def parse_from_intent(
-    intent_json: dict[any],
+    intent_json: dict[str, typing.Any],
 ) -> None | StatusCommand | MoveControlCommand:
     """Parse an intent from JSON.
 
@@ -56,7 +65,7 @@ def parse_from_intent(
 
 
 def _parse_from_move_control_intent(
-    intent_json: dict[any],
+    intent_json: dict[str, typing.Any],
 ) -> None | MoveControlCommand:
     """Parse a move control intent from JSON."""
     try:
@@ -71,8 +80,8 @@ def _parse_from_move_control_intent(
         return None
 
     # Try to find the control name and direction in the slots.
-    control_name = None
-    direction = None
+    control_name: str | None = None
+    direction: MoveControlCommand.Direction | None = None
 
     for slot in slots:
         # Each slot must have a name and a value.
@@ -94,10 +103,10 @@ def _parse_from_move_control_intent(
 
         elif slot_name == "direction":
             if slot_value == "raise":
-                direction = "up"
+                direction = MoveControlCommand.Direction.UP
 
             elif slot_value == "lower":
-                direction = "down"
+                direction = MoveControlCommand.Direction.DOWN
 
     if control_name is None:
         _logger.warning("Invalid move control intent: missing control name.")
