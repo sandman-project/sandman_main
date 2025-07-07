@@ -158,6 +158,10 @@ class Sandman:
         self.__logger.info("Sandman exiting.")
 
         # Uninitialize the controls.
+        for _name, control in self.__controls.items():
+            control.uninitialize()
+
+        self.__controls.clear()
 
         self.__gpio_manager.uninitialize()
 
