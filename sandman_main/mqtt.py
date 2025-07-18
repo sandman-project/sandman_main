@@ -144,9 +144,8 @@ class MQTTClient:
         self,
         client: paho.mqtt.client.Client,
         userdata: None,
-        flags: paho.mqtt.client.ConnectFlags | dict[str, typing.Any],
-        reason_code: paho.mqtt.reasoncodes.ReasonCode
-        | paho.mqtt.enums.MQTTErrorCode,
+        flags: dict[str, typing.Any],
+        reason_code: int,
     ) -> None:
         """Handle connecting to the MQTT host."""
         if reason_code != 0:
