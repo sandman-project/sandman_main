@@ -14,6 +14,10 @@ Please make all feature requests in the Sandman Discord. Only use Issues for rep
  ```bash
  uvx pre-commit run --all-files
  ```
+  - We use mypy to perform STRICT type checking on non-test code. To run mypy with uv, you can use the following command from the repository root.
+  ```bash
+  uv run mypy
+  ```
   - Add any relevant tests. Ensure that all the tests pass. To run the tests with uv, you can use the following command from the repository root.
   ```bash
   uv run pytest
