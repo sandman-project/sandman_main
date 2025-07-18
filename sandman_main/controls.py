@@ -25,16 +25,16 @@ class Control:
         def as_string(self) -> str:
             """Human readable phrase describing the control state."""
             match self:
-                case self.IDLE:
+                case Control.State.IDLE:
                     return "idle"
-                case self.MOVE_UP:
+                case Control.State.MOVE_UP:
                     return "move up"
-                case self.MOVE_DOWN:
+                case Control.State.MOVE_DOWN:
                     return "move down"
-                case self.COOL_DOWN:
+                case Control.State.COOL_DOWN:
                     return "cool down"
-                case unknown:
-                    typing.assert_never(unknown)
+                case _:
+                    typing.assert_never(self)
 
     def __init__(
         self,

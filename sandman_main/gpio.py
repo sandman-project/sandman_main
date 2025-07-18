@@ -66,12 +66,6 @@ class GPIOManager:
         if self.__initialized == False:
             return False
 
-        if (self.__chip is None) and (self.__is_live_mode == True):
-            self.__logger.warning(
-                "Tried to acquire output line %d, but there is no chip.", line
-            )
-            return False
-
         if line in self.__line_requests:
             self.__logger.info(
                 "Ignoring request to acquire output line %d because it has "
@@ -84,6 +78,12 @@ class GPIOManager:
         if self.__is_live_mode == False:
             self.__line_requests[line] = None
             return True
+
+        if self.__chip is None:
+            self.__logger.warning(
+                "Tried to acquire output line %d, but there is no chip.", line
+            )
+            return False
 
         try:
             request: gpiod.LineRequest = self.__chip.request_lines(
@@ -100,7 +100,7 @@ class GPIOManager:
             self.__logger.warning("Failed to acquire output line %d.", line)
             return False
 
-        if request == False:
+        if bool(request) == False:
             self.__logger.warning("Failed to acquire output line %d.", line)
             return False
 
@@ -118,7 +118,10 @@ class GPIOManager:
 
         # Only release the line in live mode (it will be None otherwise).
         if self.__is_live_mode == True:
-            self.__line_requests[line].release()
+            request = self.__line_requests[line]
+
+            if request is not None:
+                request.release()
 
         del self.__line_requests[line]
 
@@ -126,7 +129,7 @@ class GPIOManager:
             return True
 
         # Set the line back to input.
-        request: gpiod.LineRequest = self.__chip.request_lines(
+        temp_request: gpiod.LineRequest = self.__chip.request_lines(
             consumer="sandman",
             config={
                 line: gpiod.LineSettings(
@@ -135,7 +138,7 @@ class GPIOManager:
                 )
             },
         )
-        request.release()
+        temp_request.release()
 
         return True
 
@@ -162,6 +165,9 @@ class GPIOManager:
 
         # Only set the value in live mode (it will be None otherwise).
         if self.__is_live_mode == True:
-            self.__line_requests[line].set_value(line, value)
+            request = self.__line_requests[line]
+
+            if request is not None:
+                request.set_value(line, value)
 
         return True
