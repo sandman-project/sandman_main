@@ -6,6 +6,38 @@ What follows is intended to document as clearly as possible the coding standards
 
 Sandman's Python coding standards are based on [PEP 8](https://peps.python.org/pep-0008/). However, there some points that differ. Sandman uses pre-commit to perform linting and formatting using Ruff.
 
+In order to be more explicit and avoid mixing name spaces, do not use from imports unless performing a relative import within a Sandman module. 
+
+```python
+# Right:
+import typing
+import enum
+
+# Okay within sandman_main, for example.
+from . import commands
+```
+
+```python
+# Wrong:
+from typing import Any
+from enum import Enum
+```
+
+This also means to not use import aliasing. The exception to this is that in test code it is acceptable to alias away the top level of the import as follows:
+
+```python
+# Right:
+import typing
+
+# Okay within tests, for example.
+import sandman_main.commands as commands
+```
+
+```python
+# Wrong:
+import typing as ty
+```
+
 Use f-strings and type hints/annotations whenever possible.
 
 ```python
