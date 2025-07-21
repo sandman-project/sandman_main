@@ -100,7 +100,7 @@ class GPIOManager:
             self.__logger.warning("Failed to acquire output line %d.", line)
             return False
 
-        if bool(request) == False:
+        if request == False:
             self.__logger.warning("Failed to acquire output line %d.", line)
             return False
 
