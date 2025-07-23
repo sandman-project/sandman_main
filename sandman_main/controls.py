@@ -23,7 +23,7 @@ class Control:
         COOL_DOWN = enum.auto()
 
         def as_string(self) -> str:
-            """Human readable phrase describing the control state."""
+            """Return a readable phrase describing the control state."""
             match self:
                 case Control.State.IDLE:
                     return "idle"

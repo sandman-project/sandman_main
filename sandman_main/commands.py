@@ -23,6 +23,16 @@ class MoveControlCommand:
         UP = enum.auto()
         DOWN = enum.auto()
 
+        def as_string(self) -> str:
+            """Return a readable phrase describing the direction."""
+            match self:
+                case MoveControlCommand.Direction.UP:
+                    return "up"
+                case MoveControlCommand.Direction.DOWN:
+                    return "down"
+                case _:
+                    typing.assert_never(self)
+
     control_name: str
     direction: Direction
 
@@ -119,6 +129,6 @@ def _parse_from_move_control_intent(
     _logger.info(
         "Recognized a move control intent: move '%s' '%s'.",
         control_name,
-        direction,
+        direction.as_string(),
     )
     return MoveControlCommand(control_name, direction)
