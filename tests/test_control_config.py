@@ -11,6 +11,8 @@ def test_control_config_initialization() -> None:
     assert config.name == ""
     assert config.up_gpio_line == -1
     assert config.down_gpio_line == -1
+    assert config.moving_duration_ms == -1
+    assert config.cool_down_duration_ms == 25
     assert config.is_valid() == False
 
     # Empty strings are not valid names.
@@ -25,6 +27,26 @@ def test_control_config_initialization() -> None:
     with pytest.raises(ValueError):
         config.name = ""
     assert config.name == "test_control"
+
+    with pytest.raises(ValueError):
+        config.moving_duration_ms = -1
+    assert config.moving_duration_ms == -1
+
+    config.moving_duration_ms = 100
+    assert config.moving_duration_ms == 100
+    assert config.is_valid() == False
+
+    with pytest.raises(ValueError):
+        config.moving_duration_ms = -2
+    assert config.moving_duration_ms == 100
+
+    with pytest.raises(ValueError):
+        config.cool_down_duration_ms = -1
+    assert config.cool_down_duration_ms == 25
+
+    config.cool_down_duration_ms = 1
+    assert config.cool_down_duration_ms == 1
+    assert config.is_valid() == False
 
     # Test setting GPIO lines last so that we can test validity when the lines
     # are equal?

@@ -7,8 +7,10 @@ class ControlConfig:
     def __init__(self) -> None:
         """Initialize the control config."""
         self.__name: str = ""
-        self.__up_gpio_line = -1
-        self.__down_gpio_line = -1
+        self.__up_gpio_line: int = -1
+        self.__down_gpio_line: int = -1
+        self.__moving_duration_ms: int = -1
+        self.__cool_down_duration_ms: int = 25
 
     @property
     def name(self) -> str:
@@ -49,6 +51,32 @@ class ControlConfig:
 
         self.__down_gpio_line = line
 
+    @property
+    def moving_duration_ms(self) -> int:
+        """Get the moving duration."""
+        return self.__moving_duration_ms
+
+    @moving_duration_ms.setter
+    def moving_duration_ms(self, duration_ms: int) -> None:
+        """Set the moving duration."""
+        if duration_ms < 0:
+            raise ValueError("Duration cannot be negative.")
+
+        self.__moving_duration_ms = duration_ms
+
+    @property
+    def cool_down_duration_ms(self) -> int:
+        """Get the cool down duration."""
+        return self.__cool_down_duration_ms
+
+    @cool_down_duration_ms.setter
+    def cool_down_duration_ms(self, duration_ms: int) -> None:
+        """Set the cool down duration."""
+        if duration_ms < 0:
+            raise ValueError("Duration cannot be negative.")
+
+        self.__cool_down_duration_ms = duration_ms
+
     def is_valid(self) -> bool:
         """Check whether this is a valid control config."""
         if self.__name == "":
@@ -62,6 +90,12 @@ class ControlConfig:
 
         # GPIO lines cannot be the same.
         if self.__up_gpio_line == self.__down_gpio_line:
+            return False
+
+        if self.__moving_duration_ms < 0:
+            return False
+
+        if self.__cool_down_duration_ms < 0:
             return False
 
         return True
