@@ -1,5 +1,8 @@
 """Provides configuration for controls."""
 
+import json
+import typing
+
 
 class ControlConfig:
     """Specifies the configuration of a control."""
@@ -99,3 +102,25 @@ class ControlConfig:
             return False
 
         return True
+
+    @classmethod
+    def parse_from_file(cls, filename: str) -> typing.Self:
+        """Parse a config from a file."""
+        config = cls()
+
+        try:
+            with open(filename) as file:
+                try:
+                    config_json = json.load(file)
+
+                except json.JSONDecodeError:
+                    # Log this.
+                    return config
+
+                config.name = config_json["name"]
+
+        except FileNotFoundError as error:
+            # Log this.
+            raise error
+
+        return config
