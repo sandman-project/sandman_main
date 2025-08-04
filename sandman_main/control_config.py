@@ -26,6 +26,9 @@ class ControlConfig:
     @name.setter
     def name(self, new_name: str) -> None:
         """Set the name."""
+        if isinstance(new_name, str) == False:
+            raise TypeError("Name must be a string.")
+
         if new_name == "":
             raise ValueError("Cannot set an empty name.")
 
@@ -123,7 +126,21 @@ class ControlConfig:
                     )
                     return config
 
-                config.name = config_json["name"]
+                try:
+                    config.name = config_json["name"]
+
+                except KeyError:
+                    _logger.warning(
+                        "Missing 'name' key in control config file '%s'.",
+                        filename,
+                    )
+
+                except (TypeError, ValueError):
+                    _logger.warning(
+                        "Invalid name '%s' in control config file '%s'.",
+                        str(config_json["name"]),
+                        filename,
+                    )
 
         except FileNotFoundError as error:
             _logger.error("Could not find control config file '%s'.", filename)
