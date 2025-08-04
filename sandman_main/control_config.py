@@ -1,7 +1,10 @@
 """Provides configuration for controls."""
 
 import json
+import logging
 import typing
+
+_logger = logging.getLogger("sandman.control_config")
 
 
 class ControlConfig:
@@ -114,13 +117,16 @@ class ControlConfig:
                     config_json = json.load(file)
 
                 except json.JSONDecodeError:
-                    # Log this.
+                    _logger.error(
+                        "JSON error decoding control config file '%s'.",
+                        filename,
+                    )
                     return config
 
                 config.name = config_json["name"]
 
         except FileNotFoundError as error:
-            # Log this.
+            _logger.error("Could not find control config file '%s'.", filename)
             raise error
 
         return config

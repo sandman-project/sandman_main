@@ -96,3 +96,9 @@ def test_control_config_loading() -> None:
         path + "control_test_empty.ctl"
     )
     _check_default_config(config)
+
+    # Files with improperly formed JSON cannot be parsed.
+    config = control_config.ControlConfig.parse_from_file(
+        path + "control_test_invalid.ctl"
+    )
+    _check_default_config(config)
