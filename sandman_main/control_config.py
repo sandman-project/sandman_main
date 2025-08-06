@@ -58,6 +58,9 @@ class ControlConfig:
     @down_gpio_line.setter
     def down_gpio_line(self, line: int) -> None:
         """Set the down GPIO line."""
+        if isinstance(line, int) == False:
+            raise TypeError("GPIO line must be an integer.")
+
         if line < 0:
             raise ValueError("GPIO line cannot be negative.")
 
@@ -160,6 +163,24 @@ class ControlConfig:
                         "Invalid up GPIO line '%s' in control config file "
                         + "'%s'.",
                         str(config_json["upGPIOLine"]),
+                        filename,
+                    )
+
+                try:
+                    config.down_gpio_line = config_json["downGPIOLine"]
+
+                except KeyError:
+                    _logger.warning(
+                        "Missing 'down GPIO line' key in control config file "
+                        + "'%s'.",
+                        filename,
+                    )
+
+                except (TypeError, ValueError):
+                    _logger.warning(
+                        "Invalid down GPIO line '%s' in control config file "
+                        + "'%s'.",
+                        str(config_json["downGPIOLine"]),
                         filename,
                     )
 

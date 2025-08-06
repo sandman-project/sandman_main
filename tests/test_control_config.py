@@ -108,6 +108,7 @@ def test_control_config_loading() -> None:
     )
     assert config.name == ""
     assert config.up_gpio_line == 1
+    assert config.down_gpio_line == 2
     assert config.is_valid() == False
 
     config = control_config.ControlConfig.parse_from_file(
@@ -115,6 +116,7 @@ def test_control_config_loading() -> None:
     )
     assert config.name == ""
     assert config.up_gpio_line == 1
+    assert config.down_gpio_line == 2
     assert config.is_valid() == False
 
     config = control_config.ControlConfig.parse_from_file(
@@ -122,6 +124,7 @@ def test_control_config_loading() -> None:
     )
     assert config.name == ""
     assert config.up_gpio_line == 1
+    assert config.down_gpio_line == 2
     assert config.is_valid() == False
 
     config = control_config.ControlConfig.parse_from_file(
@@ -129,6 +132,7 @@ def test_control_config_loading() -> None:
     )
     assert config.name == "test"
     assert config.up_gpio_line == -1
+    assert config.down_gpio_line == 2
     assert config.is_valid() == False
 
     config = control_config.ControlConfig.parse_from_file(
@@ -136,6 +140,7 @@ def test_control_config_loading() -> None:
     )
     assert config.name == "test"
     assert config.up_gpio_line == -1
+    assert config.down_gpio_line == 2
     assert config.is_valid() == False
 
     config = control_config.ControlConfig.parse_from_file(
@@ -143,4 +148,29 @@ def test_control_config_loading() -> None:
     )
     assert config.name == "test"
     assert config.up_gpio_line == -1
+    assert config.down_gpio_line == 2
+    assert config.is_valid() == False
+
+    config = control_config.ControlConfig.parse_from_file(
+        path + "control_test_missing_down_gpio.ctl"
+    )
+    assert config.name == "test"
+    assert config.up_gpio_line == 1
+    assert config.down_gpio_line == -1
+    assert config.is_valid() == False
+
+    config = control_config.ControlConfig.parse_from_file(
+        path + "control_test_type_down_gpio.ctl"
+    )
+    assert config.name == "test"
+    assert config.up_gpio_line == 1
+    assert config.down_gpio_line == -1
+    assert config.is_valid() == False
+
+    config = control_config.ControlConfig.parse_from_file(
+        path + "control_test_invalid_down_gpio.ctl"
+    )
+    assert config.name == "test"
+    assert config.up_gpio_line == 1
+    assert config.down_gpio_line == -1
     assert config.is_valid() == False
