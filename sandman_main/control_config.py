@@ -42,6 +42,9 @@ class ControlConfig:
     @up_gpio_line.setter
     def up_gpio_line(self, line: int) -> None:
         """Set the up GPIO line."""
+        if isinstance(line, int) == False:
+            raise TypeError("GPIO line must be an integer.")
+
         if line < 0:
             raise ValueError("GPIO line cannot be negative.")
 
@@ -139,6 +142,24 @@ class ControlConfig:
                     _logger.warning(
                         "Invalid name '%s' in control config file '%s'.",
                         str(config_json["name"]),
+                        filename,
+                    )
+
+                try:
+                    config.up_gpio_line = config_json["upGPIOLine"]
+
+                except KeyError:
+                    _logger.warning(
+                        "Missing 'up GPIO line' key in control config file "
+                        + "'%s'.",
+                        filename,
+                    )
+
+                except (TypeError, ValueError):
+                    _logger.warning(
+                        "Invalid up GPIO line '%s' in control config file "
+                        + "'%s'.",
+                        str(config_json["upGPIOLine"]),
                         filename,
                     )
 

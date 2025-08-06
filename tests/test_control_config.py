@@ -107,16 +107,40 @@ def test_control_config_loading() -> None:
         path + "control_test_missing_name.ctl"
     )
     assert config.name == ""
+    assert config.up_gpio_line == 1
     assert config.is_valid() == False
 
     config = control_config.ControlConfig.parse_from_file(
         path + "control_test_type_name.ctl"
     )
     assert config.name == ""
+    assert config.up_gpio_line == 1
     assert config.is_valid() == False
 
     config = control_config.ControlConfig.parse_from_file(
         path + "control_test_invalid_name.ctl"
     )
     assert config.name == ""
+    assert config.up_gpio_line == 1
+    assert config.is_valid() == False
+
+    config = control_config.ControlConfig.parse_from_file(
+        path + "control_test_missing_up_gpio.ctl"
+    )
+    assert config.name == "test"
+    assert config.up_gpio_line == -1
+    assert config.is_valid() == False
+
+    config = control_config.ControlConfig.parse_from_file(
+        path + "control_test_type_up_gpio.ctl"
+    )
+    assert config.name == "test"
+    assert config.up_gpio_line == -1
+    assert config.is_valid() == False
+
+    config = control_config.ControlConfig.parse_from_file(
+        path + "control_test_invalid_up_gpio.ctl"
+    )
+    assert config.name == "test"
+    assert config.up_gpio_line == -1
     assert config.is_valid() == False
