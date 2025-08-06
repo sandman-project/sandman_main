@@ -109,6 +109,7 @@ def test_control_config_loading() -> None:
     assert config.name == ""
     assert config.up_gpio_line == 1
     assert config.down_gpio_line == 2
+    assert config.moving_duration_ms == 100
     assert config.is_valid() == False
 
     config = control_config.ControlConfig.parse_from_file(
@@ -117,6 +118,7 @@ def test_control_config_loading() -> None:
     assert config.name == ""
     assert config.up_gpio_line == 1
     assert config.down_gpio_line == 2
+    assert config.moving_duration_ms == 100
     assert config.is_valid() == False
 
     config = control_config.ControlConfig.parse_from_file(
@@ -125,6 +127,7 @@ def test_control_config_loading() -> None:
     assert config.name == ""
     assert config.up_gpio_line == 1
     assert config.down_gpio_line == 2
+    assert config.moving_duration_ms == 100
     assert config.is_valid() == False
 
     config = control_config.ControlConfig.parse_from_file(
@@ -133,6 +136,7 @@ def test_control_config_loading() -> None:
     assert config.name == "test"
     assert config.up_gpio_line == -1
     assert config.down_gpio_line == 2
+    assert config.moving_duration_ms == 100
     assert config.is_valid() == False
 
     config = control_config.ControlConfig.parse_from_file(
@@ -141,6 +145,7 @@ def test_control_config_loading() -> None:
     assert config.name == "test"
     assert config.up_gpio_line == -1
     assert config.down_gpio_line == 2
+    assert config.moving_duration_ms == 100
     assert config.is_valid() == False
 
     config = control_config.ControlConfig.parse_from_file(
@@ -149,6 +154,7 @@ def test_control_config_loading() -> None:
     assert config.name == "test"
     assert config.up_gpio_line == -1
     assert config.down_gpio_line == 2
+    assert config.moving_duration_ms == 100
     assert config.is_valid() == False
 
     config = control_config.ControlConfig.parse_from_file(
@@ -157,6 +163,7 @@ def test_control_config_loading() -> None:
     assert config.name == "test"
     assert config.up_gpio_line == 1
     assert config.down_gpio_line == -1
+    assert config.moving_duration_ms == 100
     assert config.is_valid() == False
 
     config = control_config.ControlConfig.parse_from_file(
@@ -165,6 +172,7 @@ def test_control_config_loading() -> None:
     assert config.name == "test"
     assert config.up_gpio_line == 1
     assert config.down_gpio_line == -1
+    assert config.moving_duration_ms == 100
     assert config.is_valid() == False
 
     config = control_config.ControlConfig.parse_from_file(
@@ -173,4 +181,32 @@ def test_control_config_loading() -> None:
     assert config.name == "test"
     assert config.up_gpio_line == 1
     assert config.down_gpio_line == -1
+    assert config.moving_duration_ms == 100
+    assert config.is_valid() == False
+
+    config = control_config.ControlConfig.parse_from_file(
+        path + "control_test_missing_moving_duration.ctl"
+    )
+    assert config.name == "test"
+    assert config.up_gpio_line == 1
+    assert config.down_gpio_line == 2
+    assert config.moving_duration_ms == -1
+    assert config.is_valid() == False
+
+    config = control_config.ControlConfig.parse_from_file(
+        path + "control_test_type_moving_duration.ctl"
+    )
+    assert config.name == "test"
+    assert config.up_gpio_line == 1
+    assert config.down_gpio_line == 2
+    assert config.moving_duration_ms == -1
+    assert config.is_valid() == False
+
+    config = control_config.ControlConfig.parse_from_file(
+        path + "control_test_invalid_moving_duration.ctl"
+    )
+    assert config.name == "test"
+    assert config.up_gpio_line == 1
+    assert config.down_gpio_line == 2
+    assert config.moving_duration_ms == -1
     assert config.is_valid() == False

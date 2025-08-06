@@ -74,6 +74,9 @@ class ControlConfig:
     @moving_duration_ms.setter
     def moving_duration_ms(self, duration_ms: int) -> None:
         """Set the moving duration."""
+        if isinstance(duration_ms, int) == False:
+            raise TypeError("Duration must be an integer.")
+
         if duration_ms < 0:
             raise ValueError("Duration cannot be negative.")
 
@@ -181,6 +184,24 @@ class ControlConfig:
                         "Invalid down GPIO line '%s' in control config file "
                         + "'%s'.",
                         str(config_json["downGPIOLine"]),
+                        filename,
+                    )
+
+                try:
+                    config.moving_duration_ms = config_json["movingDurationMS"]
+
+                except KeyError:
+                    _logger.warning(
+                        "Missing 'moving duration' key in control config file "
+                        + "'%s'.",
+                        filename,
+                    )
+
+                except (TypeError, ValueError):
+                    _logger.warning(
+                        "Invalid moving duration '%s' in control config file "
+                        + "'%s'.",
+                        str(config_json["movingDurationMS"]),
                         filename,
                     )
 
