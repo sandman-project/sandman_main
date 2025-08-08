@@ -90,6 +90,9 @@ class ControlConfig:
     @cool_down_duration_ms.setter
     def cool_down_duration_ms(self, duration_ms: int) -> None:
         """Set the cool down duration."""
+        if isinstance(duration_ms, int) == False:
+            raise TypeError("Duration must be an integer.")
+
         if duration_ms < 0:
             raise ValueError("Duration cannot be negative.")
 
@@ -202,6 +205,23 @@ class ControlConfig:
                         "Invalid moving duration '%s' in control config file "
                         + "'%s'.",
                         str(config_json["movingDurationMS"]),
+                        filename,
+                    )
+
+                try:
+                    config.cool_down_duration_ms = config_json[
+                        "coolDownDurationMS"
+                    ]
+
+                except KeyError:
+                    # This is acceptable.
+                    pass
+
+                except (TypeError, ValueError):
+                    _logger.warning(
+                        "Invalid cool down duration '%s' in control config "
+                        + "file '%s'.",
+                        str(config_json["coolDownDurationMS"]),
                         filename,
                     )
 
