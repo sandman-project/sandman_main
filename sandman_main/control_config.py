@@ -230,3 +230,11 @@ class ControlConfig:
             raise error
 
         return config
+
+    def save_to_file(self, filename: str) -> None:
+        """Save a config to a file."""
+        if self.is_valid() == False:
+            _logger.warning(
+                "Cannot save invalid control config to '%s'", filename
+            )
+            return

@@ -1,5 +1,7 @@
 """Tests configuration for controls."""
 
+import pathlib
+
 import pytest
 
 import sandman_main.control_config as control_config
@@ -273,3 +275,22 @@ def test_control_config_loading() -> None:
     assert config.moving_duration_ms == intended_moving_duration_ms
     assert config.cool_down_duration_ms == intended_cool_down_duration_ms
     assert config.is_valid() == True
+
+
+def test_control_config_saving(tmp_path: pathlib.Path) -> None:
+    """Test control config saving."""
+    # Don't write invalid configs.
+    original_config = control_config.ControlConfig()
+    assert original_config.is_valid() == False
+
+    file_path = tmp_path / "test_invalid.ctl"
+    assert file_path.exists() == False
+
+    original_config.save_to_file(str(file_path))
+    assert file_path.exists() == False
+
+    # After writing a valid config, it should be the same when read back in.
+    original_config = control_config.ControlConfig.parse_from_file(
+        "tests/data/controls/control_test_valid.ctl"
+    )
+    assert original_config.is_valid() == True
