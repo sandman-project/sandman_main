@@ -121,6 +121,19 @@ class ControlConfig:
 
         return True
 
+    def __eq__(self, other: object) -> bool:
+        """Check whether this config and another have equal values."""
+        if not isinstance(other, ControlConfig):
+            return NotImplemented
+
+        return (
+            (self.__name == other.__name)
+            and (self.__up_gpio_line == other.__up_gpio_line)
+            and (self.__down_gpio_line == other.__down_gpio_line)
+            and (self.__moving_duration_ms == other.__moving_duration_ms)
+            and (self.__cool_down_duration_ms == other.__cool_down_duration_ms)
+        )
+
     @classmethod
     def parse_from_file(cls, filename: str) -> typing.Self:
         """Parse a config from a file."""
@@ -238,3 +251,14 @@ class ControlConfig:
                 "Cannot save invalid control config to '%s'", filename
             )
             return
+
+        config_json = {
+            "name": self.__name,
+            "upGPIOLine": self.__up_gpio_line,
+            "downGPIOLine": self.__down_gpio_line,
+            "movingDurationMS": self.__moving_duration_ms,
+            "coolDownDurationMS": self.__cool_down_duration_ms,
+        }
+
+        with open(filename, "w") as file:
+            json.dump(config_json, file)
