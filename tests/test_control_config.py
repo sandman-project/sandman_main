@@ -309,3 +309,15 @@ def test_control_config_saving(tmp_path: pathlib.Path) -> None:
 
     with pytest.raises(OSError):
         original_config.save_to_file("")
+
+
+def test_control_config_bootstrap(tmp_path: pathlib.Path) -> None:
+    """Test control config bootstrapping."""
+    control_path = tmp_path / "controls/"
+    assert control_path.exists() == False
+
+    control_config.bootstrap_control_configs(str(tmp_path) + "/")
+    assert control_path.exists() == True
+
+    # back_control_path = control_path / "back.ctl"
+    # assert back_control_path.exists() == True

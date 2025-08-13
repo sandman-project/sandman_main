@@ -2,6 +2,7 @@
 
 import json
 import logging
+import pathlib
 import typing
 
 _logger = logging.getLogger("sandman.control_config")
@@ -269,3 +270,27 @@ class ControlConfig:
                 "Failed to open '%s' to save control config.", filename
             )
             raise error
+
+
+def bootstrap_control_configs(base_dir: str) -> None:
+    """Handle bootstrapping for control configs."""
+    control_path = pathlib.Path(base_dir + "controls/")
+
+    if control_path.exists() == True:
+        return
+
+    _logger.info(
+        "Creating missing control config directory '%s'.", str(control_path)
+    )
+
+    try:
+        control_path.mkdir()
+
+    except Exception:
+        _logger.warning(
+            "Failed to create control config directory '%s'.",
+            str(control_path),
+        )
+        return
+
+    # Now that the directory exists, populate it with some default controls.
