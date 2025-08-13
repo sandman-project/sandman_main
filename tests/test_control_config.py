@@ -306,3 +306,6 @@ def test_control_config_saving(tmp_path: pathlib.Path) -> None:
     )
     assert written_config.is_valid() == True
     assert written_config == original_config
+
+    with pytest.raises(OSError):
+        original_config.save_to_file("")

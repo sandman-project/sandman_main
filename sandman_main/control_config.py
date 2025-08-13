@@ -260,5 +260,12 @@ class ControlConfig:
             "coolDownDurationMS": self.__cool_down_duration_ms,
         }
 
-        with open(filename, "w") as file:
-            json.dump(config_json, file)
+        try:
+            with open(filename, "w") as file:
+                json.dump(config_json, file)
+
+        except OSError as error:
+            _logger.error(
+                "Failed to open '%s' to save control config.", filename
+            )
+            raise error
