@@ -319,5 +319,41 @@ def test_control_config_bootstrap(tmp_path: pathlib.Path) -> None:
     control_config.bootstrap_control_configs(str(tmp_path) + "/")
     assert control_path.exists() == True
 
-    # back_control_path = control_path / "back.ctl"
-    # assert back_control_path.exists() == True
+    back_control_path = control_path / "back.ctl"
+    assert back_control_path.exists() == True
+
+    back_config = control_config.ControlConfig.parse_from_file(
+        str(back_control_path)
+    )
+    assert back_config.name == "back"
+    assert back_config.up_gpio_line == 20
+    assert back_config.down_gpio_line == 16
+    assert back_config.moving_duration_ms == 7000
+    assert back_config.cool_down_duration_ms == 25
+    assert back_config.is_valid() == True
+
+    legs_control_path = control_path / "legs.ctl"
+    assert legs_control_path.exists() == True
+
+    legs_config = control_config.ControlConfig.parse_from_file(
+        str(legs_control_path)
+    )
+    assert legs_config.name == "legs"
+    assert legs_config.up_gpio_line == 13
+    assert legs_config.down_gpio_line == 26
+    assert legs_config.moving_duration_ms == 4000
+    assert legs_config.cool_down_duration_ms == 25
+    assert legs_config.is_valid() == True
+
+    elevation_control_path = control_path / "elevation.ctl"
+    assert elevation_control_path.exists() == True
+
+    elevation_config = control_config.ControlConfig.parse_from_file(
+        str(elevation_control_path)
+    )
+    assert elevation_config.name == "elevation"
+    assert elevation_config.up_gpio_line == 5
+    assert elevation_config.down_gpio_line == 19
+    assert elevation_config.moving_duration_ms == 4000
+    assert elevation_config.cool_down_duration_ms == 25
+    assert elevation_config.is_valid() == True

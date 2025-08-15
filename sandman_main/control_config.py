@@ -294,3 +294,26 @@ def bootstrap_control_configs(base_dir: str) -> None:
         return
 
     # Now that the directory exists, populate it with some default controls.
+    back_config = ControlConfig()
+    back_config.name = "back"
+    back_config.up_gpio_line = 20
+    back_config.down_gpio_line = 16
+    back_config.moving_duration_ms = 7000
+
+    back_config.save_to_file(str(control_path) + "/back.ctl")
+
+    legs_config = ControlConfig()
+    legs_config.name = "legs"
+    legs_config.up_gpio_line = 13
+    legs_config.down_gpio_line = 26
+    legs_config.moving_duration_ms = 4000
+
+    legs_config.save_to_file(str(control_path) + "/legs.ctl")
+
+    elevation_config = ControlConfig()
+    elevation_config.name = "elevation"
+    elevation_config.up_gpio_line = 5
+    elevation_config.down_gpio_line = 19
+    elevation_config.moving_duration_ms = 4000
+
+    elevation_config.save_to_file(str(control_path) + "/elevation.ctl")
