@@ -6,7 +6,7 @@ import pathlib
 import time
 import typing
 
-from . import commands, controls, gpio, mqtt, timer
+from . import commands, control_config, controls, gpio, mqtt, timer
 
 
 class Sandman:
@@ -74,61 +74,16 @@ class Sandman:
         self.__setup_logging()
 
         self.__gpio_manager.initialize()
+
+        # We only bootstrap control configs once.
+        control_config.bootstrap_control_configs(self.__base_dir)
         return True
 
     def run(self) -> None:
         """Run the program."""
         self.__logger.info("Starting Sandman...")
 
-        # Create some controls (manually for now).
-        cool_down_duration_ms = 25
-
-        back_control = controls.Control(
-            "back", self.__timer, self.__gpio_manager
-        )
-
-        if (
-            back_control.initialize(
-                up_gpio_line=20,
-                down_gpio_line=16,
-                moving_duration_ms=7000,
-                cool_down_duration_ms=cool_down_duration_ms,
-            )
-            == True
-        ):
-            self.__controls["back"] = back_control
-
-        legs_control = controls.Control(
-            "legs", self.__timer, self.__gpio_manager
-        )
-
-        if (
-            legs_control.initialize(
-                up_gpio_line=13,
-                down_gpio_line=26,
-                moving_duration_ms=4000,
-                cool_down_duration_ms=cool_down_duration_ms,
-            )
-            == True
-        ):
-            self.__controls["legs"] = legs_control
-
-        elevation_control = controls.Control(
-            "elevation",
-            self.__timer,
-            self.__gpio_manager,
-        )
-
-        if (
-            elevation_control.initialize(
-                up_gpio_line=5,
-                down_gpio_line=19,
-                moving_duration_ms=4000,
-                cool_down_duration_ms=cool_down_duration_ms,
-            )
-            == True
-        ):
-            self.__controls["elevation"] = elevation_control
+        self.__initialize_controls()
 
         self.__mqtt_client = mqtt.MQTTClient()
 
@@ -155,16 +110,64 @@ class Sandman:
         self.__logger.info("Sandman exiting.")
 
         # Uninitialize the controls.
-        for _name, control in self.__controls.items():
-            control.uninitialize()
-
-        self.__controls.clear()
+        self.__uninitialize_controls()
 
         self.__gpio_manager.uninitialize()
 
     def is_testing(self) -> bool:
         """Return whether the app is in test mode."""
         return self.__is_testing
+
+    def __initialize_controls(self) -> None:
+        """Initialize the controls."""
+        # If there are existing controls, uninitialize them.
+        self.__uninitialize_controls()
+
+        control_path = pathlib.Path(self.__base_dir + "controls/")
+        self.__logger.info("Loading controls from '%s'.", str(control_path))
+
+        for config_path in control_path.glob("*.ctl"):
+            # Try parsing the config.
+            config_file = str(config_path)
+            self.__logger.info("Loading control from '%s'.", config_file)
+
+            config = control_config.ControlConfig.parse_from_file(config_file)
+
+            if config.is_valid() == False:
+                continue
+
+            # Make sure it control with this name doesn't already exist.
+            if config.name in self.__controls:
+                self.__logger.warning(
+                    "A control with name '%s' already exists. Ignoring new "
+                    + "config.",
+                    config.name,
+                )
+                continue
+
+            control = controls.Control(
+                config.name, self.__timer, self.__gpio_manager
+            )
+
+            if (
+                control.initialize(
+                    up_gpio_line=config.up_gpio_line,
+                    down_gpio_line=config.down_gpio_line,
+                    moving_duration_ms=config.moving_duration_ms,
+                    cool_down_duration_ms=config.cool_down_duration_ms,
+                )
+                == False
+            ):
+                continue
+
+            self.__controls[config.name] = control
+
+    def __uninitialize_controls(self) -> None:
+        """Uninitialize the controls."""
+        for _name, control in self.__controls.items():
+            control.uninitialize()
+
+        self.__controls.clear()
 
     def __process(self) -> None:
         """Process during the main loop."""
