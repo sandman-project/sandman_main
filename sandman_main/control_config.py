@@ -263,7 +263,7 @@ class ControlConfig:
 
         try:
             with open(filename, "w") as file:
-                json.dump(config_json, file)
+                json.dump(config_json, file, indent=4)
 
         except OSError as error:
             _logger.error(
