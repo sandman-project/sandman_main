@@ -1,0 +1,12 @@
+services:
+  sandman_main:
+    build: 
+      dockerfile: Dockerfile
+    
+    container_name: sandman_main
+
+    networks:
+      - rhasspy
+
+networks:
+  rhasspy:
