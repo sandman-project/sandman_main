@@ -7,6 +7,9 @@ services:
     
     container_name: sandman_main
 
+    volumes:
+      - ~:/root/
+
     devices:
       - "/dev/gpiochip0:/dev/gpiochip0"
 
