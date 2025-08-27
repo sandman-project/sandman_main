@@ -1,9 +1,14 @@
 services:
   sandman_main:
+    image: sandman/sandman_main
     build: 
+      context: .
       dockerfile: Dockerfile
     
     container_name: sandman_main
+
+    devices:
+      - "/dev/gpiochip0:/dev/gpiochip0"
 
     networks:
       - rhasspy
