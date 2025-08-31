@@ -6,9 +6,11 @@ services:
       dockerfile: Dockerfile
     
     container_name: sandman_main
+    group_add:
+      - ${GPIO_GID}
 
     volumes:
-      - ~:/root/
+      - ~:/home/app
 
     devices:
       - "/dev/gpiochip0:/dev/gpiochip0"
