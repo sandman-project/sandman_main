@@ -8,15 +8,33 @@ services:
     container_name: sandman_main
     group_add:
       - ${GPIO_GID}
-
     volumes:
       - ~:/home/app
-
     devices:
       - "/dev/gpiochip0:/dev/gpiochip0"
-
     networks:
+      - sandman_network
+    environment:
+      - RHASSPY_HOSTNAME=rhasspy
+    depends_on:
       - rhasspy
 
-networks:
   rhasspy:
+    image: "rhasspy/rhasspy"
+    container_name: rhasspy
+    restart: unless-stopped
+    volumes:
+        - "$HOME/.config/rhasspy/profiles:/profiles"
+        - "/etc/localtime:/etc/localtime:ro"
+    ports:
+        - "12101:12101"
+        - "12183:12183"
+    devices:
+        - "/dev/snd:/dev/snd"
+    command: --user-profiles /profiles --profile en
+    networks:
+      - sandman_network
+
+networks:
+  sandman_network:
+    name: sandman_network
