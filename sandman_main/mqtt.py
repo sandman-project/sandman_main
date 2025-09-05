@@ -4,6 +4,7 @@ import collections
 import dataclasses
 import json
 import logging
+import os
 import time
 import typing
 
@@ -41,7 +42,9 @@ class MQTTClient:
 
         self.__client.on_connect = self.__handle_connect
 
-        host = "localhost"
+        # In the case of running inside of a Docker container, this environment
+        # variable will be set to the name of the Rhasspy container.
+        host = os.environ.get("RHASSPY_HOSTNAME", "localhost")
         port = 12183
 
         # Keep attempting to connect a certain number of times before giving
@@ -58,6 +61,7 @@ class MQTTClient:
 
             try:
                 connect_result = self.__client.connect(host, port)
+
             except Exception as exception:
                 self.__logger.error(
                     "Connect raised %s exception: %s",
