@@ -1,0 +1,24 @@
+[GetStatus]
+what is the status
+tell me the status
+
+[MovePart]
+part_name = (back | legs | elevation) {name}
+part_direction = (up | down) {direction}
+
+move <part_direction> [the] <part_name>
+move [the] <part_name> <part_direction>
+put [the] <part_name> <part_direction>
+raise {direction:up} [the] <part_name>
+lower {direction:down} [the] <part_name>
+
+[SetRoutine]
+start {action:start} [the] routine
+stop {action:stop} [the] routine 
+
+[Reboot]
+reboot
+restart
+
+[ConfirmationResponse]
+(yes | no) {response}
