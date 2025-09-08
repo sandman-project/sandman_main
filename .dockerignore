@@ -5,6 +5,7 @@
 .venv
 .vscode
 
+rhasspy
 test
 
 **/__pycache__
