@@ -4,8 +4,8 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile
-    
     container_name: sandman_main
+    restart: unless-stopped
     group_add:
       - ${GPIO_GID}
     volumes:
