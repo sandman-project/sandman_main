@@ -2,9 +2,25 @@
 
 Sandman relies on [Rhasspy](https://rhasspy.readthedocs.io) to provide voice control and auditory feedback. Unfortunately, Rhasspy does not work on a Raspberry Pi 5, it must be used with a 4. In addition, it is not being actively maintained, so it will be up replaced with something else in the future. The following information will help with setting up Rhasspy, which should be done prior to running Sandman.
 
+## Docker
+
+Rhasspy will be installed using Docker. Theoretically Docker Desktop will be fine, but if you don't want that you can install Docker using the following steps:
+
+```bash
+curl -sSL https://get.docker.com | sh
+```
+
+Then you must add your user to the docker group.
+
+```bash
+sudo usermod -a -G docker $USER
+```
+
+You MUST reboot after adding your user to the docker group!
+
 ## Rhasspy
 
-Follow these [instructions](https://rhasspy.readthedocs.io/en/latest/installation/) in order to install Rhasspy on your Raspberry Pi. However, use the following commands to start the Docker image rather than the one in the instructions, because it sets up some additional things that Sandman relies upon.
+Follow these instructions in order to install Rhasspy on your Raspberry Pi:
 
 ```bash
 cd ~/sandman_main/rhasspy
