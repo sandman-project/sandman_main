@@ -10,7 +10,22 @@ Sandman relies on [Rhasspy](https://rhasspy.readthedocs.io) to provide voice con
 
 ## Sandman Setup
 
-Coming soon.
+If you are interested in running Sandman in development mode, please read [CONTRIBUTING](CONTRIBUTING.md). If you wish to run it in deployment mode, you can use the following instructions. 
+
+At the moment, in order to for GPIO to work inside the Docker container, we need the group ID in an environment variable. This command will do that:
+
+```bash
+export GPIO_GID=$(getent group gpio | cut --delimiter ':' --fields 3)
+```
+
+You will have to repeat this command for each shell instance that starts the container. Then,
+
+```bash
+cd ~/sandman_main
+```
+```bash
+docker compose up -d
+```
 
 ## License
 
