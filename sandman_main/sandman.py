@@ -239,12 +239,3 @@ def create_app(
         return None
 
     return app
-
-
-if __name__ == "__main__":
-    sandman = create_app()
-
-    if sandman is None:
-        raise ValueError("Failed to create Sandman application.")
-
-    sandman.run()
