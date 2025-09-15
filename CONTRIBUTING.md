@@ -12,7 +12,7 @@ Please make all feature requests in the Sandman Discord. Only use Issues for rep
  - Sandman development uses [uv](https://docs.astral.sh/uv). If you have not installed uv, you can find instructions [here](https://docs.astral.sh/uv/getting-started/installation/).
  - To run Sandman using uv, you can use the following command from the repository root.
   ```bash
-  uv run -m sandman_main.sandman
+  uv run run_sandman.py
   ```
  - Write and test your code using a new branch. Please follow the [Coding Standards](CODING-STANDARDS.md).
  - We use Ruff in order to lint and format code. This is set up using pre-commit to automatically check pull requests. Although you don't need to run this as an actual pre-commit hook locally, it's a good idea to run it prior to making a pull request. To run the pre-commit hook with uv you can use the following command from the repository root.
