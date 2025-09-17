@@ -8,10 +8,7 @@ authors = [
 requires-python = ">=3.12"
 dependencies = [
   "gpiod>=2.3.0",
-  "mypy>=1.16.1",
   "paho-mqtt>=2.1.0",
-  "pytest>=8.3.4",
-  "types-paho-mqtt>=1.6.0.20240321",
 ]
 classifiers = [
   "Programming Language :: Python :: 3",
@@ -56,4 +53,11 @@ ignore = [
   "Q",
   "COM812",
   "COM819",
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.18.1",
+    "pytest>=8.3.5",
+    "types-paho-mqtt>=1.6.0.20240321",
 ]
