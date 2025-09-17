@@ -10,11 +10,11 @@ USER app
 
 ENV UV_COMPILE_BYTECODE=1
 
-# Install the application into /app.
+# Install the application into /app without development dependencies.
 WORKDIR /app
 COPY . /app
 
-RUN uv sync --locked
+RUN uv sync --locked --no-dev
 
 # Now make the final image without uv from the intermediate.
 #
