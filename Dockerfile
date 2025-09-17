@@ -12,9 +12,15 @@ ENV UV_COMPILE_BYTECODE=1
 
 # Install the application into /app without development dependencies.
 WORKDIR /app
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --locked --no-install-project --no-dev
+
 COPY . /app
 
-RUN uv sync --locked --no-dev
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --no-dev
 
 # Now make the final image without uv from the intermediate.
 #
