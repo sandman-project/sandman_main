@@ -6,7 +6,7 @@ import pathlib
 import time
 import typing
 
-from . import commands, control_config, controls, gpio, mqtt, timer
+from . import commands, control_config, controls, gpio, mqtt, report, timer
 
 
 class Sandman:
@@ -75,8 +75,9 @@ class Sandman:
 
         self.__gpio_manager.initialize()
 
-        # We only bootstrap control configs once.
+        # We only bootstrap control configs and reports once.
         control_config.bootstrap_control_configs(self.__base_dir)
+        report.bootstrap_reports(self.__base_dir)
         return True
 
     def run(self) -> None:
