@@ -9,6 +9,7 @@ requires-python = ">=3.12"
 dependencies = [
   "gpiod>=2.3.0",
   "paho-mqtt>=2.1.0",
+  "whenever>=0.8.9",
 ]
 classifiers = [
   "Programming Language :: Python :: 3",
