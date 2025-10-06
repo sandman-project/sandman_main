@@ -40,7 +40,11 @@ def test_report_file_creation(tmp_path: pathlib.Path) -> None:
     assert time_source.get_current_time() == first_time
 
     assert _get_num_files_in_dir(report_path) == 0
-    # report_manager = report.ReportManager(time_source, str(tmp_path) + "/")
+    report_manager = report.ReportManager(time_source, str(tmp_path) + "/")
+
+    assert _get_num_files_in_dir(report_path) == 0
+    report_manager.process()
+    # assert _get_num_files_in_dir(report_path) == 1
 
 
 def test_report_bootstrap(tmp_path: pathlib.Path) -> None:
