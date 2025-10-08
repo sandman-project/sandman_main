@@ -23,14 +23,14 @@ class ReportManager:
         self.__reports_dir = base_dir + "reports/"
         # Eventually this should be configurable.
         self.__report_start_hour = 17
-        self.__report_name = self._get_desired_report_name()
+        self.__report_name = self.__get_desired_report_name()
         self.__report_file: None | typing.TextIO = None
 
     def process(self) -> None:
         """Process reports."""
-        pass
+        self.__maybe_create_report_file()
 
-    def _get_desired_report_name(self) -> str:
+    def __get_desired_report_name(self) -> str:
         """Get the desired report name based on current date and time."""
         report_time = self.__time_source.get_current_time()
 
@@ -41,6 +41,19 @@ class ReportManager:
             f"sandman{report_time.year}-{report_time.month:02}-"
             + f"{report_time.day:02}"
         )
+
+    def __maybe_create_report_file(self) -> None:
+        """Create the desired report if it doesn't exist."""
+        report_name = self.__get_desired_report_name()
+        report_file_name = self.__reports_dir + report_name + ".rpt"
+
+        report_path = pathlib.Path(report_file_name)
+
+        if report_path.exists():
+            return
+
+        with open(report_file_name, "w", encoding="utf-8") as _:
+            pass
 
 
 def bootstrap_reports(base_dir: str) -> None:

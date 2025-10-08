@@ -42,9 +42,17 @@ def test_report_file_creation(tmp_path: pathlib.Path) -> None:
     assert _get_num_files_in_dir(report_path) == 0
     report_manager = report.ReportManager(time_source, str(tmp_path) + "/")
 
+    # Processing should create an empty report file based on the current date.
     assert _get_num_files_in_dir(report_path) == 0
     report_manager.process()
-    # assert _get_num_files_in_dir(report_path) == 1
+    assert _get_num_files_in_dir(report_path) == 1
+
+    # Check the file name and header.
+
+    # Processing again without changing time or adding events should not create
+    # new files.
+    report_manager.process()
+    assert _get_num_files_in_dir(report_path) == 1
 
 
 def test_report_bootstrap(tmp_path: pathlib.Path) -> None:
