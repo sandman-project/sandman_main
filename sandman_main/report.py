@@ -3,6 +3,7 @@
 Reports are automatically generated based on activity.
 """
 
+import json
 import logging
 import pathlib
 import typing
@@ -14,6 +15,8 @@ _logger = logging.getLogger("sandman.report")
 
 class ReportManager:
     """Manages recording events into per day report files."""
+
+    REPORT_VERSION = 4
 
     def __init__(
         self, time_source: time_util.TimeSource, base_dir: str
@@ -52,8 +55,11 @@ class ReportManager:
         if report_path.exists():
             return
 
-        with open(report_file_name, "w", encoding="utf-8") as _:
-            pass
+        # Add the header.
+        with open(report_file_name, "w", encoding="utf-8") as file:
+            header = {"version": self.REPORT_VERSION}
+            header_line = json.dumps(header) + "\n"
+            file.write(header_line)
 
 
 def bootstrap_reports(base_dir: str) -> None:
