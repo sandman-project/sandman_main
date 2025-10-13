@@ -1,5 +1,6 @@
 """Tests reports."""
 
+import json
 import pathlib
 
 import whenever
@@ -48,8 +49,22 @@ def test_report_file_creation(tmp_path: pathlib.Path) -> None:
     assert _get_num_files_in_dir(reports_path) == 1
 
     # Check the file name and header.
-    first_report_path = reports_path / "sandman2025-09-28.rpt"
-    assert first_report_path.exists() == True
+    first_report_path = reports_path / "sandman2025-09-27.rpt"
+    first_report_exists = first_report_path.exists()
+    assert first_report_exists == True
+
+    if first_report_exists == True:
+        with open(str(first_report_path)) as file:
+            lines = file.readlines()
+
+        assert len(lines) == 1
+
+        header = json.loads(lines[0])
+        assert header["version"] == 4
+
+        first_start_time = first_time.add(days=-1)
+        first_start_time = first_start_time.replace_time(whenever.Time(17, 0))
+        assert header["start"] == first_start_time.format_common_iso()
 
     # Processing again without changing time or adding events should not create
     # new files.

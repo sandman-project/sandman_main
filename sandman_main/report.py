@@ -6,7 +6,8 @@ Reports are automatically generated based on activity.
 import json
 import logging
 import pathlib
-import typing
+
+import whenever
 
 from . import time_util
 
@@ -26,23 +27,33 @@ class ReportManager:
         self.__reports_dir = base_dir + "reports/"
         # Eventually this should be configurable.
         self.__report_start_hour = 17
-        self.__report_name = self.__get_desired_report_name()
-        self.__report_file: None | typing.TextIO = None
 
     def process(self) -> None:
         """Process reports."""
         self.__maybe_create_report_file()
 
+    def __get_start_time_from_time(
+        self, time: whenever.ZonedDateTime
+    ) -> whenever.ZonedDateTime:
+        """Get the appropriate start time based on the given time."""
+        start_time = time
+
+        if start_time.hour < self.__report_start_hour:
+            start_time = start_time.add(days=-1)
+
+        start_time = start_time.replace_time(
+            whenever.Time(self.__report_start_hour)
+        )
+        return start_time
+
     def __get_desired_report_name(self) -> str:
         """Get the desired report name based on current date and time."""
-        report_time = self.__time_source.get_current_time()
-
-        if report_time.hour < self.__report_start_hour:
-            report_time.add(days=-1)
+        curr_time = self.__time_source.get_current_time()
+        start_time = self.__get_start_time_from_time(curr_time)
 
         return (
-            f"sandman{report_time.year}-{report_time.month:02}-"
-            + f"{report_time.day:02}"
+            f"sandman{start_time.year}-{start_time.month:02}-"
+            + f"{start_time.day:02}"
         )
 
     def __maybe_create_report_file(self) -> None:
@@ -55,9 +66,18 @@ class ReportManager:
         if report_path.exists():
             return
 
+        # Get the start time string for the header.
+        curr_time = self.__time_source.get_current_time()
+        start_time = self.__get_start_time_from_time(curr_time)
+        start_time_string = start_time.format_common_iso()
+
+        header = {
+            "version": self.REPORT_VERSION,
+            "start": start_time_string,
+        }
+
         # Add the header.
         with open(report_file_name, "w", encoding="utf-8") as file:
-            header = {"version": self.REPORT_VERSION}
             header_line = json.dumps(header) + "\n"
             file.write(header_line)
 
