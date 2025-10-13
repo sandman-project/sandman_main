@@ -20,6 +20,22 @@ def _get_num_files_in_dir(path: pathlib.Path) -> int:
     return num_files
 
 
+def _check_file_and_read_lines(report_path: pathlib.Path) -> list[str]:
+    """Check that a report file exists and read all of its lines."""
+    report_exists = report_path.exists()
+    assert report_exists == True
+
+    lines = []
+
+    if report_exists == False:
+        return lines
+
+    with open(str(report_path)) as file:
+        lines = file.readlines()
+
+    return lines
+
+
 def test_report_file_creation(tmp_path: pathlib.Path) -> None:
     """Test the creation of report files."""
     reports_path = tmp_path / "reports/"
@@ -50,26 +66,48 @@ def test_report_file_creation(tmp_path: pathlib.Path) -> None:
 
     # Check the file name and header.
     first_report_path = reports_path / "sandman2025-09-27.rpt"
-    first_report_exists = first_report_path.exists()
-    assert first_report_exists == True
+    first_report_lines = _check_file_and_read_lines(first_report_path)
 
-    if first_report_exists == True:
-        with open(str(first_report_path)) as file:
-            lines = file.readlines()
+    assert len(first_report_lines) == 1
 
-        assert len(lines) == 1
+    header = json.loads(first_report_lines[0])
+    assert header["version"] == 4
 
-        header = json.loads(lines[0])
-        assert header["version"] == 4
-
-        first_start_time = first_time.add(days=-1)
-        first_start_time = first_start_time.replace_time(whenever.Time(17, 0))
-        assert header["start"] == first_start_time.format_common_iso()
+    first_start_time = first_time.add(days=-1)
+    first_start_time = first_start_time.replace_time(whenever.Time(17, 0))
+    assert header["start"] == first_start_time.format_common_iso()
 
     # Processing again without changing time or adding events should not create
     # new files.
     report_manager.process()
     assert _get_num_files_in_dir(reports_path) == 1
+
+    # Add one second to cross into the next report day.
+    second_time = first_time.add(seconds=1)
+    time_source.set_current_time(second_time)
+
+    report_manager.process()
+    assert _get_num_files_in_dir(reports_path) == 2
+
+    # Check the file name and header.
+    first_report_lines = _check_file_and_read_lines(first_report_path)
+
+    assert len(first_report_lines) == 1
+
+    header = json.loads(first_report_lines[0])
+    assert header["version"] == 4
+    assert header["start"] == first_start_time.format_common_iso()
+
+    second_report_path = reports_path / "sandman2025-09-28.rpt"
+    second_report_lines = _check_file_and_read_lines(second_report_path)
+
+    assert len(second_report_lines) == 1
+
+    header = json.loads(second_report_lines[0])
+    assert header["version"] == 4
+
+    second_start_time = second_time.replace_time(whenever.Time(17, 0))
+    assert header["start"] == second_start_time.format_common_iso()
 
 
 def test_report_bootstrap(tmp_path: pathlib.Path) -> None:
