@@ -110,6 +110,32 @@ def test_report_file_creation(tmp_path: pathlib.Path) -> None:
     assert header["start"] == second_start_time.format_common_iso()
 
 
+def test_report_events(tmp_path: pathlib.Path) -> None:
+    """Test the addition of events to report files."""
+    reports_path = tmp_path / "reports/"
+    report.bootstrap_reports(str(tmp_path) + "/")
+    assert reports_path.exists() == True
+
+    time_source = test_time_util.TestTimeSource()
+
+    first_time = whenever.ZonedDateTime(
+        year=2025,
+        month=9,
+        day=28,
+        hour=16,
+        minute=59,
+        second=59,
+        tz="America/Chicago",
+    )
+    time_source.set_current_time(first_time)
+    assert time_source.get_current_time() == first_time
+
+    report_manager = report.ReportManager(time_source, str(tmp_path) + "/")
+
+    report_manager.process()
+    assert _get_num_files_in_dir(reports_path) == 1
+
+
 def test_report_bootstrap(tmp_path: pathlib.Path) -> None:
     """Test report bootstrapping."""
     reports_path = tmp_path / "reports/"
