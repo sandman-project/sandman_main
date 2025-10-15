@@ -3,15 +3,25 @@
 Reports are automatically generated based on activity.
 """
 
+import dataclasses
 import json
 import logging
 import pathlib
+import typing
 
 import whenever
 
 from . import time_util
 
 _logger = logging.getLogger("sandman.report")
+
+
+@dataclasses.dataclass
+class _ReportEvent:
+    """An event for a report file."""
+
+    when: whenever.ZonedDateTime
+    info: typing.Any
 
 
 class ReportManager:
@@ -31,6 +41,11 @@ class ReportManager:
     def process(self) -> None:
         """Process reports."""
         self.__maybe_create_report_file()
+
+    def add_status_event(self) -> None:
+        """Add a status event at the current time."""
+        info = {"type": "status"}
+        self.__add_event(info)
 
     def __get_start_time_from_time(
         self, time: whenever.ZonedDateTime
@@ -80,6 +95,10 @@ class ReportManager:
         with open(report_file_name, "w", encoding="utf-8") as file:
             header_line = json.dumps(header) + "\n"
             file.write(header_line)
+
+    def __add_event(self, info: typing.Any) -> None:
+        """Add an event with the given info at the current time."""
+        pass
 
 
 def bootstrap_reports(base_dir: str) -> None:

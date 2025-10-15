@@ -132,8 +132,21 @@ def test_report_events(tmp_path: pathlib.Path) -> None:
 
     report_manager = report.ReportManager(time_source, str(tmp_path) + "/")
 
+    # Adding an event before processing does not cause a file to get created.
+    report_manager.add_status_event()
+    assert _get_num_files_in_dir(reports_path) == 0
+
+    # Once processed, the event should show up in the appropriate file
     report_manager.process()
     assert _get_num_files_in_dir(reports_path) == 1
+
+    first_report_path = reports_path / "sandman2025-09-27.rpt"
+    first_report_lines = _check_file_and_read_lines(first_report_path)
+
+    assert len(first_report_lines) == 1
+
+    header = json.loads(first_report_lines[0])
+    assert header["version"] == 4
 
 
 def test_report_bootstrap(tmp_path: pathlib.Path) -> None:
