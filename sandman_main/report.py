@@ -3,6 +3,7 @@
 Reports are automatically generated based on activity.
 """
 
+import collections
 import dataclasses
 import json
 import logging
@@ -16,12 +17,17 @@ from . import time_util
 _logger = logging.getLogger("sandman.report")
 
 
+type _ReportEventInfo = typing.Mapping[
+    str, typing.Mapping[str, int | str] | int | str
+]
+
+
 @dataclasses.dataclass
 class _ReportEvent:
     """An event for a report file."""
 
     when: whenever.ZonedDateTime
-    info: typing.Any
+    info: _ReportEventInfo
 
 
 class ReportManager:
@@ -37,6 +43,7 @@ class ReportManager:
         self.__reports_dir = base_dir + "reports/"
         # Eventually this should be configurable.
         self.__report_start_hour = 17
+        self.__pending_events = collections.deque[_ReportEvent]()
 
     def process(self) -> None:
         """Process reports."""
@@ -96,9 +103,10 @@ class ReportManager:
             header_line = json.dumps(header) + "\n"
             file.write(header_line)
 
-    def __add_event(self, info: typing.Any) -> None:
+    def __add_event(self, info: _ReportEventInfo) -> None:
         """Add an event with the given info at the current time."""
-        pass
+        event = _ReportEvent(self.__time_source.get_current_time(), info)
+        self.__pending_events.append(event)
 
 
 def bootstrap_reports(base_dir: str) -> None:
