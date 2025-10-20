@@ -58,6 +58,11 @@ class ReportManager:
 
             event = self.__pop_event()
 
+    def add_routine_event(self, action: str) -> None:
+        """Add a routine event at the current time."""
+        info = {"type": "routine", "action": action}
+        self.__add_event(info)
+
     def add_status_event(self) -> None:
         """Add a status event at the current time."""
         info = {"type": "status"}

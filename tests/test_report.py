@@ -153,8 +153,43 @@ def test_report_events(tmp_path: pathlib.Path) -> None:
         first_event["when"]
     )
     assert first_event_time == first_time
-
     assert first_event["info"] == {"type": "status"}
+
+    # Adding events that belong in different files, even out of order, will
+    # put them in the correct files.
+    second_time = first_time.add(seconds=1)
+    time_source.set_current_time(second_time)
+    report_manager.add_routine_event("start")
+
+    time_source.set_current_time(first_time)
+    report_manager.add_routine_event("stop")
+
+    assert _get_num_files_in_dir(reports_path) == 1
+    report_manager.process()
+    assert _get_num_files_in_dir(reports_path) == 2
+
+    first_report_lines = _check_file_and_read_lines(first_report_path)
+
+    assert len(first_report_lines) == 3
+
+    header = json.loads(first_report_lines[0])
+    assert header["version"] == 4
+
+    first_event = json.loads(first_report_lines[1])
+    first_event_time = whenever.ZonedDateTime.parse_common_iso(
+        first_event["when"]
+    )
+    assert first_event_time == first_time
+    assert first_event["info"] == {"type": "status"}
+
+    second_event = json.loads(first_report_lines[2])
+    second_event_time = whenever.ZonedDateTime.parse_common_iso(
+        second_event["when"]
+    )
+    assert second_event_time == first_time
+    assert second_event["info"] == {"type": "routine", "action": "stop"}
+
+    # Check the second file.
 
 
 def test_report_bootstrap(tmp_path: pathlib.Path) -> None:
