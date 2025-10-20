@@ -143,10 +143,18 @@ def test_report_events(tmp_path: pathlib.Path) -> None:
     first_report_path = reports_path / "sandman2025-09-27.rpt"
     first_report_lines = _check_file_and_read_lines(first_report_path)
 
-    assert len(first_report_lines) == 1
+    assert len(first_report_lines) == 2
 
     header = json.loads(first_report_lines[0])
     assert header["version"] == 4
+
+    first_event = json.loads(first_report_lines[1])
+    first_event_time = whenever.ZonedDateTime.parse_common_iso(
+        first_event["when"]
+    )
+    assert first_event_time == first_time
+
+    assert first_event["info"] == {"type": "status"}
 
 
 def test_report_bootstrap(tmp_path: pathlib.Path) -> None:
