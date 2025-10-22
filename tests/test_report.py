@@ -190,6 +190,20 @@ def test_report_events(tmp_path: pathlib.Path) -> None:
     assert second_event["info"] == {"type": "routine", "action": "stop"}
 
     # Check the second file.
+    second_report_path = reports_path / "sandman2025-09-28.rpt"
+    second_report_lines = _check_file_and_read_lines(second_report_path)
+
+    assert len(second_report_lines) == 2
+
+    header = json.loads(second_report_lines[0])
+    assert header["version"] == 4
+
+    first_event = json.loads(second_report_lines[1])
+    first_event_time = whenever.ZonedDateTime.parse_common_iso(
+        first_event["when"]
+    )
+    assert first_event_time == second_time
+    assert first_event["info"] == {"type": "routine", "action": "start"}
 
 
 def test_report_bootstrap(tmp_path: pathlib.Path) -> None:
