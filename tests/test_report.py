@@ -71,7 +71,7 @@ def test_report_file_creation(tmp_path: pathlib.Path) -> None:
     assert len(first_report_lines) == 1
 
     header = json.loads(first_report_lines[0])
-    assert header["version"] == 4
+    assert header["version"] == report.ReportManager.REPORT_VERSION
 
     first_start_time = first_time.add(days=-1)
     first_start_time = first_start_time.replace_time(whenever.Time(17, 0))
@@ -95,7 +95,7 @@ def test_report_file_creation(tmp_path: pathlib.Path) -> None:
     assert len(first_report_lines) == 1
 
     header = json.loads(first_report_lines[0])
-    assert header["version"] == 4
+    assert header["version"] == report.ReportManager.REPORT_VERSION
     assert header["start"] == first_start_time.format_common_iso()
 
     second_report_path = reports_path / "sandman2025-09-28.rpt"
@@ -104,7 +104,7 @@ def test_report_file_creation(tmp_path: pathlib.Path) -> None:
     assert len(second_report_lines) == 1
 
     header = json.loads(second_report_lines[0])
-    assert header["version"] == 4
+    assert header["version"] == report.ReportManager.REPORT_VERSION
 
     second_start_time = second_time.replace_time(whenever.Time(17, 0))
     assert header["start"] == second_start_time.format_common_iso()
@@ -146,7 +146,7 @@ def test_report_events(tmp_path: pathlib.Path) -> None:
     assert len(first_report_lines) == 2
 
     header = json.loads(first_report_lines[0])
-    assert header["version"] == 4
+    assert header["version"] == report.ReportManager.REPORT_VERSION
 
     first_event = json.loads(first_report_lines[1])
     first_event_time = whenever.ZonedDateTime.parse_common_iso(
@@ -173,7 +173,7 @@ def test_report_events(tmp_path: pathlib.Path) -> None:
     assert len(first_report_lines) == 3
 
     header = json.loads(first_report_lines[0])
-    assert header["version"] == 4
+    assert header["version"] == report.ReportManager.REPORT_VERSION
 
     first_event = json.loads(first_report_lines[1])
     first_event_time = whenever.ZonedDateTime.parse_common_iso(
@@ -196,7 +196,7 @@ def test_report_events(tmp_path: pathlib.Path) -> None:
     assert len(second_report_lines) == 2
 
     header = json.loads(second_report_lines[0])
-    assert header["version"] == 4
+    assert header["version"] == report.ReportManager.REPORT_VERSION
 
     first_event = json.loads(second_report_lines[1])
     first_event_time = whenever.ZonedDateTime.parse_common_iso(
