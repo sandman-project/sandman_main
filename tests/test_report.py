@@ -5,6 +5,7 @@ import pathlib
 
 import whenever
 
+import sandman_main.controls as controls
 import sandman_main.report as report
 import tests.test_time_util as test_time_util
 
@@ -204,6 +205,63 @@ def test_report_events(tmp_path: pathlib.Path) -> None:
     )
     assert first_event_time == second_time
     assert first_event["info"] == {"type": "routine", "action": "start"}
+
+    # Add some control events.
+    third_time = second_time.add(seconds=5)
+    time_source.set_current_time(third_time)
+    control_name = "test_control"
+    move_up_string = controls.Control.State.MOVE_UP.as_string()
+    source_name = "test"
+    report_manager.add_control_event(control_name, move_up_string, source_name)
+
+    fourth_time = third_time.add(seconds=9)
+    time_source.set_current_time(fourth_time)
+    move_down_string = controls.Control.State.MOVE_DOWN.as_string()
+    report_manager.add_control_event(
+        control_name, move_down_string, source_name
+    )
+
+    second_report_lines = _check_file_and_read_lines(second_report_path)
+    assert len(second_report_lines) == 2
+
+    report_manager.process()
+    second_report_lines = _check_file_and_read_lines(second_report_path)
+
+    assert len(second_report_lines) == 4
+
+    header = json.loads(second_report_lines[0])
+    assert header["version"] == report.ReportManager.REPORT_VERSION
+
+    first_event = json.loads(second_report_lines[1])
+    first_event_time = whenever.ZonedDateTime.parse_common_iso(
+        first_event["when"]
+    )
+    assert first_event_time == second_time
+    assert first_event["info"] == {"type": "routine", "action": "start"}
+
+    second_event = json.loads(second_report_lines[2])
+    second_event_time = whenever.ZonedDateTime.parse_common_iso(
+        second_event["when"]
+    )
+    assert second_event_time == third_time
+    assert second_event["info"] == {
+        "type": "control",
+        "control": control_name,
+        "action": move_up_string,
+        "source": source_name,
+    }
+
+    third_event = json.loads(second_report_lines[3])
+    third_event_time = whenever.ZonedDateTime.parse_common_iso(
+        third_event["when"]
+    )
+    assert third_event_time == fourth_time
+    assert third_event["info"] == {
+        "type": "control",
+        "control": control_name,
+        "action": move_down_string,
+        "source": source_name,
+    }
 
 
 def test_report_bootstrap(tmp_path: pathlib.Path) -> None:

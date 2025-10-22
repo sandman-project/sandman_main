@@ -58,6 +58,18 @@ class ReportManager:
 
             event = self.__pop_event()
 
+    def add_control_event(
+        self, control: str, action: str, source: str
+    ) -> None:
+        """Add a control event at the current time."""
+        info = {
+            "type": "control",
+            "control": control,
+            "action": action,
+            "source": source,
+        }
+        self.__add_event(info)
+
     def add_routine_event(self, action: str) -> None:
         """Add a routine event at the current time."""
         info = {"type": "routine", "action": action}
