@@ -6,7 +6,16 @@ import pathlib
 import time
 import typing
 
-from . import commands, control_config, controls, gpio, mqtt, report, timer
+from . import (
+    commands,
+    control_config,
+    controls,
+    gpio,
+    mqtt,
+    report,
+    time_util,
+    timer,
+)
 
 
 class Sandman:
@@ -15,6 +24,7 @@ class Sandman:
     def __init__(self) -> None:
         """Initialize the instance."""
         self.__timer = timer.Timer()
+        self.__time_source = time_util.TimeSource()
         # Change this if you want to run off device.
         self.__gpio_manager = gpio.GPIOManager(is_live_mode=True)
         self.__controls: dict[str, controls.Control] = {}
@@ -78,6 +88,10 @@ class Sandman:
         # We only bootstrap control configs and reports once.
         control_config.bootstrap_control_configs(self.__base_dir)
         report.bootstrap_reports(self.__base_dir)
+
+        self.__report_manager = report.ReportManager(
+            self.__time_source, self.__base_dir
+        )
         return True
 
     def run(self) -> None:
@@ -177,6 +191,7 @@ class Sandman:
         self.__process_controls()
 
         self.__mqtt_client.process()
+        self.__report_manager.process()
 
     def __process_commands(self) -> None:
         """Process pending commands."""
@@ -186,8 +201,11 @@ class Sandman:
             match command:
                 case commands.StatusCommand():
                     self.__mqtt_client.play_notification("Sandman is running.")
+                    self.__report_manager.add_status_event()
+
                 case commands.MoveControlCommand():
                     self.__process_move_control_command(command)
+
                 case unknown:
                     typing.assert_never(unknown)
 
@@ -210,8 +228,20 @@ class Sandman:
         match command.direction:
             case commands.MoveControlCommand.Direction.UP:
                 control.set_desired_state(controls.Control.State.MOVE_UP)
+                self.__report_manager.add_control_event(
+                    command.control_name,
+                    controls.Control.State.MOVE_UP.as_string(),
+                    "command",
+                )
+
             case commands.MoveControlCommand.Direction.DOWN:
                 control.set_desired_state(controls.Control.State.MOVE_DOWN)
+                self.__report_manager.add_control_event(
+                    command.control_name,
+                    controls.Control.State.MOVE_DOWN.as_string(),
+                    "command",
+                )
+
             case unknown:
                 typing.assert_never(unknown)
 
