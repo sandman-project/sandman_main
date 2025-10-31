@@ -10,7 +10,6 @@ dependencies = [
   "gpiod>=2.3.0",
   "paho-mqtt>=2.1.0",
   "tzdata>=2025.2",
-  "tzlocal>=5.3.1",
   "whenever>=0.8.9",
 ]
 classifiers = [
