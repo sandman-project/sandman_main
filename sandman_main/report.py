@@ -47,9 +47,18 @@ class ReportManager:
 
     def process(self) -> None:
         """Process reports."""
+        try:
+            curr_time = self.__time_source.get_current_time()
+
+        except Exception:
+            _logger.warning(
+                "The report manager cannot function without the current time."
+            )
+            return
+
         # Even if there are no events, we want to make sure that we are
         # creating empty report files.
-        self.__maybe_create_report_file(self.__time_source.get_current_time())
+        self.__maybe_create_report_file(curr_time)
 
         event = self.__pop_event()
 
@@ -131,7 +140,14 @@ class ReportManager:
 
     def __add_event(self, info: _ReportEventInfo) -> None:
         """Add an event with the given info at the current time."""
-        event = _ReportEvent(self.__time_source.get_current_time(), info)
+        try:
+            curr_time = self.__time_source.get_current_time()
+
+        except Exception:
+            _logger.warning("Cannot add events without a valid time.")
+            return
+
+        event = _ReportEvent(curr_time, info)
         self.__pending_events.append(event)
 
     def __pop_event(self) -> _ReportEvent | None:

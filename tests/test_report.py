@@ -45,6 +45,15 @@ def test_report_file_creation(tmp_path: pathlib.Path) -> None:
 
     time_source = test_time_util.TestTimeSource()
 
+    assert _get_num_files_in_dir(reports_path) == 0
+    report_manager = report.ReportManager(time_source, str(tmp_path) + "/")
+
+    # Processing should not result in any files being created, because the time
+    # source doesn't have a valid time zone yet.
+    assert _get_num_files_in_dir(reports_path) == 0
+    report_manager.process()
+    assert _get_num_files_in_dir(reports_path) == 0
+
     first_time = whenever.ZonedDateTime(
         year=2025,
         month=9,
@@ -56,9 +65,6 @@ def test_report_file_creation(tmp_path: pathlib.Path) -> None:
     )
     time_source.set_current_time(first_time)
     assert time_source.get_current_time() == first_time
-
-    assert _get_num_files_in_dir(reports_path) == 0
-    report_manager = report.ReportManager(time_source, str(tmp_path) + "/")
 
     # Processing should create an empty report file based on the current date.
     assert _get_num_files_in_dir(reports_path) == 0
@@ -118,6 +124,10 @@ def test_report_events(tmp_path: pathlib.Path) -> None:
     assert reports_path.exists() == True
 
     time_source = test_time_util.TestTimeSource()
+    report_manager = report.ReportManager(time_source, str(tmp_path) + "/")
+
+    # Events should be ignored if there is no valid time zone.
+    report_manager.add_status_event()
 
     first_time = whenever.ZonedDateTime(
         year=2025,
@@ -130,8 +140,6 @@ def test_report_events(tmp_path: pathlib.Path) -> None:
     )
     time_source.set_current_time(first_time)
     assert time_source.get_current_time() == first_time
-
-    report_manager = report.ReportManager(time_source, str(tmp_path) + "/")
 
     # Adding an event before processing does not cause a file to get created.
     report_manager.add_status_event()
