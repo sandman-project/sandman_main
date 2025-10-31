@@ -98,6 +98,9 @@ class Sandman:
         """Run the program."""
         self.__logger.info("Starting Sandman...")
 
+        # Temporarily hard coding the time zone.
+        self.__time_source.set_time_zone_name("America/Chicago")
+
         self.__initialize_controls()
 
         self.__mqtt_client = mqtt.MQTTClient()
