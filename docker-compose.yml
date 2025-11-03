@@ -10,7 +10,6 @@ services:
       - ${GPIO_GID}
     volumes:
       - ~:/home/app
-      - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     devices:
       - "/dev/gpiochip0:/dev/gpiochip0"
@@ -18,7 +17,6 @@ services:
       - sandman_network
     environment:
       - RHASSPY_HOSTNAME=rhasspy
-      - TZ=${TZ}
 
 networks:
   sandman_network:
