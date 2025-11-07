@@ -4,27 +4,27 @@ import pathlib
 
 import pytest
 
-import sandman_main.setting as setting
+import sandman_main.settings as settings
 
 
 def test_settings_initialization() -> None:
     """Test settings initialization."""
-    settings = setting.Settings()
-    assert settings.time_zone_name == ""
+    test_settings = settings.Settings()
+    assert test_settings.time_zone_name == ""
 
     with pytest.raises(TypeError):
-        settings.time_zone_name = 1
+        test_settings.time_zone_name = 1
     with pytest.raises(ValueError):
-        settings.time_zone_name = ""
+        test_settings.time_zone_name = ""
     with pytest.raises(ValueError):
-        settings.time_zone_name = "America"
+        test_settings.time_zone_name = "America"
 
-    settings.time_zone_name = "America/Chicago"
-    assert settings.time_zone_name == "America/Chicago"
+    test_settings.time_zone_name = "America/Chicago"
+    assert test_settings.time_zone_name == "America/Chicago"
 
     with pytest.raises(ValueError):
-        settings.time_zone_name = ""
-    assert settings.time_zone_name == "America/Chicago"
+        test_settings.time_zone_name = ""
+    assert test_settings.time_zone_name == "America/Chicago"
 
 
 def test_settings_bootstrap(tmp_path: pathlib.Path) -> None:
@@ -32,5 +32,5 @@ def test_settings_bootstrap(tmp_path: pathlib.Path) -> None:
     settings_path = tmp_path / "settings.cfg"
     assert settings_path.exists() == False
 
-    setting.bootstrap_settings(str(tmp_path) + "/")
+    settings.bootstrap_settings(str(tmp_path) + "/")
     # assert settings_path.exists() == True
