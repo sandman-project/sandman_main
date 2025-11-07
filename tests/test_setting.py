@@ -22,6 +22,10 @@ def test_settings_initialization() -> None:
     settings.time_zone_name = "America/Chicago"
     assert settings.time_zone_name == "America/Chicago"
 
+    with pytest.raises(ValueError):
+        settings.time_zone_name = ""
+    assert settings.time_zone_name == "America/Chicago"
+
 
 def test_settings_bootstrap(tmp_path: pathlib.Path) -> None:
     """Test setting bootstrapping."""
