@@ -52,6 +52,28 @@ def test_settings_loading() -> None:
     )
     _check_default_settings(test_settings)
 
+    intended_time_zone_name = "America/Chicago"
+
+    test_settings = settings.Settings.parse_from_file(
+        path + "settings_missing_time_zone.cfg"
+    )
+    assert test_settings.time_zone_name == _default_time_zone_name
+
+    test_settings = settings.Settings.parse_from_file(
+        path + "settings_type_time_zone.cfg"
+    )
+    assert test_settings.time_zone_name == _default_time_zone_name
+
+    test_settings = settings.Settings.parse_from_file(
+        path + "settings_invalid_time_zone.cfg"
+    )
+    assert test_settings.time_zone_name == _default_time_zone_name
+
+    test_settings = settings.Settings.parse_from_file(
+        path + "settings_valid.cfg"
+    )
+    assert test_settings.time_zone_name == intended_time_zone_name
+
 
 def test_settings_bootstrap(tmp_path: pathlib.Path) -> None:
     """Test setting bootstrapping."""
