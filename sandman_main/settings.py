@@ -1,7 +1,9 @@
 """Provides support for overall settings, not specific to a system."""
 
+import json
 import logging
 import pathlib
+import typing
 import zoneinfo
 
 _logger = logging.getLogger("sandman.settings")
@@ -32,6 +34,45 @@ class Settings:
             raise ValueError("Invalid time zone name.") from exception
 
         self.__time_zone_name = time_zone_name
+
+    @classmethod
+    def parse_from_file(cls, filename: str) -> typing.Self:
+        """Parse settings from a file."""
+        new_settings = cls()
+
+        try:
+            with open(filename) as file:
+                try:
+                    settings_json = json.load(file)
+
+                except json.JSONDecodeError:
+                    _logger.error(
+                        "JSON error decoding settings file '%s'.",
+                        filename,
+                    )
+                    return new_settings
+
+                try:
+                    new_settings.time_zone_name = settings_json["timeZoneName"]
+
+                except KeyError:
+                    _logger.warning(
+                        "Missing 'timeZoneName' key in settings file '%s'.",
+                        filename,
+                    )
+
+                except (TypeError, ValueError):
+                    _logger.warning(
+                        "Invalid time zone name '%s' in settings file '%s'.",
+                        str(settings_json["timeZoneName"]),
+                        filename,
+                    )
+
+        except FileNotFoundError as error:
+            _logger.error("Could not find settings file '%s'.", filename)
+            raise error
+
+        return new_settings
 
 
 def bootstrap_settings(base_dir: str) -> None:
