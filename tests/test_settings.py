@@ -11,6 +11,7 @@ _default_time_zone_name = ""
 
 def _check_default_settings(test_settings: settings.Settings) -> None:
     assert test_settings.time_zone_name == _default_time_zone_name
+    assert test_settings.is_valid() == False
 
 
 def test_settings_initialization() -> None:
@@ -27,10 +28,12 @@ def test_settings_initialization() -> None:
 
     test_settings.time_zone_name = "America/Chicago"
     assert test_settings.time_zone_name == "America/Chicago"
+    assert test_settings.is_valid() == True
 
     with pytest.raises(ValueError):
         test_settings.time_zone_name = ""
     assert test_settings.time_zone_name == "America/Chicago"
+    assert test_settings.is_valid() == True
 
 
 def test_settings_loading() -> None:
@@ -58,21 +61,57 @@ def test_settings_loading() -> None:
         path + "settings_missing_time_zone.cfg"
     )
     assert test_settings.time_zone_name == _default_time_zone_name
+    assert test_settings.is_valid() == False
 
     test_settings = settings.Settings.parse_from_file(
         path + "settings_type_time_zone.cfg"
     )
     assert test_settings.time_zone_name == _default_time_zone_name
+    assert test_settings.is_valid() == False
 
     test_settings = settings.Settings.parse_from_file(
         path + "settings_invalid_time_zone.cfg"
     )
     assert test_settings.time_zone_name == _default_time_zone_name
+    assert test_settings.is_valid() == False
 
     test_settings = settings.Settings.parse_from_file(
         path + "settings_valid.cfg"
     )
     assert test_settings.time_zone_name == intended_time_zone_name
+    assert test_settings.is_valid() == True
+
+
+def test_settings_saving(tmp_path: pathlib.Path) -> None:
+    """Test settings saving."""
+    # Don't write invalid settings.
+    original_settings = settings.Settings()
+    assert original_settings.is_valid() == False
+
+    filename = tmp_path / "test_invalid.cfg"
+    assert filename.exists() == False
+
+    original_settings.save_to_file(str(filename))
+    assert filename.exists() == False
+
+    # After writing valid settings, they should be the same when read back in.
+    original_settings = settings.Settings.parse_from_file(
+        "tests/data/settings/settings_valid.cfg"
+    )
+    assert original_settings.is_valid() == True
+
+    filename = tmp_path / "test_valid.cfg"
+    assert filename.exists() == False
+
+    original_settings.save_to_file(str(filename))
+    assert filename.exists() == True
+
+    written_settings = settings.Settings.parse_from_file(str(filename))
+    assert written_settings.is_valid() == True
+    assert written_settings == original_settings
+
+    with pytest.raises(OSError):
+        original_settings.save_to_file("")
 
 
 def test_settings_bootstrap(tmp_path: pathlib.Path) -> None:

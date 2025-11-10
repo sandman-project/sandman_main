@@ -35,6 +35,23 @@ class Settings:
 
         self.__time_zone_name = time_zone_name
 
+    def is_valid(self) -> bool:
+        """Check whether these are valid settings."""
+        try:
+            _zone_info = zoneinfo.ZoneInfo(self.__time_zone_name)
+
+        except Exception:
+            return False
+
+        return True
+
+    def __eq__(self, other: object) -> bool:
+        """Check whether these settings and another have equal values."""
+        if not isinstance(other, Settings):
+            return NotImplemented
+
+        return self.__time_zone_name == other.__time_zone_name
+
     @classmethod
     def parse_from_file(cls, filename: str) -> typing.Self:
         """Parse settings from a file."""
@@ -73,6 +90,24 @@ class Settings:
             raise error
 
         return new_settings
+
+    def save_to_file(self, filename: str) -> None:
+        """Save settings to a file."""
+        if self.is_valid() == False:
+            _logger.warning("Cannot save invalid settings to '%s'", filename)
+            return
+
+        settings_json = {
+            "timeZoneName": self.__time_zone_name,
+        }
+
+        try:
+            with open(filename, "w") as file:
+                json.dump(settings_json, file, indent=4)
+
+        except OSError as error:
+            _logger.error("Failed to open '%s' to save settings.", filename)
+            raise error
 
 
 def bootstrap_settings(base_dir: str) -> None:
