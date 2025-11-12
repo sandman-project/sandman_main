@@ -118,3 +118,9 @@ def bootstrap_settings(base_dir: str) -> None:
         return
 
     _logger.info("Creating missing settings file '%s'.", str(settings_path))
+
+    # Set up some default settings.
+    new_settings = Settings()
+    new_settings.time_zone_name = "America/Chicago"
+
+    new_settings.save_to_file(str(settings_path))

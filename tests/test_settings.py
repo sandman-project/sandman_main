@@ -120,4 +120,23 @@ def test_settings_bootstrap(tmp_path: pathlib.Path) -> None:
     assert settings_path.exists() == False
 
     settings.bootstrap_settings(str(tmp_path) + "/")
-    # assert settings_path.exists() == True
+    assert settings_path.exists() == True
+
+    # Check that the settings are as expected.
+    expected_time_zone_name = "America/Chicago"
+
+    written_settings = settings.Settings.parse_from_file(str(settings_path))
+    assert written_settings.is_valid() == True
+    assert written_settings.time_zone_name == expected_time_zone_name
+
+    # Bootstrap should not overwrite existing settings.
+    expected_time_zone_name = "America/New_York"
+    updated_settings = written_settings
+    updated_settings.time_zone_name = expected_time_zone_name
+    updated_settings.save_to_file(str(settings_path))
+
+    settings.bootstrap_settings(str(tmp_path) + "/")
+
+    written_settings = settings.Settings.parse_from_file(str(settings_path))
+    assert written_settings.is_valid() == True
+    assert written_settings.time_zone_name == expected_time_zone_name
