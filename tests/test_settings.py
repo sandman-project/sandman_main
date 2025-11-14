@@ -38,45 +38,45 @@ def test_settings_initialization() -> None:
 
 def test_settings_loading() -> None:
     """Test settings loading."""
-    path: str = "tests/data/settings/"
+    settings_dir: str = "tests/data/settings/"
 
     with pytest.raises(FileNotFoundError):
-        test_settings = settings.Settings.parse_from_file(path + "a")
+        test_settings = settings.Settings.parse_from_file(settings_dir + "a")
 
     # Empty files cannot be parsed.
     test_settings = settings.Settings.parse_from_file(
-        path + "settings_empty.cfg"
+        settings_dir + "settings_empty.cfg"
     )
     _check_default_settings(test_settings)
 
     # Files with improperly formed JSON cannot be parsed.
     test_settings = settings.Settings.parse_from_file(
-        path + "settings_invalid.cfg"
+        settings_dir + "settings_invalid.cfg"
     )
     _check_default_settings(test_settings)
 
     intended_time_zone_name = "America/Chicago"
 
     test_settings = settings.Settings.parse_from_file(
-        path + "settings_missing_time_zone.cfg"
+        settings_dir + "settings_missing_time_zone.cfg"
     )
     assert test_settings.time_zone_name == _default_time_zone_name
     assert test_settings.is_valid() == False
 
     test_settings = settings.Settings.parse_from_file(
-        path + "settings_type_time_zone.cfg"
+        settings_dir + "settings_type_time_zone.cfg"
     )
     assert test_settings.time_zone_name == _default_time_zone_name
     assert test_settings.is_valid() == False
 
     test_settings = settings.Settings.parse_from_file(
-        path + "settings_invalid_time_zone.cfg"
+        settings_dir + "settings_invalid_time_zone.cfg"
     )
     assert test_settings.time_zone_name == _default_time_zone_name
     assert test_settings.is_valid() == False
 
     test_settings = settings.Settings.parse_from_file(
-        path + "settings_valid.cfg"
+        settings_dir + "settings_valid.cfg"
     )
     assert test_settings.time_zone_name == intended_time_zone_name
     assert test_settings.is_valid() == True
