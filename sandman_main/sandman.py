@@ -13,7 +13,7 @@ from . import (
     gpio,
     mqtt,
     report,
-    settings,
+    setting,
     time_util,
     timer,
 )
@@ -87,11 +87,11 @@ class Sandman:
         self.__gpio_manager.initialize()
 
         # We only bootstrap once.
-        settings.bootstrap_settings(self.__base_dir)
+        setting.bootstrap_settings(self.__base_dir)
         control_config.bootstrap_control_configs(self.__base_dir)
         report.bootstrap_reports(self.__base_dir)
 
-        self.__settings = settings.Settings.parse_from_file(
+        self.__settings = setting.Settings.parse_from_file(
             self.__base_dir + "settings.cfg"
         )
         self.__time_source.set_time_zone_name(self.__settings.time_zone_name)
