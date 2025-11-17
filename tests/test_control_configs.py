@@ -4,7 +4,7 @@ import pathlib
 
 import pytest
 
-import sandman_main.control_config as control_config
+import sandman_main.control_configs as control_configs
 
 _default_name = ""
 _default_gpio_line = -1
@@ -12,7 +12,7 @@ _default_moving_duration_ms = -1
 _default_cool_down_duration_ms = 25
 
 
-def _check_default_config(config: control_config.ControlConfig) -> None:
+def _check_default_config(config: control_configs.ControlConfig) -> None:
     """Check whether a config is all default values."""
     assert config.name == _default_name
     assert config.up_gpio_line == _default_gpio_line
@@ -24,7 +24,7 @@ def _check_default_config(config: control_config.ControlConfig) -> None:
 
 def test_control_config_initialization() -> None:
     """Test control config initialization."""
-    config = control_config.ControlConfig()
+    config = control_configs.ControlConfig()
     _check_default_config(config)
 
     # Empty strings are not valid names.
@@ -96,16 +96,16 @@ def test_control_config_loading() -> None:
     path: str = "tests/data/controls/"
 
     with pytest.raises(FileNotFoundError):
-        config = control_config.ControlConfig.parse_from_file(path + "a")
+        config = control_configs.ControlConfig.parse_from_file(path + "a")
 
     # Empty files cannot be parsed.
-    config = control_config.ControlConfig.parse_from_file(
+    config = control_configs.ControlConfig.parse_from_file(
         path + "control_test_empty.ctl"
     )
     _check_default_config(config)
 
     # Files with improperly formed JSON cannot be parsed.
-    config = control_config.ControlConfig.parse_from_file(
+    config = control_configs.ControlConfig.parse_from_file(
         path + "control_test_invalid.ctl"
     )
     _check_default_config(config)
@@ -116,7 +116,7 @@ def test_control_config_loading() -> None:
     intended_moving_duration_ms = 100
     intended_cool_down_duration_ms = 20
 
-    config = control_config.ControlConfig.parse_from_file(
+    config = control_configs.ControlConfig.parse_from_file(
         path + "control_test_missing_name.ctl"
     )
     assert config.name == _default_name
@@ -126,7 +126,7 @@ def test_control_config_loading() -> None:
     assert config.cool_down_duration_ms == intended_cool_down_duration_ms
     assert config.is_valid() == False
 
-    config = control_config.ControlConfig.parse_from_file(
+    config = control_configs.ControlConfig.parse_from_file(
         path + "control_test_type_name.ctl"
     )
     assert config.name == _default_name
@@ -136,7 +136,7 @@ def test_control_config_loading() -> None:
     assert config.cool_down_duration_ms == intended_cool_down_duration_ms
     assert config.is_valid() == False
 
-    config = control_config.ControlConfig.parse_from_file(
+    config = control_configs.ControlConfig.parse_from_file(
         path + "control_test_invalid_name.ctl"
     )
     assert config.name == _default_name
@@ -146,7 +146,7 @@ def test_control_config_loading() -> None:
     assert config.cool_down_duration_ms == intended_cool_down_duration_ms
     assert config.is_valid() == False
 
-    config = control_config.ControlConfig.parse_from_file(
+    config = control_configs.ControlConfig.parse_from_file(
         path + "control_test_missing_up_gpio.ctl"
     )
     assert config.name == intended_name
@@ -156,7 +156,7 @@ def test_control_config_loading() -> None:
     assert config.cool_down_duration_ms == intended_cool_down_duration_ms
     assert config.is_valid() == False
 
-    config = control_config.ControlConfig.parse_from_file(
+    config = control_configs.ControlConfig.parse_from_file(
         path + "control_test_type_up_gpio.ctl"
     )
     assert config.name == intended_name
@@ -166,7 +166,7 @@ def test_control_config_loading() -> None:
     assert config.cool_down_duration_ms == intended_cool_down_duration_ms
     assert config.is_valid() == False
 
-    config = control_config.ControlConfig.parse_from_file(
+    config = control_configs.ControlConfig.parse_from_file(
         path + "control_test_invalid_up_gpio.ctl"
     )
     assert config.name == intended_name
@@ -176,7 +176,7 @@ def test_control_config_loading() -> None:
     assert config.cool_down_duration_ms == intended_cool_down_duration_ms
     assert config.is_valid() == False
 
-    config = control_config.ControlConfig.parse_from_file(
+    config = control_configs.ControlConfig.parse_from_file(
         path + "control_test_missing_down_gpio.ctl"
     )
     assert config.name == intended_name
@@ -186,7 +186,7 @@ def test_control_config_loading() -> None:
     assert config.cool_down_duration_ms == intended_cool_down_duration_ms
     assert config.is_valid() == False
 
-    config = control_config.ControlConfig.parse_from_file(
+    config = control_configs.ControlConfig.parse_from_file(
         path + "control_test_type_down_gpio.ctl"
     )
     assert config.name == intended_name
@@ -196,7 +196,7 @@ def test_control_config_loading() -> None:
     assert config.cool_down_duration_ms == intended_cool_down_duration_ms
     assert config.is_valid() == False
 
-    config = control_config.ControlConfig.parse_from_file(
+    config = control_configs.ControlConfig.parse_from_file(
         path + "control_test_invalid_down_gpio.ctl"
     )
     assert config.name == intended_name
@@ -206,7 +206,7 @@ def test_control_config_loading() -> None:
     assert config.cool_down_duration_ms == intended_cool_down_duration_ms
     assert config.is_valid() == False
 
-    config = control_config.ControlConfig.parse_from_file(
+    config = control_configs.ControlConfig.parse_from_file(
         path + "control_test_missing_moving_duration.ctl"
     )
     assert config.name == intended_name
@@ -216,7 +216,7 @@ def test_control_config_loading() -> None:
     assert config.cool_down_duration_ms == intended_cool_down_duration_ms
     assert config.is_valid() == False
 
-    config = control_config.ControlConfig.parse_from_file(
+    config = control_configs.ControlConfig.parse_from_file(
         path + "control_test_type_moving_duration.ctl"
     )
     assert config.name == intended_name
@@ -226,7 +226,7 @@ def test_control_config_loading() -> None:
     assert config.cool_down_duration_ms == intended_cool_down_duration_ms
     assert config.is_valid() == False
 
-    config = control_config.ControlConfig.parse_from_file(
+    config = control_configs.ControlConfig.parse_from_file(
         path + "control_test_invalid_moving_duration.ctl"
     )
     assert config.name == intended_name
@@ -236,7 +236,7 @@ def test_control_config_loading() -> None:
     assert config.cool_down_duration_ms == intended_cool_down_duration_ms
     assert config.is_valid() == False
 
-    config = control_config.ControlConfig.parse_from_file(
+    config = control_configs.ControlConfig.parse_from_file(
         path + "control_test_missing_cool_down.ctl"
     )
     assert config.name == intended_name
@@ -246,7 +246,7 @@ def test_control_config_loading() -> None:
     assert config.cool_down_duration_ms == _default_cool_down_duration_ms
     assert config.is_valid() == True
 
-    config = control_config.ControlConfig.parse_from_file(
+    config = control_configs.ControlConfig.parse_from_file(
         path + "control_test_type_cool_down.ctl"
     )
     assert config.name == intended_name
@@ -256,7 +256,7 @@ def test_control_config_loading() -> None:
     assert config.cool_down_duration_ms == _default_cool_down_duration_ms
     assert config.is_valid() == True
 
-    config = control_config.ControlConfig.parse_from_file(
+    config = control_configs.ControlConfig.parse_from_file(
         path + "control_test_invalid_cool_down.ctl"
     )
     assert config.name == intended_name
@@ -266,7 +266,7 @@ def test_control_config_loading() -> None:
     assert config.cool_down_duration_ms == _default_cool_down_duration_ms
     assert config.is_valid() == True
 
-    config = control_config.ControlConfig.parse_from_file(
+    config = control_configs.ControlConfig.parse_from_file(
         path + "control_test_valid.ctl"
     )
     assert config.name == intended_name
@@ -280,7 +280,7 @@ def test_control_config_loading() -> None:
 def test_control_config_saving(tmp_path: pathlib.Path) -> None:
     """Test control config saving."""
     # Don't write invalid configs.
-    original_config = control_config.ControlConfig()
+    original_config = control_configs.ControlConfig()
     assert original_config.is_valid() == False
 
     filename = tmp_path / "test_invalid.ctl"
@@ -290,7 +290,7 @@ def test_control_config_saving(tmp_path: pathlib.Path) -> None:
     assert filename.exists() == False
 
     # After writing a valid config, it should be the same when read back in.
-    original_config = control_config.ControlConfig.parse_from_file(
+    original_config = control_configs.ControlConfig.parse_from_file(
         "tests/data/controls/control_test_valid.ctl"
     )
     assert original_config.is_valid() == True
@@ -301,7 +301,7 @@ def test_control_config_saving(tmp_path: pathlib.Path) -> None:
     original_config.save_to_file(str(filename))
     assert filename.exists() == True
 
-    written_config = control_config.ControlConfig.parse_from_file(
+    written_config = control_configs.ControlConfig.parse_from_file(
         str(filename)
     )
     assert written_config.is_valid() == True
@@ -316,13 +316,13 @@ def test_control_config_bootstrap(tmp_path: pathlib.Path) -> None:
     control_path = tmp_path / "controls/"
     assert control_path.exists() == False
 
-    control_config.bootstrap_control_configs(str(tmp_path) + "/")
+    control_configs.bootstrap_control_configs(str(tmp_path) + "/")
     assert control_path.exists() == True
 
     back_control_path = control_path / "back.ctl"
     assert back_control_path.exists() == True
 
-    back_config = control_config.ControlConfig.parse_from_file(
+    back_config = control_configs.ControlConfig.parse_from_file(
         str(back_control_path)
     )
     assert back_config.name == "back"
@@ -335,7 +335,7 @@ def test_control_config_bootstrap(tmp_path: pathlib.Path) -> None:
     legs_control_path = control_path / "legs.ctl"
     assert legs_control_path.exists() == True
 
-    legs_config = control_config.ControlConfig.parse_from_file(
+    legs_config = control_configs.ControlConfig.parse_from_file(
         str(legs_control_path)
     )
     assert legs_config.name == "legs"
@@ -348,7 +348,7 @@ def test_control_config_bootstrap(tmp_path: pathlib.Path) -> None:
     elevation_control_path = control_path / "elevation.ctl"
     assert elevation_control_path.exists() == True
 
-    elevation_config = control_config.ControlConfig.parse_from_file(
+    elevation_config = control_configs.ControlConfig.parse_from_file(
         str(elevation_control_path)
     )
     assert elevation_config.name == "elevation"

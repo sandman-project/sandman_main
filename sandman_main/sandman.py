@@ -8,7 +8,7 @@ import typing
 
 from . import (
     commands,
-    control_config,
+    control_configs,
     controls,
     gpio,
     mqtt,
@@ -88,7 +88,7 @@ class Sandman:
 
         # We only bootstrap once.
         setting.bootstrap_settings(self.__base_dir)
-        control_config.bootstrap_control_configs(self.__base_dir)
+        control_configs.bootstrap_control_configs(self.__base_dir)
         report.bootstrap_reports(self.__base_dir)
 
         self.__settings = setting.Settings.parse_from_file(
@@ -153,7 +153,7 @@ class Sandman:
             config_file = str(config_path)
             self.__logger.info("Loading control from '%s'.", config_file)
 
-            config = control_config.ControlConfig.parse_from_file(config_file)
+            config = control_configs.ControlConfig.parse_from_file(config_file)
 
             if config.is_valid() == False:
                 continue
