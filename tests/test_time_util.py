@@ -6,6 +6,30 @@ import pytest
 import whenever
 
 import sandman_main.time_util as time_util
+import sandman_main.timer as timer
+
+
+class TestTimer(timer.Timer):
+    """A special-purpose timer for use with testing."""
+
+    # Despite its name, this class should not be collected for testing.
+    __test__ = False
+
+    @typing.override
+    def __init__(self) -> None:
+        """Initialize the instance."""
+        super().__init__()
+        self.__curr_time_ns = 0
+
+    @typing.override
+    def get_current_time(self) -> int:
+        """Get the current point in time."""
+        return self.__curr_time_ns
+
+    def set_current_time_ms(self, curr_time_ms: int) -> None:
+        """Set the current point in time in milliseconds."""
+        self.__curr_time_ns = curr_time_ms * 1000000
+
 
 _default_time = whenever.ZonedDateTime(
     year=2025, month=9, day=23, hour=21, minute=42, tz="America/Chicago"
@@ -34,6 +58,30 @@ class TestTimeSource(time_util.TimeSource):
         """Set the current time and time zone."""
         self.set_time_zone_name(new_time.tz)
         self.__curr_time = new_time.to_instant()
+
+
+def test_timer() -> None:
+    """Test the test timer."""
+    test_timer = TestTimer()
+    assert test_timer.get_current_time() == 0
+
+    # The time since initialization should be zero.
+    initial_time = test_timer.get_current_time()
+    duration_ms = test_timer.get_time_since_ms(initial_time)
+    assert duration_ms == 0
+
+    # Advance the time the duration should reflect that.
+    test_timer.set_current_time_ms(15)
+    duration_ms = test_timer.get_time_since_ms(initial_time)
+    assert duration_ms == 15
+
+    # Advance again.
+    second_time = test_timer.get_current_time()
+    test_timer.set_current_time_ms(16)
+    duration_ms = test_timer.get_time_since_ms(initial_time)
+    assert duration_ms == 16
+    duration_ms = test_timer.get_time_since_ms(second_time)
+    assert duration_ms == 1
 
 
 def test_time_source() -> None:

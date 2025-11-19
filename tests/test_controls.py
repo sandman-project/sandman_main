@@ -4,12 +4,12 @@ import pytest
 
 import sandman_main.controls as controls
 import sandman_main.gpio as gpio
-import tests.test_timer as test_timer
+import tests.test_time_util as test_time_util
 
 
 def test_control_initialization() -> None:
     """Test control initialization."""
-    timer = test_timer.TestTimer()
+    timer = test_time_util.TestTimer()
     gpio_manager = gpio.GPIOManager(is_live_mode=False)
     gpio_manager.initialize()
 
@@ -197,7 +197,7 @@ def _test_control_moving_flow(
     cool_down_duration_ms: int,
 ) -> None:
     """Test control moving state flow."""
-    timer = test_timer.TestTimer()
+    timer = test_time_util.TestTimer()
     gpio_manager = gpio.GPIOManager(is_live_mode=False)
     gpio_manager.initialize()
 
@@ -293,7 +293,7 @@ def test_control_moving_switch() -> None:
 
     control = controls.Control(
         "test_moving_switch",
-        test_timer.TestTimer(),
+        test_time_util.TestTimer(),
         gpio_manager,
     )
     control.initialize(
@@ -327,7 +327,7 @@ def test_control_moving_switch() -> None:
 
 def test_control_moving_switch_time() -> None:
     """Test that switching moving direction resets the duration."""
-    timer = test_timer.TestTimer()
+    timer = test_time_util.TestTimer()
     gpio_manager = gpio.GPIOManager(is_live_mode=False)
     gpio_manager.initialize()
 
@@ -377,7 +377,7 @@ def test_control_moving_stop() -> None:
 
     control = controls.Control(
         "test_moving_stop",
-        test_timer.TestTimer(),
+        test_time_util.TestTimer(),
         gpio_manager,
     )
     control.initialize(
@@ -404,7 +404,7 @@ def test_control_moving_stop() -> None:
 
     control = controls.Control(
         "test_moving_stop",
-        test_timer.TestTimer(),
+        test_time_util.TestTimer(),
         gpio_manager,
     )
     control.initialize(
@@ -429,7 +429,7 @@ def test_control_moving_stop() -> None:
 
 def test_control_cool_down() -> None:
     """Test the cool down state."""
-    timer = test_timer.TestTimer()
+    timer = test_time_util.TestTimer()
     gpio_manager = gpio.GPIOManager(is_live_mode=False)
     gpio_manager.initialize()
 
@@ -492,7 +492,7 @@ def test_control_no_desired_cool_down() -> None:
 
     control = controls.Control(
         "test_desired_cool_down",
-        test_timer.TestTimer(),
+        test_time_util.TestTimer(),
         gpio_manager,
     )
     control.initialize(
