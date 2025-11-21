@@ -6,10 +6,9 @@ import pytest
 import whenever
 
 import sandman_main.time_util as time_util
-import sandman_main.timer as timer
 
 
-class TestTimer(timer.Timer):
+class TestTimer(time_util.Timer):
     """A special-purpose timer for use with testing."""
 
     # Despite its name, this class should not be collected for testing.

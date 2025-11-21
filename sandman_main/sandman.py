@@ -15,7 +15,6 @@ from . import (
     reports,
     setting,
     time_util,
-    timer,
 )
 
 
@@ -24,7 +23,7 @@ class Sandman:
 
     def __init__(self) -> None:
         """Initialize the instance."""
-        self.__timer = timer.Timer()
+        self.__timer = time_util.Timer()
         self.__time_source = time_util.TimeSource()
         # Change this if you want to run off device.
         self.__gpio_manager = gpio.GPIOManager(is_live_mode=True)

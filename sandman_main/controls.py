@@ -7,7 +7,7 @@ import enum
 import logging
 import typing
 
-from . import gpio, timer
+from . import gpio, time_util
 
 
 class Control:
@@ -39,7 +39,7 @@ class Control:
     def __init__(
         self,
         name: str,
-        timer: timer.Timer,
+        timer: time_util.Timer,
         gpio_manager: gpio.GPIOManager,
     ) -> None:
         """Initialize the instance."""
