@@ -12,3 +12,8 @@ def test_routine_bootstrap(tmp_path: pathlib.Path) -> None:
 
     routines.bootstrap_routines(str(tmp_path) + "/")
     assert reports_path.exists() == True
+
+    # Save a file and make sure it still exists after bootstrapping again.
+
+    routines.bootstrap_routines(str(tmp_path) + "/")
+    assert reports_path.exists() == True
