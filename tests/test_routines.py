@@ -2,7 +2,45 @@
 
 import pathlib
 
+import pytest
+
 import sandman_main.routines as routines
+
+_default_name = ""
+
+
+def _check_default_routine_desc(desc: routines.RoutineDesc) -> None:
+    """Check whether a description is all default values."""
+    assert desc.name == _default_name
+    assert desc.is_valid() == False
+
+
+def test_routine_desc_initialization() -> None:
+    """Test routine description initialization."""
+    desc = routines.RoutineDesc()
+    _check_default_routine_desc(desc)
+
+    with pytest.raises(TypeError):
+        desc.name = 1
+    assert desc.name == _default_name
+
+    # Empty strings are not valid names.
+    with pytest.raises(ValueError):
+        desc.name = ""
+    assert desc.name == _default_name
+
+    desc.name = "test"
+    assert desc.name == "test"
+    assert desc.is_valid() == True
+
+    with pytest.raises(ValueError):
+        desc.name = ""
+    assert desc.name == "test"
+    assert desc.is_valid() == True
+
+
+def test_routine_desc_loading() -> None:
+    """Test routine description loading."""
 
 
 def test_routine_bootstrap(tmp_path: pathlib.Path) -> None:
