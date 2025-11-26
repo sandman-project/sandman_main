@@ -15,6 +15,7 @@ class RoutineDesc:
     def __init__(self) -> None:
         """Initialize the description."""
         self.__name: str = ""
+        self.__is_looping = False
 
     @property
     def name(self) -> str:
@@ -31,6 +32,19 @@ class RoutineDesc:
             raise ValueError("Cannot set an empty name.")
 
         self.__name = new_name
+
+    @property
+    def is_looping(self) -> bool:
+        """Get whether the routine is looping."""
+        return self.__is_looping
+
+    @is_looping.setter
+    def is_looping(self, is_looping: bool) -> None:
+        """Set whether the routine is looping."""
+        if isinstance(is_looping, bool) == False:
+            raise TypeError("Is looping must be a boolean.")
+
+        self.__is_looping = is_looping
 
     def is_valid(self) -> bool:
         """Check whether this is a valid routine description."""
