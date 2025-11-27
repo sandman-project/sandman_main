@@ -6,6 +6,44 @@ import pytest
 
 import sandman_main.routines as routines
 
+_default_delay_ms = -1
+
+
+def _check_default_routine_step(step: routines.RoutineDesc.Step) -> None:
+    """Check whether a step is all default values."""
+    assert step.delay_ms == _default_delay_ms
+    assert step.is_valid() == False
+
+
+def test_routine_step_initialization() -> None:
+    """Test routine step initialization."""
+    step = routines.RoutineDesc.Step()
+    _check_default_routine_step(step)
+
+    with pytest.raises(TypeError):
+        step.delay_ms = ""
+    _check_default_routine_step(step)
+
+    with pytest.raises(ValueError):
+        step.delay_ms = -5
+    _check_default_routine_step(step)
+
+    intended_delay_ms = 0
+    step.delay_ms = intended_delay_ms
+    assert step.delay_ms == intended_delay_ms
+    assert step.is_valid() == True
+
+    with pytest.raises(ValueError):
+        step.delay_ms = -1
+    assert step.delay_ms == intended_delay_ms
+    assert step.is_valid() == True
+
+    intended_delay_ms = 1
+    step.delay_ms = intended_delay_ms
+    assert step.delay_ms == intended_delay_ms
+    assert step.is_valid() == True
+
+
 _default_name = ""
 _default_is_looping = False
 

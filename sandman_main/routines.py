@@ -12,6 +12,36 @@ _logger = logging.getLogger("sandman.routines")
 class RoutineDesc:
     """Describes a routine."""
 
+    class Step:
+        """Describes a step of a routine."""
+
+        def __init__(self) -> None:
+            """Initialize the step."""
+            self.__delay_ms = -1
+
+        @property
+        def delay_ms(self) -> int:
+            """Get the delay."""
+            return self.__delay_ms
+
+        @delay_ms.setter
+        def delay_ms(self, delay_ms: int) -> None:
+            """Set the delay."""
+            if isinstance(delay_ms, int) == False:
+                raise TypeError("Delay must be an integer.")
+
+            if delay_ms < 0:
+                raise ValueError("Cannot set a negative delay.")
+
+            self.__delay_ms = delay_ms
+
+        def is_valid(self) -> bool:
+            """Check whether this is a valid step."""
+            if self.__delay_ms < 0:
+                return False
+
+            return True
+
     def __init__(self) -> None:
         """Initialize the description."""
         self.__name: str = ""
