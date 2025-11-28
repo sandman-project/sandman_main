@@ -7,11 +7,13 @@ import pytest
 import sandman_main.routines as routines
 
 _default_delay_ms = -1
+_default_control_name = ""
 
 
 def _check_default_routine_step(step: routines.RoutineDesc.Step) -> None:
     """Check whether a step is all default values."""
     assert step.delay_ms == _default_delay_ms
+    assert step.control_name == _default_control_name
     assert step.is_valid() == False
 
 
@@ -31,16 +33,43 @@ def test_routine_step_initialization() -> None:
     intended_delay_ms = 0
     step.delay_ms = intended_delay_ms
     assert step.delay_ms == intended_delay_ms
-    assert step.is_valid() == True
+    assert step.control_name == _default_control_name
+    assert step.is_valid() == False
 
     with pytest.raises(ValueError):
         step.delay_ms = -1
     assert step.delay_ms == intended_delay_ms
-    assert step.is_valid() == True
+    assert step.control_name == _default_control_name
+    assert step.is_valid() == False
 
     intended_delay_ms = 1
     step.delay_ms = intended_delay_ms
     assert step.delay_ms == intended_delay_ms
+    assert step.control_name == _default_control_name
+    assert step.is_valid() == False
+
+    with pytest.raises(TypeError):
+        step.control_name = 1
+    assert step.delay_ms == intended_delay_ms
+    assert step.control_name == _default_control_name
+    assert step.is_valid() == False
+
+    with pytest.raises(ValueError):
+        step.control_name = ""
+    assert step.delay_ms == intended_delay_ms
+    assert step.control_name == _default_control_name
+    assert step.is_valid() == False
+
+    intended_control_name = "test_control"
+    step.control_name = intended_control_name
+    assert step.delay_ms == intended_delay_ms
+    assert step.control_name == intended_control_name
+    assert step.is_valid() == True
+
+    with pytest.raises(ValueError):
+        step.control_name = ""
+    assert step.delay_ms == intended_delay_ms
+    assert step.control_name == intended_control_name
     assert step.is_valid() == True
 
 

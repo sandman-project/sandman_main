@@ -18,6 +18,7 @@ class RoutineDesc:
         def __init__(self) -> None:
             """Initialize the step."""
             self.__delay_ms = -1
+            self.__control_name = ""
 
         @property
         def delay_ms(self) -> int:
@@ -35,9 +36,28 @@ class RoutineDesc:
 
             self.__delay_ms = delay_ms
 
+        @property
+        def control_name(self) -> str:
+            """Get the control name."""
+            return self.__control_name
+
+        @control_name.setter
+        def control_name(self, name: str) -> None:
+            """Set the control name."""
+            if isinstance(name, str) == False:
+                raise TypeError("Control name must be a string.")
+
+            if name == "":
+                raise ValueError("Cannot set an empty control name.")
+
+            self.__control_name = name
+
         def is_valid(self) -> bool:
             """Check whether this is a valid step."""
             if self.__delay_ms < 0:
+                return False
+
+            if self.__control_name == "":
                 return False
 
             return True
