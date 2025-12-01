@@ -6,6 +6,8 @@ Routines are user specified sequences of actions.
 import logging
 import pathlib
 
+from . import controls
+
 _logger = logging.getLogger("sandman.routines")
 
 
@@ -19,6 +21,7 @@ class RoutineDesc:
             """Initialize the step."""
             self.__delay_ms = -1
             self.__control_name = ""
+            self.__control_state = controls.Control.State.IDLE
 
         @property
         def delay_ms(self) -> int:
@@ -52,12 +55,35 @@ class RoutineDesc:
 
             self.__control_name = name
 
+        @property
+        def control_state(self) -> controls.Control.State:
+            """Get the control state."""
+            return self.__control_state
+
+        @control_state.setter
+        def control_state(self, state: controls.Control.State) -> None:
+            """Set the control state."""
+            if isinstance(state, controls.Control.State) == False:
+                raise TypeError("Control state must be a state.")
+
+            if (state != controls.Control.State.MOVE_UP) and (
+                state != controls.Control.State.MOVE_DOWN
+            ):
+                raise ValueError(
+                    "Control state must be either move up or move down."
+                )
+
+            self.__control_state = state
+
         def is_valid(self) -> bool:
             """Check whether this is a valid step."""
             if self.__delay_ms < 0:
                 return False
 
             if self.__control_name == "":
+                return False
+
+            if self.__control_state == controls.Control.State.IDLE:
                 return False
 
             return True
