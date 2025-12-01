@@ -92,6 +92,7 @@ class RoutineDesc:
         """Initialize the description."""
         self.__name: str = ""
         self.__is_looping = False
+        self.__steps: list[RoutineDesc.Step] = []
 
     @property
     def name(self) -> str:
@@ -122,10 +123,26 @@ class RoutineDesc:
 
         self.__is_looping = is_looping
 
+    @property
+    def steps(self) -> list[Step]:
+        """Get the steps."""
+        return self.__steps
+
+    def append_step(self, step: Step) -> None:
+        """Add a new step to the end."""
+        if step.is_valid() == False:
+            raise ValueError("Cannot append an invalid step.")
+
+        self.__steps.append(step)
+
     def is_valid(self) -> bool:
         """Check whether this is a valid routine description."""
         if self.__name == "":
             return False
+
+        for step in self.__steps:
+            if step.is_valid() == False:
+                return False
 
         return True
 
@@ -134,7 +151,11 @@ class RoutineDesc:
         if not isinstance(other, RoutineDesc):
             return NotImplemented
 
-        return self.__name == other.__name
+        return (
+            (self.__name == other.__name)
+            and (self.__is_looping == other.__is_looping)
+            and (self.__steps == other.__steps)
+        )
 
 
 def bootstrap_routines(base_dir: str) -> None:
