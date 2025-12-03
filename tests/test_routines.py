@@ -133,6 +133,7 @@ def _check_default_routine_desc(desc: routines.RoutineDesc) -> None:
     """Check whether a description is all default values."""
     assert desc.name == _default_name
     assert desc.is_looping == _default_is_looping
+    assert len(desc.steps) == 0
     assert desc.is_valid() == False
 
 
@@ -149,12 +150,14 @@ def test_routine_desc_initialization() -> None:
     desc.is_looping = intended_is_looping
     assert desc.name == _default_name
     assert desc.is_looping == intended_is_looping
+    assert len(desc.steps) == 0
     assert desc.is_valid() == False
 
     with pytest.raises(TypeError):
         desc.name = 1
     assert desc.name == _default_name
     assert desc.is_looping == intended_is_looping
+    assert len(desc.steps) == 0
     assert desc.is_valid() == False
 
     # Empty strings are not valid names.
@@ -162,18 +165,40 @@ def test_routine_desc_initialization() -> None:
         desc.name = ""
     assert desc.name == _default_name
     assert desc.is_looping == intended_is_looping
+    assert len(desc.steps) == 0
     assert desc.is_valid() == False
 
     intended_name = "test"
     desc.name = intended_name
     assert desc.name == intended_name
     assert desc.is_looping == intended_is_looping
+    assert len(desc.steps) == 0
     assert desc.is_valid() == True
 
     with pytest.raises(ValueError):
         desc.name = ""
     assert desc.name == intended_name
     assert desc.is_looping == intended_is_looping
+    assert len(desc.steps) == 0
+    assert desc.is_valid() == True
+
+    first_step = routines.RoutineDesc.Step()
+    with pytest.raises(ValueError):
+        desc.append_step(first_step)
+    assert desc.name == intended_name
+    assert desc.is_looping == intended_is_looping
+    assert len(desc.steps) == 0
+    assert desc.is_valid() == True
+
+    first_step.delay_ms = 1
+    first_step.control_name = "test_control"
+    first_step.control_state = controls.Control.State.MOVE_UP
+    assert first_step.is_valid() == True
+    desc.append_step(first_step)
+    assert desc.name == intended_name
+    assert desc.is_looping == intended_is_looping
+    assert len(desc.steps) == 1
+    # Check step equality.
     assert desc.is_valid() == True
 
 
