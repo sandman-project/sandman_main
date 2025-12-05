@@ -3,8 +3,10 @@
 Routines are user specified sequences of actions.
 """
 
+import json
 import logging
 import pathlib
+import typing
 
 from . import controls
 
@@ -167,6 +169,31 @@ class RoutineDesc:
             and (self.__is_looping == other.__is_looping)
             and (self.__steps == other.__steps)
         )
+
+    @classmethod
+    def parse_from_file(cls, filename: str) -> typing.Self:
+        """Parse a description from a file."""
+        desc = cls()
+
+        try:
+            with open(filename) as file:
+                try:
+                    _desc_json = json.load(file)
+
+                except json.JSONDecodeError:
+                    _logger.error(
+                        "JSON error decoding routine description file '%s'.",
+                        filename,
+                    )
+                    return desc
+
+        except FileNotFoundError as error:
+            _logger.error(
+                "Could not find routine description file '%s'.", filename
+            )
+            raise error
+
+        return desc
 
 
 def bootstrap_routines(base_dir: str) -> None:

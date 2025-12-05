@@ -221,6 +221,22 @@ def test_routine_desc_initialization() -> None:
 
 def test_routine_desc_loading() -> None:
     """Test routine description loading."""
+    path: str = "tests/data/routines/"
+
+    with pytest.raises(FileNotFoundError):
+        desc = routines.RoutineDesc.parse_from_file(path + "a")
+
+    # Empty files cannot be parsed.
+    desc = routines.RoutineDesc.parse_from_file(
+        path + "routine_test_empty.rtn"
+    )
+    _check_default_routine_desc(desc)
+
+    # Files with improperly formed JSON cannot be parsed.
+    desc = routines.RoutineDesc.parse_from_file(
+        path + "routine_test_invalid.rtn"
+    )
+    _check_default_routine_desc(desc)
 
 
 def test_routine_bootstrap(tmp_path: pathlib.Path) -> None:
