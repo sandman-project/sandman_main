@@ -197,8 +197,25 @@ def test_routine_desc_initialization() -> None:
     desc.append_step(first_step)
     assert desc.name == intended_name
     assert desc.is_looping == intended_is_looping
-    assert len(desc.steps) == 1
-    # Check step equality.
+    steps = desc.steps
+    assert len(steps) == 1
+    if len(steps) > 0:
+        assert steps[0] == first_step
+    assert desc.is_valid() == True
+
+    second_step = routines.RoutineDesc.Step()
+    second_step.delay_ms = 2
+    second_step.control_name = "test_control"
+    second_step.control_state = controls.Control.State.MOVE_DOWN
+    assert second_step.is_valid() == True
+    desc.append_step(second_step)
+    assert desc.name == intended_name
+    assert desc.is_looping == intended_is_looping
+    steps = desc.steps
+    assert len(steps) == 2
+    if len(steps) > 1:
+        assert steps[0] == first_step
+        assert steps[1] == second_step
     assert desc.is_valid() == True
 
 

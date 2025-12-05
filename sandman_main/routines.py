@@ -88,6 +88,17 @@ class RoutineDesc:
 
             return True
 
+        def __eq__(self, other: object) -> bool:
+            """Check whether this step and another have equal values."""
+            if not isinstance(other, RoutineDesc.Step):
+                return NotImplemented
+
+            return (
+                (self.__delay_ms == other.__delay_ms)
+                and (self.__control_name == other.__control_name)
+                and (self.__control_state == other.__control_state)
+            )
+
     def __init__(self) -> None:
         """Initialize the description."""
         self.__name: str = ""
