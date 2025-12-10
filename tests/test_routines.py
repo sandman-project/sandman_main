@@ -238,6 +238,32 @@ def test_routine_desc_loading() -> None:
     )
     _check_default_routine_desc(desc)
 
+    intended_name = "test"
+
+    desc = routines.RoutineDesc.parse_from_file(
+        path + "routine_test_missing_name.rtn"
+    )
+    assert desc.name == _default_name
+    assert desc.is_valid() == False
+
+    desc = routines.RoutineDesc.parse_from_file(
+        path + "routine_test_type_name.rtn"
+    )
+    assert desc.name == _default_name
+    assert desc.is_valid() == False
+
+    desc = routines.RoutineDesc.parse_from_file(
+        path + "routine_test_invalid_name.rtn"
+    )
+    assert desc.name == _default_name
+    assert desc.is_valid() == False
+
+    desc = routines.RoutineDesc.parse_from_file(
+        path + "routine_test_missing_looping.rtn"
+    )
+    assert desc.name == intended_name
+    assert desc.is_valid() == True
+
 
 def test_routine_bootstrap(tmp_path: pathlib.Path) -> None:
     """Test routine bootstrapping."""

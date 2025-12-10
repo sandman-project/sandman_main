@@ -178,7 +178,7 @@ class RoutineDesc:
         try:
             with open(filename) as file:
                 try:
-                    _desc_json = json.load(file)
+                    desc_json = json.load(file)
 
                 except json.JSONDecodeError:
                     _logger.error(
@@ -186,6 +186,22 @@ class RoutineDesc:
                         filename,
                     )
                     return desc
+
+                try:
+                    desc.name = desc_json["name"]
+
+                except KeyError:
+                    _logger.warning(
+                        "Missing 'name' key in routine description file '%s'.",
+                        filename,
+                    )
+
+                except (TypeError, ValueError):
+                    _logger.warning(
+                        "Invalid name '%s' in routine description file '%s'.",
+                        str(desc_json["name"]),
+                        filename,
+                    )
 
         except FileNotFoundError as error:
             _logger.error(
