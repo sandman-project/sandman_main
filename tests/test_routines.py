@@ -239,29 +239,41 @@ def test_routine_desc_loading() -> None:
     _check_default_routine_desc(desc)
 
     intended_name = "test"
+    intended_is_looping = True
 
     desc = routines.RoutineDesc.parse_from_file(
         path + "routine_test_missing_name.rtn"
     )
     assert desc.name == _default_name
+    assert desc.is_looping == intended_is_looping
     assert desc.is_valid() == False
 
     desc = routines.RoutineDesc.parse_from_file(
         path + "routine_test_type_name.rtn"
     )
     assert desc.name == _default_name
+    assert desc.is_looping == intended_is_looping
     assert desc.is_valid() == False
 
     desc = routines.RoutineDesc.parse_from_file(
         path + "routine_test_invalid_name.rtn"
     )
     assert desc.name == _default_name
+    assert desc.is_looping == intended_is_looping
     assert desc.is_valid() == False
 
     desc = routines.RoutineDesc.parse_from_file(
         path + "routine_test_missing_looping.rtn"
     )
     assert desc.name == intended_name
+    assert desc.is_looping == _default_is_looping
+    assert desc.is_valid() == True
+
+    desc = routines.RoutineDesc.parse_from_file(
+        path + "routine_test_type_looping.rtn"
+    )
+    assert desc.name == intended_name
+    assert desc.is_looping == _default_is_looping
     assert desc.is_valid() == True
 
 

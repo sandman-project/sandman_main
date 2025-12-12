@@ -203,6 +203,21 @@ class RoutineDesc:
                         filename,
                     )
 
+                try:
+                    desc.is_looping = desc_json["isLooping"]
+
+                except KeyError:
+                    # This is not an error.
+                    pass
+
+                except TypeError:
+                    _logger.warning(
+                        "Invalid looping '%s' in routine description file"
+                        + " '%s'.",
+                        str(desc_json["isLooping"]),
+                        filename,
+                    )
+
         except FileNotFoundError as error:
             _logger.error(
                 "Could not find routine description file '%s'.", filename
