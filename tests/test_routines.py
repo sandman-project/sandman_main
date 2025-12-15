@@ -276,6 +276,22 @@ def test_routine_desc_loading() -> None:
     assert desc.is_looping == _default_is_looping
     assert desc.is_valid() == True
 
+    desc = routines.RoutineDesc.parse_from_file(
+        path + "routine_test_missing_steps.rtn"
+    )
+    assert desc.name == intended_name
+    assert desc.is_looping == intended_is_looping
+    assert len(desc.steps) == 0
+    assert desc.is_valid() == True
+
+    desc = routines.RoutineDesc.parse_from_file(
+        path + "routine_test_type_steps.rtn"
+    )
+    assert desc.name == intended_name
+    assert desc.is_looping == intended_is_looping
+    assert len(desc.steps) == 0
+    assert desc.is_valid() == True
+
 
 def test_routine_bootstrap(tmp_path: pathlib.Path) -> None:
     """Test routine bootstrapping."""

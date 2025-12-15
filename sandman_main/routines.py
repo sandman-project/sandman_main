@@ -218,6 +218,24 @@ class RoutineDesc:
                         filename,
                     )
 
+                try:
+                    steps = desc_json["steps"]
+
+                except KeyError:
+                    # This is not an error.
+                    pass
+
+                else:
+                    try:
+                        desc.__load_steps(steps)
+
+                    except TypeError:
+                        _logger.warning(
+                            "Steps in routine description file '%s' is not a "
+                            + "list.",
+                            filename,
+                        )
+
         except FileNotFoundError as error:
             _logger.error(
                 "Could not find routine description file '%s'.", filename
@@ -225,6 +243,14 @@ class RoutineDesc:
             raise error
 
         return desc
+
+    def __load_steps(self, steps: list[dict[str, int | str]]) -> None:
+        """Load steps."""
+        if isinstance(steps, list) == False:
+            raise TypeError("Routine steps must be a list.")
+
+        for _step in steps:
+            pass
 
 
 def bootstrap_routines(base_dir: str) -> None:
