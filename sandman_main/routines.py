@@ -101,6 +101,47 @@ class RoutineDesc:
                 and (self.__control_state == other.__control_state)
             )
 
+        @classmethod
+        def load_from_json(
+            cls, step_json: dict[str, int | str], filename: str
+        ) -> typing.Self:
+            """Load the step from a dictionary."""
+            step = cls()
+
+            try:
+                delay_ms = step_json["delayMS"]
+
+            except KeyError:
+                _logger.warning(
+                    "Missing 'delay' key in step in routine description file "
+                    + "'%s'.",
+                    filename,
+                )
+
+            else:
+                # Need to check type before trying to assign.
+                if isinstance(delay_ms, int) == True:
+                    try:
+                        step.delay_ms = int(delay_ms)
+
+                    except ValueError:
+                        _logger.warning(
+                            "Invalid delay '%s' in step in routine "
+                            + "description file '%s'.",
+                            str(delay_ms),
+                            filename,
+                        )
+
+                else:
+                    _logger.warning(
+                        "Non-integer delay '%s' in step in routine "
+                        + "description file '%s'.",
+                        str(delay_ms),
+                        filename,
+                    )
+
+            return step
+
     def __init__(self) -> None:
         """Initialize the description."""
         self.__name: str = ""
@@ -227,7 +268,7 @@ class RoutineDesc:
 
                 else:
                     try:
-                        desc.__load_steps(steps)
+                        desc.__load_steps(steps, filename)
 
                     except TypeError:
                         _logger.warning(
@@ -244,13 +285,18 @@ class RoutineDesc:
 
         return desc
 
-    def __load_steps(self, steps: list[dict[str, int | str]]) -> None:
+    def __load_steps(
+        self, steps_json: list[dict[str, int | str]], filename: str
+    ) -> None:
         """Load steps."""
-        if isinstance(steps, list) == False:
+        if isinstance(steps_json, list) == False:
             raise TypeError("Routine steps must be a list.")
 
-        for _step in steps:
-            pass
+        for step_json in steps_json:
+            step = RoutineDesc.Step.load_from_json(step_json, filename)
+
+            if step.is_valid() == True:
+                self.append_step(step)
 
 
 def bootstrap_routines(base_dir: str) -> None:

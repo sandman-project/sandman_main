@@ -1,0 +1,15 @@
+{
+    "name" : "test",
+    "isLooping" : true,
+    "steps" : [
+        {
+            "controlName": "test_control",
+            "controlState": "move up"
+        },
+        {
+            "delayMS": 2,
+            "controlName": "test_control",
+            "controlState": "move down"
+        }
+    ]
+}
