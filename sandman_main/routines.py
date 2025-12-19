@@ -119,7 +119,6 @@ class RoutineDesc:
                 )
 
             else:
-                # Need to check type before trying to assign.
                 if isinstance(delay_ms, int) == True:
                     try:
                         step.delay_ms = int(delay_ms)
@@ -134,9 +133,40 @@ class RoutineDesc:
 
                 else:
                     _logger.warning(
-                        "Non-integer delay '%s' in step in routine "
+                        "Delay '%s' in step must be an integer in routine "
                         + "description file '%s'.",
                         str(delay_ms),
+                        filename,
+                    )
+
+            try:
+                control_name = step_json["controlName"]
+
+            except KeyError:
+                _logger.warning(
+                    "Missing 'control name' key in step in routine "
+                    + "description file '%s'.",
+                    filename,
+                )
+
+            else:
+                if isinstance(control_name, str) == True:
+                    try:
+                        step.control_name = str(control_name)
+
+                    except ValueError:
+                        _logger.warning(
+                            "Invalid control name '%s' in step in routine "
+                            + "description file '%s'.",
+                            str(control_name),
+                            filename,
+                        )
+
+                else:
+                    _logger.warning(
+                        "Control name '%s' in step must be a string in "
+                        + "routine description file '%s'.",
+                        str(control_name),
                         filename,
                     )
 
