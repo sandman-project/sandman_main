@@ -409,6 +409,41 @@ def test_routine_desc_loading() -> None:
     assert desc.is_valid() == True
 
 
+def test_routine_desc_saving(tmp_path: pathlib.Path) -> None:
+    """Test routine description saving."""
+    # Don't write invalid descriptions.
+    original_desc = routines.RoutineDesc()
+    assert original_desc.is_valid() == False
+
+    filename = tmp_path / "test_invalid.rtn"
+    assert filename.exists() == False
+
+    original_desc.save_to_file(str(filename))
+    assert filename.exists() == False
+
+    # After writing a valid routine description, it should be the same when
+    # read back in.
+    original_desc = routines.RoutineDesc.parse_from_file(
+        "tests/data/routines/routine_test_valid_steps.rtn"
+    )
+    assert original_desc.is_valid() == True
+
+    filename = tmp_path / "test_valid.rtn"
+    assert filename.exists() == False
+
+    original_desc.save_to_file(str(filename))
+    # assert filename.exists() == True
+
+    # written_desc = routines.RoutineDesc.parse_from_file(
+    #    str(filename)
+    # )
+    # assert written_desc.is_valid() == True
+    # assert written_desc == original_desc
+
+    # with pytest.raises(OSError):
+    #    original_desc.save_to_file("")
+
+
 def test_routine_bootstrap(tmp_path: pathlib.Path) -> None:
     """Test routine bootstrapping."""
     reports_path = tmp_path / "routines/"

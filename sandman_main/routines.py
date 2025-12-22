@@ -349,6 +349,14 @@ class RoutineDesc:
 
         return desc
 
+    def save_to_file(self, filename: str) -> None:
+        """Save the description to a file."""
+        if self.is_valid() == False:
+            _logger.warning(
+                "Cannot save invalid routine description to '%s'", filename
+            )
+            return
+
     def __load_steps(
         self, steps_json: list[dict[str, int | str]], filename: str
     ) -> None:
