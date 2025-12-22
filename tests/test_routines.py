@@ -137,6 +137,22 @@ def _check_default_routine_desc(desc: routines.RoutineDesc) -> None:
     assert desc.is_valid() == False
 
 
+def _check_intended_routine_steps(
+    steps: list[routines.RoutineDesc.Step],
+    intended_steps: list[routines.RoutineDesc.Step],
+) -> None:
+    """Check whether routine steps match intended values."""
+    num_steps = len(steps)
+    num_intended_steps = len(intended_steps)
+    assert num_steps == num_intended_steps
+
+    if num_steps != num_intended_steps:
+        return
+
+    for index in range(num_steps):
+        assert steps[index] == intended_steps[index]
+
+
 def test_routine_desc_initialization() -> None:
     """Test routine description initialization."""
     desc = routines.RoutineDesc()
@@ -197,10 +213,7 @@ def test_routine_desc_initialization() -> None:
     desc.append_step(first_step)
     assert desc.name == intended_name
     assert desc.is_looping == intended_is_looping
-    steps = desc.steps
-    assert len(steps) == 1
-    if len(steps) > 0:
-        assert steps[0] == first_step
+    _check_intended_routine_steps(desc.steps, [first_step])
     assert desc.is_valid() == True
 
     second_step = routines.RoutineDesc.Step()
@@ -211,11 +224,7 @@ def test_routine_desc_initialization() -> None:
     desc.append_step(second_step)
     assert desc.name == intended_name
     assert desc.is_looping == intended_is_looping
-    steps = desc.steps
-    assert len(steps) == 2
-    if len(steps) > 1:
-        assert steps[0] == first_step
-        assert steps[1] == second_step
+    _check_intended_routine_steps(desc.steps, [first_step, second_step])
     assert desc.is_valid() == True
 
 
@@ -241,11 +250,26 @@ def test_routine_desc_loading() -> None:
     intended_name = "test"
     intended_is_looping = True
 
+    intended_step0 = routines.RoutineDesc.Step()
+    intended_step0.delay_ms = 1
+    intended_step0.control_name = "test_control"
+    intended_step0.control_state = controls.Control.State.MOVE_UP
+    assert intended_step0.is_valid() == True
+
+    intended_step1 = routines.RoutineDesc.Step()
+    intended_step1.delay_ms = 2
+    intended_step1.control_name = "test_control"
+    intended_step1.control_state = controls.Control.State.MOVE_DOWN
+    assert intended_step1.is_valid() == True
+
+    intended_steps = [intended_step0, intended_step1]
+
     desc = routines.RoutineDesc.parse_from_file(
         path + "routine_test_missing_name.rtn"
     )
     assert desc.name == _default_name
     assert desc.is_looping == intended_is_looping
+    _check_intended_routine_steps(desc.steps, intended_steps)
     assert desc.is_valid() == False
 
     desc = routines.RoutineDesc.parse_from_file(
@@ -253,6 +277,7 @@ def test_routine_desc_loading() -> None:
     )
     assert desc.name == _default_name
     assert desc.is_looping == intended_is_looping
+    _check_intended_routine_steps(desc.steps, intended_steps)
     assert desc.is_valid() == False
 
     desc = routines.RoutineDesc.parse_from_file(
@@ -260,6 +285,7 @@ def test_routine_desc_loading() -> None:
     )
     assert desc.name == _default_name
     assert desc.is_looping == intended_is_looping
+    _check_intended_routine_steps(desc.steps, intended_steps)
     assert desc.is_valid() == False
 
     desc = routines.RoutineDesc.parse_from_file(
@@ -267,6 +293,7 @@ def test_routine_desc_loading() -> None:
     )
     assert desc.name == intended_name
     assert desc.is_looping == _default_is_looping
+    _check_intended_routine_steps(desc.steps, intended_steps)
     assert desc.is_valid() == True
 
     desc = routines.RoutineDesc.parse_from_file(
@@ -274,6 +301,7 @@ def test_routine_desc_loading() -> None:
     )
     assert desc.name == intended_name
     assert desc.is_looping == _default_is_looping
+    _check_intended_routine_steps(desc.steps, intended_steps)
     assert desc.is_valid() == True
 
     desc = routines.RoutineDesc.parse_from_file(
@@ -297,7 +325,7 @@ def test_routine_desc_loading() -> None:
     )
     assert desc.name == intended_name
     assert desc.is_looping == intended_is_looping
-    assert len(desc.steps) == 0
+    _check_intended_routine_steps(desc.steps, [intended_step1])
     assert desc.is_valid() == True
 
     desc = routines.RoutineDesc.parse_from_file(
@@ -305,7 +333,7 @@ def test_routine_desc_loading() -> None:
     )
     assert desc.name == intended_name
     assert desc.is_looping == intended_is_looping
-    assert len(desc.steps) == 0
+    _check_intended_routine_steps(desc.steps, [intended_step1])
     assert desc.is_valid() == True
 
     desc = routines.RoutineDesc.parse_from_file(
@@ -313,7 +341,7 @@ def test_routine_desc_loading() -> None:
     )
     assert desc.name == intended_name
     assert desc.is_looping == intended_is_looping
-    assert len(desc.steps) == 0
+    _check_intended_routine_steps(desc.steps, [intended_step1])
     assert desc.is_valid() == True
 
     desc = routines.RoutineDesc.parse_from_file(
@@ -321,7 +349,7 @@ def test_routine_desc_loading() -> None:
     )
     assert desc.name == intended_name
     assert desc.is_looping == intended_is_looping
-    assert len(desc.steps) == 0
+    _check_intended_routine_steps(desc.steps, [intended_step1])
     assert desc.is_valid() == True
 
     desc = routines.RoutineDesc.parse_from_file(
@@ -329,7 +357,7 @@ def test_routine_desc_loading() -> None:
     )
     assert desc.name == intended_name
     assert desc.is_looping == intended_is_looping
-    assert len(desc.steps) == 0
+    _check_intended_routine_steps(desc.steps, [intended_step1])
     assert desc.is_valid() == True
 
     desc = routines.RoutineDesc.parse_from_file(
@@ -337,7 +365,47 @@ def test_routine_desc_loading() -> None:
     )
     assert desc.name == intended_name
     assert desc.is_looping == intended_is_looping
+    _check_intended_routine_steps(desc.steps, [intended_step1])
+    assert desc.is_valid() == True
+
+    desc = routines.RoutineDesc.parse_from_file(
+        path + "routine_test_step_missing_control_state.rtn"
+    )
+    assert desc.name == intended_name
+    assert desc.is_looping == intended_is_looping
+    _check_intended_routine_steps(desc.steps, [intended_step1])
+    assert desc.is_valid() == True
+
+    desc = routines.RoutineDesc.parse_from_file(
+        path + "routine_test_step_type_control_state.rtn"
+    )
+    assert desc.name == intended_name
+    assert desc.is_looping == intended_is_looping
+    _check_intended_routine_steps(desc.steps, [intended_step1])
+    assert desc.is_valid() == True
+
+    desc = routines.RoutineDesc.parse_from_file(
+        path + "routine_test_step_invalid_control_state.rtn"
+    )
+    assert desc.name == intended_name
+    assert desc.is_looping == intended_is_looping
+    _check_intended_routine_steps(desc.steps, [intended_step1])
+    assert desc.is_valid() == True
+
+    desc = routines.RoutineDesc.parse_from_file(
+        path + "routine_test_valid_no_steps.rtn"
+    )
+    assert desc.name == intended_name
+    assert desc.is_looping == intended_is_looping
     assert len(desc.steps) == 0
+    assert desc.is_valid() == True
+
+    desc = routines.RoutineDesc.parse_from_file(
+        path + "routine_test_valid_steps.rtn"
+    )
+    assert desc.name == intended_name
+    assert desc.is_looping == intended_is_looping
+    _check_intended_routine_steps(desc.steps, intended_steps)
     assert desc.is_valid() == True
 
 

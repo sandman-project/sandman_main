@@ -170,6 +170,40 @@ class RoutineDesc:
                         filename,
                     )
 
+            try:
+                control_state = step_json["controlState"]
+
+            except KeyError:
+                _logger.warning(
+                    "Missing 'control state' key in step in routine "
+                    + "description file '%s'.",
+                    filename,
+                )
+
+            else:
+                if isinstance(control_state, str) == True:
+                    if control_state == "move up":
+                        step.control_state = controls.Control.State.MOVE_UP
+
+                    elif control_state == "move down":
+                        step.control_state = controls.Control.State.MOVE_DOWN
+
+                    else:
+                        _logger.warning(
+                            "Invalid control state '%s' in step in routine "
+                            + "description file '%s'.",
+                            str(control_state),
+                            filename,
+                        )
+
+                else:
+                    _logger.warning(
+                        "Control state '%s' in step must be a string in "
+                        + "routine description file '%s'.",
+                        str(control_state),
+                        filename,
+                    )
+
             return step
 
     def __init__(self) -> None:
