@@ -206,6 +206,24 @@ class RoutineDesc:
 
             return step
 
+        def get_as_json(self) -> dict[str, object]:
+            """Get the JSON representation of the step."""
+            state = ""
+
+            if self.__control_state == controls.Control.State.MOVE_UP:
+                state = "move up"
+
+            elif self.__control_state == controls.Control.State.MOVE_DOWN:
+                state = "move down"
+
+            step_json = {
+                "delayMS": self.__delay_ms,
+                "controlName": self.__control_name,
+                "controlState": state,
+            }
+
+            return step_json
+
     def __init__(self) -> None:
         """Initialize the description."""
         self.__name: str = ""
@@ -356,6 +374,27 @@ class RoutineDesc:
                 "Cannot save invalid routine description to '%s'", filename
             )
             return
+
+        steps_json = []
+
+        for step in self.__steps:
+            steps_json.append(step.get_as_json())
+
+        desc_json = {
+            "name": self.__name,
+            "isLooping": self.__is_looping,
+            "steps": steps_json,
+        }
+
+        try:
+            with open(filename, "w") as file:
+                json.dump(desc_json, file, indent=4)
+
+        except OSError as error:
+            _logger.error(
+                "Failed to open '%s' to save routine description.", filename
+            )
+            raise error
 
     def __load_steps(
         self, steps_json: list[dict[str, int | str]], filename: str

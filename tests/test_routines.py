@@ -432,16 +432,14 @@ def test_routine_desc_saving(tmp_path: pathlib.Path) -> None:
     assert filename.exists() == False
 
     original_desc.save_to_file(str(filename))
-    # assert filename.exists() == True
+    assert filename.exists() == True
 
-    # written_desc = routines.RoutineDesc.parse_from_file(
-    #    str(filename)
-    # )
-    # assert written_desc.is_valid() == True
-    # assert written_desc == original_desc
+    written_desc = routines.RoutineDesc.parse_from_file(str(filename))
+    assert written_desc.is_valid() == True
+    assert written_desc == original_desc
 
-    # with pytest.raises(OSError):
-    #    original_desc.save_to_file("")
+    with pytest.raises(OSError):
+        original_desc.save_to_file("")
 
 
 def test_routine_bootstrap(tmp_path: pathlib.Path) -> None:
