@@ -444,13 +444,27 @@ def test_routine_desc_saving(tmp_path: pathlib.Path) -> None:
 
 def test_routine_bootstrap(tmp_path: pathlib.Path) -> None:
     """Test routine bootstrapping."""
-    reports_path = tmp_path / "routines/"
-    assert reports_path.exists() == False
+    routines_path = tmp_path / "routines/"
+    assert routines_path.exists() == False
 
     routines.bootstrap_routines(str(tmp_path) + "/")
-    assert reports_path.exists() == True
+    assert routines_path.exists() == True
 
-    # Save a file and make sure it still exists after bootstrapping again.
+    original_desc = routines.RoutineDesc.parse_from_file(
+        "tests/data/routines/routine_test_valid_steps.rtn"
+    )
+    assert original_desc.is_valid() == True
+
+    # Bootstrap should not overwrite existing routine descriptions.
+    filename = routines_path / "test_valid.rtn"
+    assert filename.exists() == False
+
+    original_desc.save_to_file(str(filename))
+    assert filename.exists() == True
 
     routines.bootstrap_routines(str(tmp_path) + "/")
-    assert reports_path.exists() == True
+    assert routines_path.exists() == True
+
+    written_desc = routines.RoutineDesc.parse_from_file(str(filename))
+    assert written_desc.is_valid() == True
+    assert written_desc == original_desc
