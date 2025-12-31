@@ -8,7 +8,7 @@ import logging
 import pathlib
 import typing
 
-from . import controls
+from . import controls, time_util
 
 _logger = logging.getLogger("sandman.routines")
 
@@ -408,6 +408,21 @@ class RoutineDesc:
 
             if step.is_valid() == True:
                 self.append_step(step)
+
+
+class Routine:
+    """An instance of a running routine."""
+
+    def __init__(self, desc: RoutineDesc, timer: time_util.Timer) -> None:
+        """Initialize the routine."""
+        self.__desc = desc
+        self.__timer = timer
+        self.__is_finished = False
+
+    @property
+    def is_finished(self) -> bool:
+        """Get whether the routine is finished."""
+        return self.__is_finished
 
 
 def bootstrap_routines(base_dir: str) -> None:

@@ -6,6 +6,7 @@ import pytest
 
 import sandman_main.controls as controls
 import sandman_main.routines as routines
+import tests.test_time_util as test_time_util
 
 _default_delay_ms = -1
 _default_control_name = ""
@@ -440,6 +441,49 @@ def test_routine_desc_saving(tmp_path: pathlib.Path) -> None:
 
     with pytest.raises(OSError):
         original_desc.save_to_file("")
+
+
+def test_routines() -> None:
+    """Test routine functionality."""
+    timer = test_time_util.TestTimer()
+
+    no_steps_desc = routines.RoutineDesc.parse_from_file(
+        "tests/data/routines/routine_test_valid_no_steps.rtn"
+    )
+    assert no_steps_desc.is_valid() == True
+    assert no_steps_desc.is_looping == True
+    assert len(no_steps_desc.steps) == 0
+
+    no_steps_non_looping_desc = routines.RoutineDesc.parse_from_file(
+        "tests/data/routines/routine_test_valid_no_steps.rtn"
+    )
+    no_steps_non_looping_desc.is_looping = False
+    assert no_steps_non_looping_desc.is_valid() == True
+    assert len(no_steps_non_looping_desc.steps) == 0
+
+    steps_desc = routines.RoutineDesc.parse_from_file(
+        "tests/data/routines/routine_test_valid_steps.rtn"
+    )
+    assert steps_desc.is_valid() == True
+    assert steps_desc.is_looping == True
+    assert len(steps_desc.steps) == 2
+
+    steps_non_looping_desc = routines.RoutineDesc.parse_from_file(
+        "tests/data/routines/routine_test_valid_steps.rtn"
+    )
+    steps_non_looping_desc.is_looping = False
+    assert steps_non_looping_desc.is_valid() == True
+    assert len(steps_non_looping_desc.steps) == 2
+
+    # Routines can't finish before processing.
+    no_steps = routines.Routine(no_steps_desc, timer)
+    no_steps_non_looping = routines.Routine(no_steps_non_looping_desc, timer)
+    steps = routines.Routine(steps_desc, timer)
+    steps_non_looping = routines.Routine(steps_non_looping_desc, timer)
+    assert no_steps.is_finished == False
+    assert no_steps_non_looping.is_finished == False
+    assert steps.is_finished == False
+    assert steps_non_looping.is_finished == False
 
 
 def test_routine_bootstrap(tmp_path: pathlib.Path) -> None:
