@@ -485,6 +485,25 @@ def test_routines() -> None:
     assert steps.is_finished == False
     assert steps_non_looping.is_finished == False
 
+    # Non-looping routines with no steps are finished instantly.
+    no_steps.process()
+    no_steps_non_looping.process()
+    steps.process()
+    steps_non_looping.process()
+    assert no_steps.is_finished == False
+    assert no_steps_non_looping.is_finished == True
+    assert steps.is_finished == False
+    assert steps_non_looping.is_finished == False
+
+    no_steps.process()
+    no_steps_non_looping.process()
+    steps.process()
+    steps_non_looping.process()
+    assert no_steps.is_finished == False
+    assert no_steps_non_looping.is_finished == True
+    assert steps.is_finished == False
+    assert steps_non_looping.is_finished == False
+
 
 def test_routine_bootstrap(tmp_path: pathlib.Path) -> None:
     """Test routine bootstrapping."""

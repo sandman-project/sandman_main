@@ -418,11 +418,37 @@ class Routine:
         self.__desc = desc
         self.__timer = timer
         self.__is_finished = False
+        self.__step_index = 0
+        self.__step_start_time = timer.get_current_time()
 
     @property
     def is_finished(self) -> bool:
         """Get whether the routine is finished."""
         return self.__is_finished
+
+    def process(self) -> None:
+        """Process the routine."""
+        if self.__is_finished == True:
+            return
+
+        steps = self.__desc.steps
+        num_steps = len(steps)
+
+        if num_steps == 0:
+            if self.__desc.is_looping == False:
+                self.__is_finished = True
+
+            return
+
+        # Wait until the time is up.
+        elapsed_time_ms = self.__timer.get_time_since_ms(
+            self.__step_start_time
+        )
+
+        step = steps[self.__step_index]
+
+        if elapsed_time_ms < step.delay_ms:
+            return
 
 
 def bootstrap_routines(base_dir: str) -> None:
