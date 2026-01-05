@@ -504,6 +504,72 @@ def test_routines() -> None:
     assert steps.is_finished == False
     assert steps_non_looping.is_finished == False
 
+    # Advancing time 1 ms should execute the first step, if there is one.
+    timer.set_current_time_ms(1)
+    no_steps.process()
+    no_steps_non_looping.process()
+    steps.process()
+    steps_non_looping.process()
+    assert no_steps.is_finished == False
+    assert no_steps_non_looping.is_finished == True
+    assert steps.is_finished == False
+    assert steps_non_looping.is_finished == False
+
+    # Processing again does nothing.
+    no_steps.process()
+    no_steps_non_looping.process()
+    steps.process()
+    steps_non_looping.process()
+    assert no_steps.is_finished == False
+    assert no_steps_non_looping.is_finished == True
+    assert steps.is_finished == False
+    assert steps_non_looping.is_finished == False
+
+    # Advancing another millisecond does nothing, because the delay hasn't
+    # passed.
+    timer.set_current_time_ms(2)
+    no_steps.process()
+    no_steps_non_looping.process()
+    steps.process()
+    steps_non_looping.process()
+    assert no_steps.is_finished == False
+    assert no_steps_non_looping.is_finished == True
+    assert steps.is_finished == False
+    assert steps_non_looping.is_finished == False
+
+    # A third millisecond completes the second step.
+    timer.set_current_time_ms(3)
+    no_steps.process()
+    no_steps_non_looping.process()
+    steps.process()
+    steps_non_looping.process()
+    assert no_steps.is_finished == False
+    assert no_steps_non_looping.is_finished == True
+    assert steps.is_finished == False
+    assert steps_non_looping.is_finished == True
+
+    # Advancing time further should only produce effects from the looping
+    # routine with steps.
+    timer.set_current_time_ms(4)
+    no_steps.process()
+    no_steps_non_looping.process()
+    steps.process()
+    steps_non_looping.process()
+    assert no_steps.is_finished == False
+    assert no_steps_non_looping.is_finished == True
+    assert steps.is_finished == False
+    assert steps_non_looping.is_finished == True
+
+    timer.set_current_time_ms(6)
+    no_steps.process()
+    no_steps_non_looping.process()
+    steps.process()
+    steps_non_looping.process()
+    assert no_steps.is_finished == False
+    assert no_steps_non_looping.is_finished == True
+    assert steps.is_finished == False
+    assert steps_non_looping.is_finished == True
+
 
 def test_routine_bootstrap(tmp_path: pathlib.Path) -> None:
     """Test routine bootstrapping."""

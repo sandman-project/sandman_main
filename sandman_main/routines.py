@@ -450,6 +450,27 @@ class Routine:
         if elapsed_time_ms < step.delay_ms:
             return
 
+        # Execute the step.
+
+        self.__advance_step()
+
+    def __advance_step(self) -> None:
+        """Advance to the next step."""
+        self.__step_start_time = self.__timer.get_current_time()
+
+        num_steps = len(self.__desc.steps)
+        self.__step_index += 1
+
+        if self.__step_index < num_steps:
+            return
+
+        # We have reached the end of the routine, so either loop or finish.
+        if self.__desc.is_looping == True:
+            self.__step_index = 0
+            return
+
+        self.__is_finished = True
+
 
 def bootstrap_routines(base_dir: str) -> None:
     """Handle bootstrapping for routines."""
