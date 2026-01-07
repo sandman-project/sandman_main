@@ -35,6 +35,7 @@ class MoveControlCommand:
 
     control_name: str
     direction: Direction
+    source: str
 
 
 _logger = logging.getLogger("sandman.commands")
@@ -131,4 +132,4 @@ def _parse_from_move_control_intent(
         control_name,
         direction.as_string(),
     )
-    return MoveControlCommand(control_name, direction)
+    return MoveControlCommand(control_name, direction, "voice")

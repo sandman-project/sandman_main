@@ -236,16 +236,16 @@ class Sandman:
                 control.set_desired_state(controls.Control.State.MOVE_UP)
                 self.__report_manager.add_control_event(
                     command.control_name,
-                    controls.Control.State.MOVE_UP.as_string(),
-                    "command",
+                    command.direction.as_string(),
+                    command.source,
                 )
 
             case commands.MoveControlCommand.Direction.DOWN:
                 control.set_desired_state(controls.Control.State.MOVE_DOWN)
                 self.__report_manager.add_control_event(
                     command.control_name,
-                    controls.Control.State.MOVE_DOWN.as_string(),
-                    "command",
+                    command.direction.as_string(),
+                    command.source,
                 )
 
             case unknown:
