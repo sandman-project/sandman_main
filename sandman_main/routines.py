@@ -8,7 +8,7 @@ import logging
 import pathlib
 import typing
 
-from . import controls, time_util
+from . import commands, time_util
 
 _logger = logging.getLogger("sandman.routines")
 
@@ -23,7 +23,7 @@ class RoutineDesc:
             """Initialize the step."""
             self.__delay_ms = -1
             self.__control_name = ""
-            self.__control_state = controls.Control.State.IDLE
+            self.__move_direction = commands.MoveControlCommand.Direction.UP
 
         @property
         def delay_ms(self) -> int:
@@ -58,24 +58,22 @@ class RoutineDesc:
             self.__control_name = name
 
         @property
-        def control_state(self) -> controls.Control.State:
-            """Get the control state."""
-            return self.__control_state
+        def move_direction(self) -> commands.MoveControlCommand.Direction:
+            """Get the move direction."""
+            return self.__move_direction
 
-        @control_state.setter
-        def control_state(self, state: controls.Control.State) -> None:
-            """Set the control state."""
-            if isinstance(state, controls.Control.State) == False:
-                raise TypeError("Control state must be a state.")
-
-            if (state != controls.Control.State.MOVE_UP) and (
-                state != controls.Control.State.MOVE_DOWN
+        @move_direction.setter
+        def move_direction(
+            self, direction: commands.MoveControlCommand.Direction
+        ) -> None:
+            """Set the move direction."""
+            if (
+                isinstance(direction, commands.MoveControlCommand.Direction)
+                == False
             ):
-                raise ValueError(
-                    "Control state must be either move up or move down."
-                )
+                raise TypeError("Move direction must be a direction.")
 
-            self.__control_state = state
+            self.__move_direction = direction
 
         def is_valid(self) -> bool:
             """Check whether this is a valid step."""
@@ -83,9 +81,6 @@ class RoutineDesc:
                 return False
 
             if self.__control_name == "":
-                return False
-
-            if self.__control_state == controls.Control.State.IDLE:
                 return False
 
             return True
@@ -98,7 +93,7 @@ class RoutineDesc:
             return (
                 (self.__delay_ms == other.__delay_ms)
                 and (self.__control_name == other.__control_name)
-                and (self.__control_state == other.__control_state)
+                and (self.__move_direction == other.__move_direction)
             )
 
         @classmethod
@@ -171,36 +166,40 @@ class RoutineDesc:
                     )
 
             try:
-                control_state = step_json["controlState"]
+                move_direction = step_json["moveDirection"]
 
             except KeyError:
                 _logger.warning(
-                    "Missing 'control state' key in step in routine "
+                    "Missing 'move direction' key in step in routine "
                     + "description file '%s'.",
                     filename,
                 )
 
             else:
-                if isinstance(control_state, str) == True:
-                    if control_state == "move up":
-                        step.control_state = controls.Control.State.MOVE_UP
+                if isinstance(move_direction, str) == True:
+                    if move_direction == "up":
+                        step.move_direction = (
+                            commands.MoveControlCommand.Direction.UP
+                        )
 
-                    elif control_state == "move down":
-                        step.control_state = controls.Control.State.MOVE_DOWN
+                    elif move_direction == "down":
+                        step.move_direction = (
+                            commands.MoveControlCommand.Direction.DOWN
+                        )
 
                     else:
                         _logger.warning(
-                            "Invalid control state '%s' in step in routine "
+                            "Invalid move direction '%s' in step in routine "
                             + "description file '%s'.",
-                            str(control_state),
+                            str(move_direction),
                             filename,
                         )
 
                 else:
                     _logger.warning(
-                        "Control state '%s' in step must be a string in "
+                        "Move direction '%s' in step must be a string in "
                         + "routine description file '%s'.",
-                        str(control_state),
+                        str(move_direction),
                         filename,
                     )
 
@@ -208,18 +207,24 @@ class RoutineDesc:
 
         def get_as_json(self) -> dict[str, object]:
             """Get the JSON representation of the step."""
-            state = ""
+            direction = ""
 
-            if self.__control_state == controls.Control.State.MOVE_UP:
-                state = "move up"
+            if (
+                self.__move_direction
+                == commands.MoveControlCommand.Direction.UP
+            ):
+                direction = "up"
 
-            elif self.__control_state == controls.Control.State.MOVE_DOWN:
-                state = "move down"
+            elif (
+                self.__move_direction
+                == commands.MoveControlCommand.Direction.DOWN
+            ):
+                direction = "down"
 
             step_json = {
                 "delayMS": self.__delay_ms,
                 "controlName": self.__control_name,
-                "controlState": state,
+                "moveDirection": direction,
             }
 
             return step_json

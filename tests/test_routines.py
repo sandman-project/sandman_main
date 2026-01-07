@@ -4,20 +4,20 @@ import pathlib
 
 import pytest
 
-import sandman_main.controls as controls
+import sandman_main.commands as commands
 import sandman_main.routines as routines
 import tests.test_time_util as test_time_util
 
 _default_delay_ms = -1
 _default_control_name = ""
-_default_control_state = controls.Control.State.IDLE
+_default_move_direction = commands.MoveControlCommand.Direction.UP
 
 
 def _check_default_routine_step(step: routines.RoutineDesc.Step) -> None:
     """Check whether a step is all default values."""
     assert step.delay_ms == _default_delay_ms
     assert step.control_name == _default_control_name
-    assert step.control_state == _default_control_state
+    assert step.move_direction == _default_move_direction
     assert step.is_valid() == False
 
 
@@ -38,91 +38,77 @@ def test_routine_step_initialization() -> None:
     step.delay_ms = intended_delay_ms
     assert step.delay_ms == intended_delay_ms
     assert step.control_name == _default_control_name
-    assert step.control_state == _default_control_state
+    assert step.move_direction == _default_move_direction
     assert step.is_valid() == False
 
     with pytest.raises(ValueError):
         step.delay_ms = -1
     assert step.delay_ms == intended_delay_ms
     assert step.control_name == _default_control_name
-    assert step.control_state == _default_control_state
+    assert step.move_direction == _default_move_direction
     assert step.is_valid() == False
 
     intended_delay_ms = 1
     step.delay_ms = intended_delay_ms
     assert step.delay_ms == intended_delay_ms
     assert step.control_name == _default_control_name
-    assert step.control_state == _default_control_state
+    assert step.move_direction == _default_move_direction
     assert step.is_valid() == False
 
     with pytest.raises(TypeError):
         step.control_name = 1
     assert step.delay_ms == intended_delay_ms
     assert step.control_name == _default_control_name
-    assert step.control_state == _default_control_state
+    assert step.move_direction == _default_move_direction
     assert step.is_valid() == False
 
     with pytest.raises(ValueError):
         step.control_name = ""
     assert step.delay_ms == intended_delay_ms
     assert step.control_name == _default_control_name
-    assert step.control_state == _default_control_state
+    assert step.move_direction == _default_move_direction
     assert step.is_valid() == False
 
     intended_control_name = "test_control"
     step.control_name = intended_control_name
     assert step.delay_ms == intended_delay_ms
     assert step.control_name == intended_control_name
-    assert step.control_state == _default_control_state
-    assert step.is_valid() == False
+    assert step.move_direction == _default_move_direction
+    assert step.is_valid() == True
 
     with pytest.raises(ValueError):
         step.control_name = ""
     assert step.delay_ms == intended_delay_ms
     assert step.control_name == intended_control_name
-    assert step.control_state == _default_control_state
-    assert step.is_valid() == False
+    assert step.move_direction == _default_move_direction
+    assert step.is_valid() == True
 
     with pytest.raises(TypeError):
-        step.control_state = ""
+        step.move_direction = ""
     assert step.delay_ms == intended_delay_ms
     assert step.control_name == intended_control_name
-    assert step.control_state == _default_control_state
-    assert step.is_valid() == False
-
-    with pytest.raises(ValueError):
-        step.control_state = controls.Control.State.COOL_DOWN
-    assert step.delay_ms == intended_delay_ms
-    assert step.control_name == intended_control_name
-    assert step.control_state == _default_control_state
-    assert step.is_valid() == False
-
-    with pytest.raises(ValueError):
-        step.control_state = controls.Control.State.IDLE
-    assert step.delay_ms == intended_delay_ms
-    assert step.control_name == intended_control_name
-    assert step.control_state == _default_control_state
-    assert step.is_valid() == False
-
-    intended_control_state = controls.Control.State.MOVE_UP
-    step.control_state = intended_control_state
-    assert step.delay_ms == intended_delay_ms
-    assert step.control_name == intended_control_name
-    assert step.control_state == intended_control_state
+    assert step.move_direction == _default_move_direction
     assert step.is_valid() == True
 
-    with pytest.raises(ValueError):
-        step.control_state = controls.Control.State.IDLE
+    intended_move_direction = commands.MoveControlCommand.Direction.DOWN
+    step.move_direction = intended_move_direction
     assert step.delay_ms == intended_delay_ms
     assert step.control_name == intended_control_name
-    assert step.control_state == intended_control_state
+    assert step.move_direction == intended_move_direction
     assert step.is_valid() == True
 
-    intended_control_state = controls.Control.State.MOVE_DOWN
-    step.control_state = intended_control_state
+    with pytest.raises(TypeError):
+        step.move_direction = 1
     assert step.delay_ms == intended_delay_ms
     assert step.control_name == intended_control_name
-    assert step.control_state == intended_control_state
+    assert step.move_direction == intended_move_direction
+    assert step.is_valid() == True
+
+    intended_move_direction = commands.MoveControlCommand.Direction.UP
+    step.move_direction = intended_move_direction
+    assert step.delay_ms == intended_delay_ms
+    assert step.control_name == intended_control_name
+    assert step.move_direction == intended_move_direction
     assert step.is_valid() == True
 
 
@@ -209,7 +195,7 @@ def test_routine_desc_initialization() -> None:
 
     first_step.delay_ms = 1
     first_step.control_name = "test_control"
-    first_step.control_state = controls.Control.State.MOVE_UP
+    first_step.move_direction = commands.MoveControlCommand.Direction.UP
     assert first_step.is_valid() == True
     desc.append_step(first_step)
     assert desc.name == intended_name
@@ -220,7 +206,7 @@ def test_routine_desc_initialization() -> None:
     second_step = routines.RoutineDesc.Step()
     second_step.delay_ms = 2
     second_step.control_name = "test_control"
-    second_step.control_state = controls.Control.State.MOVE_DOWN
+    second_step.move_direction = commands.MoveControlCommand.Direction.DOWN
     assert second_step.is_valid() == True
     desc.append_step(second_step)
     assert desc.name == intended_name
@@ -254,13 +240,13 @@ def test_routine_desc_loading() -> None:
     intended_step0 = routines.RoutineDesc.Step()
     intended_step0.delay_ms = 1
     intended_step0.control_name = "test_control"
-    intended_step0.control_state = controls.Control.State.MOVE_UP
+    intended_step0.move_direction = commands.MoveControlCommand.Direction.UP
     assert intended_step0.is_valid() == True
 
     intended_step1 = routines.RoutineDesc.Step()
     intended_step1.delay_ms = 2
     intended_step1.control_name = "test_control"
-    intended_step1.control_state = controls.Control.State.MOVE_DOWN
+    intended_step1.move_direction = commands.MoveControlCommand.Direction.DOWN
     assert intended_step1.is_valid() == True
 
     intended_steps = [intended_step0, intended_step1]
@@ -374,7 +360,7 @@ def test_routine_desc_loading() -> None:
     )
     assert desc.name == intended_name
     assert desc.is_looping == intended_is_looping
-    _check_intended_routine_steps(desc.steps, [intended_step1])
+    _check_intended_routine_steps(desc.steps, intended_steps)
     assert desc.is_valid() == True
 
     desc = routines.RoutineDesc.parse_from_file(
@@ -382,7 +368,7 @@ def test_routine_desc_loading() -> None:
     )
     assert desc.name == intended_name
     assert desc.is_looping == intended_is_looping
-    _check_intended_routine_steps(desc.steps, [intended_step1])
+    _check_intended_routine_steps(desc.steps, intended_steps)
     assert desc.is_valid() == True
 
     desc = routines.RoutineDesc.parse_from_file(
@@ -390,7 +376,7 @@ def test_routine_desc_loading() -> None:
     )
     assert desc.name == intended_name
     assert desc.is_looping == intended_is_looping
-    _check_intended_routine_steps(desc.steps, [intended_step1])
+    _check_intended_routine_steps(desc.steps, intended_steps)
     assert desc.is_valid() == True
 
     desc = routines.RoutineDesc.parse_from_file(

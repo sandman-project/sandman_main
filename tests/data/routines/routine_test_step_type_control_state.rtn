@@ -5,12 +5,12 @@
         {
             "delayMS": 1,
             "controlName": "test_control",
-            "controlState": 1
+            "moveDirection": 1
         },
         {
             "delayMS": 2,
             "controlName": "test_control",
-            "controlState": "move down"
+            "moveDirection": "down"
         }
     ]
 }

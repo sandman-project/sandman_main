@@ -9,7 +9,7 @@
         {
             "delayMS": 2,
             "controlName": "test_control",
-            "controlState": "move down"
+            "moveDirection": "down"
         }
     ]
 }
