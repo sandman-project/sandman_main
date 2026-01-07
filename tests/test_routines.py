@@ -356,7 +356,7 @@ def test_routine_desc_loading() -> None:
     assert desc.is_valid() == True
 
     desc = routines.RoutineDesc.parse_from_file(
-        path + "routine_test_step_missing_control_state.rtn"
+        path + "routine_test_step_missing_move_direction.rtn"
     )
     assert desc.name == intended_name
     assert desc.is_looping == intended_is_looping
@@ -364,7 +364,7 @@ def test_routine_desc_loading() -> None:
     assert desc.is_valid() == True
 
     desc = routines.RoutineDesc.parse_from_file(
-        path + "routine_test_step_type_control_state.rtn"
+        path + "routine_test_step_type_move_direction.rtn"
     )
     assert desc.name == intended_name
     assert desc.is_looping == intended_is_looping
@@ -372,7 +372,7 @@ def test_routine_desc_loading() -> None:
     assert desc.is_valid() == True
 
     desc = routines.RoutineDesc.parse_from_file(
-        path + "routine_test_step_invalid_control_state.rtn"
+        path + "routine_test_step_invalid_move_direction.rtn"
     )
     assert desc.name == intended_name
     assert desc.is_looping == intended_is_looping
