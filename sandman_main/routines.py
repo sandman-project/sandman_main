@@ -431,7 +431,7 @@ class Routine:
         """Get whether the routine is finished."""
         return self.__is_finished
 
-    def process(self) -> None:
+    def process(self, command_list: list[commands.MoveControlCommand]) -> None:
         """Process the routine."""
         if self.__is_finished == True:
             return
@@ -456,6 +456,10 @@ class Routine:
             return
 
         # Execute the step.
+        command = commands.MoveControlCommand(
+            step.control_name, step.move_direction, "routine"
+        )
+        command_list.append(command)
 
         self.__advance_step()
 

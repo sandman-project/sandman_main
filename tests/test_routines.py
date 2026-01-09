@@ -472,88 +472,206 @@ def test_routines() -> None:
     assert steps_non_looping.is_finished == False
 
     # Non-looping routines with no steps are finished instantly.
-    no_steps.process()
-    no_steps_non_looping.process()
-    steps.process()
-    steps_non_looping.process()
+    command_list = []
+    no_steps.process(command_list)
+    assert len(command_list) == 0
     assert no_steps.is_finished == False
+
+    command_list = []
+    no_steps_non_looping.process(command_list)
+    assert len(command_list) == 0
     assert no_steps_non_looping.is_finished == True
+
+    command_list = []
+    steps.process(command_list)
+    assert len(command_list) == 0
     assert steps.is_finished == False
+
+    command_list = []
+    steps_non_looping.process(command_list)
+    assert len(command_list) == 0
     assert steps_non_looping.is_finished == False
 
-    no_steps.process()
-    no_steps_non_looping.process()
-    steps.process()
-    steps_non_looping.process()
+    # Processing again doesn't change anything.
+    command_list = []
+    no_steps.process(command_list)
+    assert len(command_list) == 0
     assert no_steps.is_finished == False
+
+    command_list = []
+    no_steps_non_looping.process(command_list)
+    assert len(command_list) == 0
     assert no_steps_non_looping.is_finished == True
+
+    command_list = []
+    steps.process(command_list)
+    assert len(command_list) == 0
     assert steps.is_finished == False
+
+    command_list = []
+    steps_non_looping.process(command_list)
+    assert len(command_list) == 0
     assert steps_non_looping.is_finished == False
+
+    intended_control_name = "test_control"
+    up_command = commands.MoveControlCommand(
+        intended_control_name,
+        commands.MoveControlCommand.Direction.UP,
+        "routine",
+    )
+    down_command = commands.MoveControlCommand(
+        intended_control_name,
+        commands.MoveControlCommand.Direction.DOWN,
+        "routine",
+    )
 
     # Advancing time 1 ms should execute the first step, if there is one.
     timer.set_current_time_ms(1)
-    no_steps.process()
-    no_steps_non_looping.process()
-    steps.process()
-    steps_non_looping.process()
+
+    command_list = []
+    no_steps.process(command_list)
+    assert len(command_list) == 0
     assert no_steps.is_finished == False
+
+    command_list = []
+    no_steps_non_looping.process(command_list)
+    assert len(command_list) == 0
     assert no_steps_non_looping.is_finished == True
+
+    command_list = []
+    steps.process(command_list)
+    assert len(command_list) == 1
+    if len(command_list) > 0:
+        assert command_list[0] == up_command
     assert steps.is_finished == False
+
+    command_list = []
+    steps_non_looping.process(command_list)
+    assert len(command_list) == 1
+    if len(command_list) > 0:
+        assert command_list[0] == up_command
     assert steps_non_looping.is_finished == False
 
     # Processing again does nothing.
-    no_steps.process()
-    no_steps_non_looping.process()
-    steps.process()
-    steps_non_looping.process()
+    command_list = []
+    no_steps.process(command_list)
+    assert len(command_list) == 0
     assert no_steps.is_finished == False
+
+    command_list = []
+    no_steps_non_looping.process(command_list)
+    assert len(command_list) == 0
     assert no_steps_non_looping.is_finished == True
+
+    command_list = []
+    steps.process(command_list)
+    assert len(command_list) == 0
     assert steps.is_finished == False
+
+    command_list = []
+    steps_non_looping.process(command_list)
+    assert len(command_list) == 0
     assert steps_non_looping.is_finished == False
 
     # Advancing another millisecond does nothing, because the delay hasn't
     # passed.
     timer.set_current_time_ms(2)
-    no_steps.process()
-    no_steps_non_looping.process()
-    steps.process()
-    steps_non_looping.process()
+
+    command_list = []
+    no_steps.process(command_list)
+    assert len(command_list) == 0
     assert no_steps.is_finished == False
+
+    command_list = []
+    no_steps_non_looping.process(command_list)
+    assert len(command_list) == 0
     assert no_steps_non_looping.is_finished == True
+
+    command_list = []
+    steps.process(command_list)
+    assert len(command_list) == 0
     assert steps.is_finished == False
+
+    command_list = []
+    steps_non_looping.process(command_list)
+    assert len(command_list) == 0
     assert steps_non_looping.is_finished == False
 
     # A third millisecond completes the second step.
     timer.set_current_time_ms(3)
-    no_steps.process()
-    no_steps_non_looping.process()
-    steps.process()
-    steps_non_looping.process()
+
+    command_list = []
+    no_steps.process(command_list)
+    assert len(command_list) == 0
     assert no_steps.is_finished == False
+
+    command_list = []
+    no_steps_non_looping.process(command_list)
+    assert len(command_list) == 0
     assert no_steps_non_looping.is_finished == True
+
+    command_list = []
+    steps.process(command_list)
+    assert len(command_list) == 1
+    if len(command_list) > 0:
+        assert command_list[0] == down_command
     assert steps.is_finished == False
+
+    command_list = []
+    steps_non_looping.process(command_list)
+    assert len(command_list) == 1
+    if len(command_list) > 0:
+        assert command_list[0] == down_command
     assert steps_non_looping.is_finished == True
 
     # Advancing time further should only produce effects from the looping
     # routine with steps.
     timer.set_current_time_ms(4)
-    no_steps.process()
-    no_steps_non_looping.process()
-    steps.process()
-    steps_non_looping.process()
+
+    command_list = []
+    no_steps.process(command_list)
+    assert len(command_list) == 0
     assert no_steps.is_finished == False
+
+    command_list = []
+    no_steps_non_looping.process(command_list)
+    assert len(command_list) == 0
     assert no_steps_non_looping.is_finished == True
+
+    command_list = []
+    steps.process(command_list)
+    assert len(command_list) == 1
+    if len(command_list) > 0:
+        assert command_list[0] == up_command
     assert steps.is_finished == False
+
+    command_list = []
+    steps_non_looping.process(command_list)
+    assert len(command_list) == 0
     assert steps_non_looping.is_finished == True
 
     timer.set_current_time_ms(6)
-    no_steps.process()
-    no_steps_non_looping.process()
-    steps.process()
-    steps_non_looping.process()
+
+    command_list = []
+    no_steps.process(command_list)
+    assert len(command_list) == 0
     assert no_steps.is_finished == False
+
+    command_list = []
+    no_steps_non_looping.process(command_list)
+    assert len(command_list) == 0
     assert no_steps_non_looping.is_finished == True
+
+    command_list = []
+    steps.process(command_list)
+    assert len(command_list) == 1
+    if len(command_list) > 0:
+        assert command_list[0] == down_command
     assert steps.is_finished == False
+
+    command_list = []
+    steps_non_looping.process(command_list)
+    assert len(command_list) == 0
     assert steps_non_looping.is_finished == True
 
 
