@@ -481,6 +481,35 @@ class Routine:
         self.__is_finished = True
 
 
+class RoutineManager:
+    """Manages routine descriptions and running routines."""
+
+    def __init__(self, timer: time_util.Timer) -> None:
+        """Initialize the manager."""
+        self.__timer = timer
+        self.__descs: dict[str, RoutineDesc] = {}
+        self.__routines: dict[str, Routine] = {}
+
+    @property
+    def num_loaded(self) -> int:
+        """Get the number of loaded routine descriptions."""
+        return len(self.__descs)
+
+    @property
+    def num_running(self) -> int:
+        """Get the number of running routines."""
+        return len(self.__routines)
+
+    def initialize(self) -> None:
+        """Initialize the manager (load routine descriptions)."""
+        self.uninitialize()
+
+    def uninitialize(self) -> None:
+        """Uninitialize the manager."""
+        self.__descs.clear()
+        self.__routines.clear()
+
+
 def bootstrap_routines(base_dir: str) -> None:
     """Handle bootstrapping for routines."""
     routines_path = pathlib.Path(base_dir + "routines/")

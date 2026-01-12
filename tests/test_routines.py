@@ -675,6 +675,23 @@ def test_routines() -> None:
     assert steps_non_looping.is_finished == True
 
 
+def test_routine_manager() -> None:
+    """Test the routine manager."""
+    timer = test_time_util.TestTimer()
+
+    manager = routines.RoutineManager(timer)
+    assert manager.num_loaded == 0
+    assert manager.num_running == 0
+
+    manager.initialize()
+    assert manager.num_loaded == 0
+    assert manager.num_running == 0
+
+    manager.uninitialize()
+    assert manager.num_loaded == 0
+    assert manager.num_running == 0
+
+
 def test_routine_bootstrap(tmp_path: pathlib.Path) -> None:
     """Test routine bootstrapping."""
     routines_path = tmp_path / "routines/"
