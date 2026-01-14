@@ -683,8 +683,29 @@ def test_routine_manager() -> None:
     assert manager.num_loaded == 0
     assert manager.num_running == 0
 
-    manager.initialize()
+    manager.initialize("tests/data/routines/manager_valid/")
+    assert manager.num_loaded == 2
+    assert manager.num_running == 0
+
+    # Initializing again doesn't double up.
+    manager.initialize("tests/data/routines/manager_valid/")
+    assert manager.num_loaded == 2
+    assert manager.num_running == 0
+
+    manager.uninitialize()
     assert manager.num_loaded == 0
+    assert manager.num_running == 0
+
+    manager.initialize("tests/data/routines/manager_duplicate/")
+    assert manager.num_loaded == 2
+    assert manager.num_running == 0
+
+    manager.uninitialize()
+    assert manager.num_loaded == 0
+    assert manager.num_running == 0
+
+    manager.initialize("tests/data/routines/manager_invalid/")
+    assert manager.num_loaded == 1
     assert manager.num_running == 0
 
     manager.uninitialize()

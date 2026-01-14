@@ -1,0 +1,16 @@
+{
+    "name" : "wake",
+    "isLooping" : true,
+    "steps" : [
+        {
+            "delayMS": 1,
+            "controlName": "back",
+            "moveDirection": "down"
+        },
+        {
+            "delayMS": 2,
+            "controlName": "legs",
+            "moveDirection": "down"
+        }
+    ]
+}

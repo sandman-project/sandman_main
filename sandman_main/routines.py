@@ -500,9 +500,33 @@ class RoutineManager:
         """Get the number of running routines."""
         return len(self.__routines)
 
-    def initialize(self) -> None:
+    def initialize(self, base_dir: str) -> None:
         """Initialize the manager (load routine descriptions)."""
         self.uninitialize()
+
+        routines_path = pathlib.Path(base_dir + "routines/")
+        _logger.info("Loading routines from '%s'.", str(routines_path))
+
+        for desc_path in routines_path.glob("*.rtn"):
+            # Try parsing the routine description.
+            desc_filename = str(desc_path)
+            _logger.info("Loading routine from '%s'.", desc_filename)
+
+            desc = RoutineDesc.parse_from_file(desc_filename)
+
+            if desc.is_valid() == False:
+                continue
+
+            # Make sure a routine with this name doesn't already exist.
+            if desc.name in self.__descs:
+                _logger.warning(
+                    "A routine with name '%s' already exists. Ignoring new "
+                    + "description.",
+                    desc.name,
+                )
+                continue
+
+            self.__descs[desc.name] = desc
 
     def uninitialize(self) -> None:
         """Uninitialize the manager."""
