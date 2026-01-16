@@ -533,6 +533,62 @@ class RoutineManager:
         self.__descs.clear()
         self.__routines.clear()
 
+    def process_command(self, command: commands.RoutineCommand) -> str:
+        """Process a routine command.
+
+        Returns: A notification string (can be empty).
+        """
+        match command.action:
+            case commands.RoutineCommand.Action.START:
+                return self.__start_routine(command.routine_name)
+
+            case commands.RoutineCommand.Action.STOP:
+                return self.__stop_routine(command.routine_name)
+
+            case _:
+                _logger.warning(
+                    "Unrecognized routine action: %s",
+                    command.action.as_string(),
+                )
+
+        return ""
+
+    def process_routines(self) -> None:
+        """Process the running routines."""
+        pass
+
+    def __start_routine(self, routine_name: str) -> str:
+        """Start a routine.
+
+        Returns: A notification string (can be empty).
+        """
+        # Check if the routine is already running.
+        if routine_name in self.__routines:
+            return f"The {routine_name} routine is already running."
+
+        # Otherwise, see if there is a description with that name.
+        try:
+            desc = self.__descs[routine_name]
+
+        except KeyError:
+            return f"There is no {routine_name} routine."
+
+        routine = Routine(desc, self.__timer)
+        self.__routines[routine_name] = routine
+        return f"Started the {routine_name} routine."
+
+    def __stop_routine(self, routine_name: str) -> str:
+        """Stop a routine.
+
+        Returns: A notification string (can be empty).
+        """
+        # Check if the routine is running.
+        if routine_name not in self.__routines:
+            return f"The {routine_name} routine is not running."
+
+        del self.__routines[routine_name]
+        return f"Stopped the {routine_name} routine."
+
 
 def bootstrap_routines(base_dir: str) -> None:
     """Handle bootstrapping for routines."""

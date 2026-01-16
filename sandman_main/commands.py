@@ -38,6 +38,33 @@ class MoveControlCommand:
     source: str
 
 
+@dataclasses.dataclass
+class RoutineCommand:
+    """A command to do something with a routine."""
+
+    @enum.unique
+    class Action(enum.Enum):
+        """Value indicating an action to perform with a routine."""
+
+        START = enum.auto()
+        STOP = enum.auto()
+
+        def as_string(self) -> str:
+            """Return a readable phrase describing the action."""
+            match self:
+                case RoutineCommand.Action.START:
+                    return "start"
+
+                case RoutineCommand.Action.STOP:
+                    return "stop"
+
+                case _:
+                    typing.assert_never(self)
+
+    routine_name: str
+    action: Action
+
+
 _logger = logging.getLogger("sandman.commands")
 
 

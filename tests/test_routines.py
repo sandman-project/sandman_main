@@ -712,6 +712,61 @@ def test_routine_manager() -> None:
     assert manager.num_loaded == 0
     assert manager.num_running == 0
 
+    # Now that we have tested various loading situations, test running
+    # routines.
+    manager.initialize("tests/data/routines/manager_valid/")
+    assert manager.num_loaded == 2
+    assert manager.num_running == 0
+
+    # Can't start a routine that there isn't a description for.
+    start_command = commands.RoutineCommand(
+        "chicken", commands.RoutineCommand.Action.START
+    )
+    notification = manager.process_command(start_command)
+    assert notification == "There is no chicken routine."
+    assert manager.num_loaded == 2
+    assert manager.num_running == 0
+
+    # Can't stop a routine that isn't running.
+    stop_command = commands.RoutineCommand(
+        "wake", commands.RoutineCommand.Action.STOP
+    )
+    notification = manager.process_command(stop_command)
+    assert notification == "The wake routine is not running."
+    assert manager.num_loaded == 2
+    assert manager.num_running == 0
+
+    # Can't start the routine when it's already running.
+    start_command = commands.RoutineCommand(
+        "wake", commands.RoutineCommand.Action.START
+    )
+    notification = manager.process_command(start_command)
+    assert notification == "Started the wake routine."
+    assert manager.num_loaded == 2
+    assert manager.num_running == 1
+
+    notification = manager.process_command(start_command)
+    assert notification == "The wake routine is already running."
+    assert manager.num_loaded == 2
+    assert manager.num_running == 1
+
+    stop_command = commands.RoutineCommand(
+        "sleep", commands.RoutineCommand.Action.STOP
+    )
+    notification = manager.process_command(stop_command)
+    assert notification == "The sleep routine is not running."
+    assert manager.num_loaded == 2
+    assert manager.num_running == 1
+
+    # Actually stop the routine.
+    stop_command = commands.RoutineCommand(
+        "wake", commands.RoutineCommand.Action.STOP
+    )
+    notification = manager.process_command(stop_command)
+    assert notification == "Stopped the wake routine."
+    assert manager.num_loaded == 2
+    assert manager.num_running == 0
+
 
 def test_routine_bootstrap(tmp_path: pathlib.Path) -> None:
     """Test routine bootstrapping."""
