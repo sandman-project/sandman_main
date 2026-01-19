@@ -683,13 +683,14 @@ def test_routine_manager() -> None:
     assert manager.num_loaded == 0
     assert manager.num_running == 0
 
+    num_valid_routines = 3
     manager.initialize("tests/data/routines/manager_valid/")
-    assert manager.num_loaded == 2
+    assert manager.num_loaded == num_valid_routines
     assert manager.num_running == 0
 
     # Initializing again doesn't double up.
     manager.initialize("tests/data/routines/manager_valid/")
-    assert manager.num_loaded == 2
+    assert manager.num_loaded == num_valid_routines
     assert manager.num_running == 0
 
     manager.uninitialize()
@@ -715,7 +716,7 @@ def test_routine_manager() -> None:
     # Now that we have tested various loading situations, test running
     # routines.
     manager.initialize("tests/data/routines/manager_valid/")
-    assert manager.num_loaded == 2
+    assert manager.num_loaded == num_valid_routines
     assert manager.num_running == 0
 
     # Can't start a routine that there isn't a description for.
@@ -724,7 +725,7 @@ def test_routine_manager() -> None:
     )
     notification = manager.process_command(start_command)
     assert notification == "There is no chicken routine."
-    assert manager.num_loaded == 2
+    assert manager.num_loaded == num_valid_routines
     assert manager.num_running == 0
 
     # Can't stop a routine that isn't running.
@@ -733,7 +734,7 @@ def test_routine_manager() -> None:
     )
     notification = manager.process_command(stop_command)
     assert notification == "The wake routine is not running."
-    assert manager.num_loaded == 2
+    assert manager.num_loaded == num_valid_routines
     assert manager.num_running == 0
 
     # Can't start the routine when it's already running.
@@ -742,12 +743,12 @@ def test_routine_manager() -> None:
     )
     notification = manager.process_command(start_command)
     assert notification == "Started the wake routine."
-    assert manager.num_loaded == 2
+    assert manager.num_loaded == num_valid_routines
     assert manager.num_running == 1
 
     notification = manager.process_command(start_command)
     assert notification == "The wake routine is already running."
-    assert manager.num_loaded == 2
+    assert manager.num_loaded == num_valid_routines
     assert manager.num_running == 1
 
     stop_command = commands.RoutineCommand(
@@ -755,7 +756,7 @@ def test_routine_manager() -> None:
     )
     notification = manager.process_command(stop_command)
     assert notification == "The sleep routine is not running."
-    assert manager.num_loaded == 2
+    assert manager.num_loaded == num_valid_routines
     assert manager.num_running == 1
 
     # Actually stop the routine.
@@ -764,8 +765,178 @@ def test_routine_manager() -> None:
     )
     notification = manager.process_command(stop_command)
     assert notification == "Stopped the wake routine."
-    assert manager.num_loaded == 2
+    assert manager.num_loaded == num_valid_routines
     assert manager.num_running == 0
+
+    # Processing does nothing with no routines running.
+    command_list = []
+    notification_list = []
+    manager.process_routines(command_list, notification_list)
+    assert manager.num_loaded == num_valid_routines
+    assert manager.num_running == 0
+    assert len(command_list) == 0
+    assert len(notification_list) == 0
+
+    # Start some routines.
+    start_command = commands.RoutineCommand(
+        "wake", commands.RoutineCommand.Action.START
+    )
+    notification = manager.process_command(start_command)
+    assert notification == "Started the wake routine."
+    assert manager.num_loaded == num_valid_routines
+    assert manager.num_running == 1
+
+    start_command = commands.RoutineCommand(
+        "sleep", commands.RoutineCommand.Action.START
+    )
+    notification = manager.process_command(start_command)
+    assert notification == "Started the sleep routine."
+    assert manager.num_loaded == num_valid_routines
+    assert manager.num_running == 2
+
+    # Processing without time advancement does nothing.
+    command_list = []
+    notification_list = []
+    manager.process_routines(command_list, notification_list)
+    assert manager.num_loaded == num_valid_routines
+    assert manager.num_running == 2
+    assert len(command_list) == 0
+    assert len(notification_list) == 0
+
+    # We should start to see some commands after advancing the time.
+    timer.set_current_time_ms(1)
+    command_list = []
+    notification_list = []
+    manager.process_routines(command_list, notification_list)
+    assert manager.num_loaded == num_valid_routines
+    assert manager.num_running == 2
+    assert len(command_list) == 2
+    assert len(notification_list) == 0
+
+    expected_command = commands.MoveControlCommand(
+        "back", commands.MoveControlCommand.Direction.UP, "routine"
+    )
+    assert expected_command in command_list
+    expected_command = commands.MoveControlCommand(
+        "back", commands.MoveControlCommand.Direction.DOWN, "routine"
+    )
+    assert expected_command in command_list
+
+    # Processing again does nothing.
+    command_list = []
+    notification_list = []
+    manager.process_routines(command_list, notification_list)
+    assert manager.num_loaded == num_valid_routines
+    assert manager.num_running == 2
+    assert len(command_list) == 0
+    assert len(notification_list) == 0
+
+    # Processing after starting a routine with a zero initial delay should see
+    # a command without time advancement.
+    start_command = commands.RoutineCommand(
+        "sit", commands.RoutineCommand.Action.START
+    )
+    notification = manager.process_command(start_command)
+    assert notification == "Started the sit routine."
+    assert manager.num_loaded == num_valid_routines
+    assert manager.num_running == 3
+
+    command_list = []
+    notification_list = []
+    manager.process_routines(command_list, notification_list)
+    assert manager.num_loaded == num_valid_routines
+    assert manager.num_running == 3
+    assert len(command_list) == 1
+    assert len(notification_list) == 0
+
+    expected_command = commands.MoveControlCommand(
+        "legs", commands.MoveControlCommand.Direction.DOWN, "routine"
+    )
+    assert expected_command in command_list
+
+    # Advancing further does nothing.
+    timer.set_current_time_ms(2)
+    command_list = []
+    notification_list = []
+    manager.process_routines(command_list, notification_list)
+    assert manager.num_loaded == num_valid_routines
+    assert manager.num_running == 3
+    assert len(command_list) == 0
+    assert len(notification_list) == 0
+
+    # We should see more commands after advancing the time.
+    timer.set_current_time_ms(3)
+    command_list = []
+    notification_list = []
+    manager.process_routines(command_list, notification_list)
+    assert manager.num_loaded == num_valid_routines
+    assert manager.num_running == 2
+    assert len(command_list) == 3
+    assert len(notification_list) == 1
+
+    expected_command = commands.MoveControlCommand(
+        "legs", commands.MoveControlCommand.Direction.UP, "routine"
+    )
+    assert expected_command in command_list
+    expected_command = commands.MoveControlCommand(
+        "legs", commands.MoveControlCommand.Direction.DOWN, "routine"
+    )
+    assert expected_command in command_list
+    expected_command = commands.MoveControlCommand(
+        "back", commands.MoveControlCommand.Direction.UP, "routine"
+    )
+    assert expected_command in command_list
+
+    assert "The sit routine finished." in notification_list
+
+    # With looping routines, continuing to advance should produce the same
+    # results.
+    timer.set_current_time_ms(4)
+    command_list = []
+    notification_list = []
+    manager.process_routines(command_list, notification_list)
+    assert manager.num_loaded == num_valid_routines
+    assert manager.num_running == 2
+    assert len(command_list) == 2
+    assert len(notification_list) == 0
+
+    expected_command = commands.MoveControlCommand(
+        "back", commands.MoveControlCommand.Direction.UP, "routine"
+    )
+    assert expected_command in command_list
+    expected_command = commands.MoveControlCommand(
+        "back", commands.MoveControlCommand.Direction.DOWN, "routine"
+    )
+    assert expected_command in command_list
+
+    # Advancing further does nothing.
+    timer.set_current_time_ms(5)
+    command_list = []
+    notification_list = []
+    manager.process_routines(command_list, notification_list)
+    assert manager.num_loaded == num_valid_routines
+    assert manager.num_running == 2
+    assert len(command_list) == 0
+    assert len(notification_list) == 0
+
+    # We should see more commands after advancing the time.
+    timer.set_current_time_ms(6)
+    command_list = []
+    notification_list = []
+    manager.process_routines(command_list, notification_list)
+    assert manager.num_loaded == num_valid_routines
+    assert manager.num_running == 2
+    assert len(command_list) == 2
+    assert len(notification_list) == 0
+
+    expected_command = commands.MoveControlCommand(
+        "legs", commands.MoveControlCommand.Direction.UP, "routine"
+    )
+    assert expected_command in command_list
+    expected_command = commands.MoveControlCommand(
+        "legs", commands.MoveControlCommand.Direction.DOWN, "routine"
+    )
+    assert expected_command in command_list
 
 
 def test_routine_bootstrap(tmp_path: pathlib.Path) -> None:

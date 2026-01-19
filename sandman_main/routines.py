@@ -553,9 +553,27 @@ class RoutineManager:
 
         return ""
 
-    def process_routines(self) -> None:
+    def process_routines(
+        self,
+        command_list: list[commands.MoveControlCommand],
+        notification_list: list[str],
+    ) -> None:
         """Process the running routines."""
-        pass
+        finished_names = []
+
+        for name, routine in self.__routines.items():
+            # Processed the routine.
+            routine.process(command_list)
+
+            # Handle routines that have finished.
+            if routine.is_finished == True:
+                finished_names.append(name)
+
+        for name in finished_names:
+            # Cleanup the routine.
+            del self.__routines[name]
+
+            notification_list.append(f"The {name} routine finished.")
 
     def __start_routine(self, routine_name: str) -> str:
         """Start a routine.

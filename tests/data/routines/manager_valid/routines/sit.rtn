@@ -1,0 +1,16 @@
+{
+    "name" : "sit",
+    "isLooping" : false,
+    "steps" : [
+        {
+            "delayMS": 0,
+            "controlName": "legs",
+            "moveDirection": "down"
+        },
+        {
+            "delayMS": 2,
+            "controlName": "back",
+            "moveDirection": "up"
+        }
+    ]
+}
