@@ -461,15 +461,39 @@ def test_routines() -> None:
     assert steps_non_looping_desc.is_valid() == True
     assert len(steps_non_looping_desc.steps) == 2
 
+    steps_non_looping_no_delay_desc = routines.RoutineDesc.parse_from_file(
+        "tests/data/routines/routine_test_valid_steps.rtn"
+    )
+    steps_non_looping_no_delay_desc.is_looping = False
+    assert steps_non_looping_no_delay_desc.is_valid() == True
+    assert len(steps_non_looping_no_delay_desc.steps) == 2
+    steps_non_looping_no_delay_desc.steps[0].delay_ms = 0
+
     # Routines can't finish before processing.
     no_steps = routines.Routine(no_steps_desc, timer)
     no_steps_non_looping = routines.Routine(no_steps_non_looping_desc, timer)
     steps = routines.Routine(steps_desc, timer)
     steps_non_looping = routines.Routine(steps_non_looping_desc, timer)
+    steps_non_looping_no_delay = routines.Routine(
+        steps_non_looping_no_delay_desc, timer
+    )
     assert no_steps.is_finished == False
     assert no_steps_non_looping.is_finished == False
     assert steps.is_finished == False
     assert steps_non_looping.is_finished == False
+    assert steps_non_looping_no_delay.is_finished == False
+
+    intended_control_name = "test_control"
+    up_command = commands.MoveControlCommand(
+        intended_control_name,
+        commands.MoveControlCommand.Direction.UP,
+        "routine",
+    )
+    down_command = commands.MoveControlCommand(
+        intended_control_name,
+        commands.MoveControlCommand.Direction.DOWN,
+        "routine",
+    )
 
     # Non-looping routines with no steps are finished instantly.
     command_list = []
@@ -492,6 +516,14 @@ def test_routines() -> None:
     assert len(command_list) == 0
     assert steps_non_looping.is_finished == False
 
+    # The routine with zero initial delay will instantly produce a command.
+    command_list = []
+    steps_non_looping_no_delay.process(command_list)
+    assert len(command_list) == 1
+    if len(command_list) > 0:
+        assert command_list[0] == up_command
+    assert steps_non_looping_no_delay.is_finished == False
+
     # Processing again doesn't change anything.
     command_list = []
     no_steps.process(command_list)
@@ -513,19 +545,13 @@ def test_routines() -> None:
     assert len(command_list) == 0
     assert steps_non_looping.is_finished == False
 
-    intended_control_name = "test_control"
-    up_command = commands.MoveControlCommand(
-        intended_control_name,
-        commands.MoveControlCommand.Direction.UP,
-        "routine",
-    )
-    down_command = commands.MoveControlCommand(
-        intended_control_name,
-        commands.MoveControlCommand.Direction.DOWN,
-        "routine",
-    )
+    command_list = []
+    steps_non_looping_no_delay.process(command_list)
+    assert len(command_list) == 0
+    assert steps_non_looping_no_delay.is_finished == False
 
     # Advancing time 1 ms should execute the first step, if there is one.
+    # Except for the routine with zero initial delay.
     timer.set_current_time_ms(1)
 
     command_list = []
@@ -552,6 +578,11 @@ def test_routines() -> None:
         assert command_list[0] == up_command
     assert steps_non_looping.is_finished == False
 
+    command_list = []
+    steps_non_looping_no_delay.process(command_list)
+    assert len(command_list) == 0
+    assert steps_non_looping_no_delay.is_finished == False
+
     # Processing again does nothing.
     command_list = []
     no_steps.process(command_list)
@@ -573,8 +604,14 @@ def test_routines() -> None:
     assert len(command_list) == 0
     assert steps_non_looping.is_finished == False
 
+    command_list = []
+    steps_non_looping_no_delay.process(command_list)
+    assert len(command_list) == 0
+    assert steps_non_looping_no_delay.is_finished == False
+
     # Advancing another millisecond does nothing, because the delay hasn't
-    # passed.
+    # passed. Except for the routine with zero initial delay, which will
+    # finish.
     timer.set_current_time_ms(2)
 
     command_list = []
@@ -596,6 +633,13 @@ def test_routines() -> None:
     steps_non_looping.process(command_list)
     assert len(command_list) == 0
     assert steps_non_looping.is_finished == False
+
+    command_list = []
+    steps_non_looping_no_delay.process(command_list)
+    assert len(command_list) == 1
+    if len(command_list) > 0:
+        assert command_list[0] == down_command
+    assert steps_non_looping_no_delay.is_finished == True
 
     # A third millisecond completes the second step.
     timer.set_current_time_ms(3)
@@ -624,6 +668,11 @@ def test_routines() -> None:
         assert command_list[0] == down_command
     assert steps_non_looping.is_finished == True
 
+    command_list = []
+    steps_non_looping_no_delay.process(command_list)
+    assert len(command_list) == 0
+    assert steps_non_looping_no_delay.is_finished == True
+
     # Advancing time further should only produce effects from the looping
     # routine with steps.
     timer.set_current_time_ms(4)
@@ -650,6 +699,11 @@ def test_routines() -> None:
     assert len(command_list) == 0
     assert steps_non_looping.is_finished == True
 
+    command_list = []
+    steps_non_looping_no_delay.process(command_list)
+    assert len(command_list) == 0
+    assert steps_non_looping_no_delay.is_finished == True
+
     timer.set_current_time_ms(6)
 
     command_list = []
@@ -673,6 +727,11 @@ def test_routines() -> None:
     steps_non_looping.process(command_list)
     assert len(command_list) == 0
     assert steps_non_looping.is_finished == True
+
+    command_list = []
+    steps_non_looping_no_delay.process(command_list)
+    assert len(command_list) == 0
+    assert steps_non_looping_no_delay.is_finished == True
 
 
 def test_routine_manager() -> None:
