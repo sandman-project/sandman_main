@@ -168,10 +168,10 @@ def test_report_events(tmp_path: pathlib.Path) -> None:
     # put them in the correct files.
     second_time = first_time.add(seconds=1)
     time_source.set_current_time(second_time)
-    report_manager.add_routine_event("start")
+    report_manager.add_routine_event("wake", "start")
 
     time_source.set_current_time(first_time)
-    report_manager.add_routine_event("stop")
+    report_manager.add_routine_event("wake", "stop")
 
     assert _get_num_files_in_dir(reports_path) == 1
     report_manager.process()
@@ -196,7 +196,11 @@ def test_report_events(tmp_path: pathlib.Path) -> None:
         second_event["when"]
     )
     assert second_event_time == first_time
-    assert second_event["info"] == {"type": "routine", "action": "stop"}
+    assert second_event["info"] == {
+        "type": "routine",
+        "routine": "wake",
+        "action": "stop",
+    }
 
     # Check the second file.
     second_report_path = reports_path / "sandman2025-09-28.rpt"
@@ -212,7 +216,11 @@ def test_report_events(tmp_path: pathlib.Path) -> None:
         first_event["when"]
     )
     assert first_event_time == second_time
-    assert first_event["info"] == {"type": "routine", "action": "start"}
+    assert first_event["info"] == {
+        "type": "routine",
+        "routine": "wake",
+        "action": "start",
+    }
 
     # Add some control events.
     third_time = second_time.add(seconds=5)
@@ -245,7 +253,11 @@ def test_report_events(tmp_path: pathlib.Path) -> None:
         first_event["when"]
     )
     assert first_event_time == second_time
-    assert first_event["info"] == {"type": "routine", "action": "start"}
+    assert first_event["info"] == {
+        "type": "routine",
+        "routine": "wake",
+        "action": "start",
+    }
 
     second_event = json.loads(second_report_lines[2])
     second_event_time = whenever.ZonedDateTime.parse_common_iso(
