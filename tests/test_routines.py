@@ -1,10 +1,13 @@
 """Tests routines."""
 
+import json
 import pathlib
 
 import pytest
+import whenever
 
 import sandman_main.commands as commands
+import sandman_main.reports as reports
 import sandman_main.routines as routines
 import tests.test_time_util as test_time_util
 
@@ -19,6 +22,22 @@ def _check_default_routine_step(step: routines.RoutineDesc.Step) -> None:
     assert step.control_name == _default_control_name
     assert step.move_direction == _default_move_direction
     assert step.is_valid() == False
+
+
+def _check_file_and_read_lines(file_path: pathlib.Path) -> list[str]:
+    """Check that a file exists and read all of its lines."""
+    file_exists = file_path.exists()
+    assert file_exists == True
+
+    lines = []
+
+    if file_exists == False:
+        return lines
+
+    with open(str(file_path)) as file:
+        lines = file.readlines()
+
+    return lines
 
 
 def test_routine_step_initialization() -> None:
@@ -734,105 +753,190 @@ def test_routines() -> None:
     assert steps_non_looping_no_delay.is_finished == True
 
 
-def test_routine_manager() -> None:
+def test_routine_manager(tmp_path: pathlib.Path) -> None:
     """Test the routine manager."""
     timer = test_time_util.TestTimer()
 
-    manager = routines.RoutineManager(timer)
-    assert manager.num_loaded == 0
-    assert manager.num_running == 0
+    time_source = test_time_util.TestTimeSource()
+
+    first_time = whenever.ZonedDateTime(
+        year=2025,
+        month=9,
+        day=28,
+        hour=16,
+        minute=59,
+        second=59,
+        tz="America/Chicago",
+    )
+    time_source.set_current_time(first_time)
+    assert time_source.get_current_time() == first_time
+
+    reports_path = tmp_path / "reports/"
+    reports.bootstrap_reports(str(tmp_path) + "/")
+    assert reports_path.exists() == True
+
+    report_manager = reports.ReportManager(time_source, str(tmp_path) + "/")
+
+    routine_manager = routines.RoutineManager(timer, report_manager)
+    assert routine_manager.num_loaded == 0
+    assert routine_manager.num_running == 0
 
     num_valid_routines = 3
-    manager.initialize("tests/data/routines/manager_valid/")
-    assert manager.num_loaded == num_valid_routines
-    assert manager.num_running == 0
+    routine_manager.initialize("tests/data/routines/manager_valid/")
+    assert routine_manager.num_loaded == num_valid_routines
+    assert routine_manager.num_running == 0
 
     # Initializing again doesn't double up.
-    manager.initialize("tests/data/routines/manager_valid/")
-    assert manager.num_loaded == num_valid_routines
-    assert manager.num_running == 0
+    routine_manager.initialize("tests/data/routines/manager_valid/")
+    assert routine_manager.num_loaded == num_valid_routines
+    assert routine_manager.num_running == 0
 
-    manager.uninitialize()
-    assert manager.num_loaded == 0
-    assert manager.num_running == 0
+    routine_manager.uninitialize()
+    assert routine_manager.num_loaded == 0
+    assert routine_manager.num_running == 0
 
-    manager.initialize("tests/data/routines/manager_duplicate/")
-    assert manager.num_loaded == 2
-    assert manager.num_running == 0
+    routine_manager.initialize("tests/data/routines/manager_duplicate/")
+    assert routine_manager.num_loaded == 2
+    assert routine_manager.num_running == 0
 
-    manager.uninitialize()
-    assert manager.num_loaded == 0
-    assert manager.num_running == 0
+    routine_manager.uninitialize()
+    assert routine_manager.num_loaded == 0
+    assert routine_manager.num_running == 0
 
-    manager.initialize("tests/data/routines/manager_invalid/")
-    assert manager.num_loaded == 1
-    assert manager.num_running == 0
+    routine_manager.initialize("tests/data/routines/manager_invalid/")
+    assert routine_manager.num_loaded == 1
+    assert routine_manager.num_running == 0
 
-    manager.uninitialize()
-    assert manager.num_loaded == 0
-    assert manager.num_running == 0
+    routine_manager.uninitialize()
+    assert routine_manager.num_loaded == 0
+    assert routine_manager.num_running == 0
 
     # Now that we have tested various loading situations, test running
     # routines.
-    manager.initialize("tests/data/routines/manager_valid/")
-    assert manager.num_loaded == num_valid_routines
-    assert manager.num_running == 0
+    routine_manager.initialize("tests/data/routines/manager_valid/")
+    assert routine_manager.num_loaded == num_valid_routines
+    assert routine_manager.num_running == 0
 
     # Can't start a routine that there isn't a description for.
     start_command = commands.RoutineCommand(
         "chicken", commands.RoutineCommand.Action.START
     )
-    notification = manager.process_command(start_command)
+    notification = routine_manager.process_command(start_command)
     assert notification == "There is no chicken routine."
-    assert manager.num_loaded == num_valid_routines
-    assert manager.num_running == 0
+    assert routine_manager.num_loaded == num_valid_routines
+    assert routine_manager.num_running == 0
 
     # Can't stop a routine that isn't running.
     stop_command = commands.RoutineCommand(
         "wake", commands.RoutineCommand.Action.STOP
     )
-    notification = manager.process_command(stop_command)
+    notification = routine_manager.process_command(stop_command)
     assert notification == "The wake routine is not running."
-    assert manager.num_loaded == num_valid_routines
-    assert manager.num_running == 0
+    assert routine_manager.num_loaded == num_valid_routines
+    assert routine_manager.num_running == 0
 
     # Can't start the routine when it's already running.
     start_command = commands.RoutineCommand(
         "wake", commands.RoutineCommand.Action.START
     )
-    notification = manager.process_command(start_command)
+    notification = routine_manager.process_command(start_command)
     assert notification == "Started the wake routine."
-    assert manager.num_loaded == num_valid_routines
-    assert manager.num_running == 1
+    assert routine_manager.num_loaded == num_valid_routines
+    assert routine_manager.num_running == 1
 
-    notification = manager.process_command(start_command)
+    notification = routine_manager.process_command(start_command)
     assert notification == "The wake routine is already running."
-    assert manager.num_loaded == num_valid_routines
-    assert manager.num_running == 1
+    assert routine_manager.num_loaded == num_valid_routines
+    assert routine_manager.num_running == 1
 
     stop_command = commands.RoutineCommand(
         "sleep", commands.RoutineCommand.Action.STOP
     )
-    notification = manager.process_command(stop_command)
+    notification = routine_manager.process_command(stop_command)
     assert notification == "The sleep routine is not running."
-    assert manager.num_loaded == num_valid_routines
-    assert manager.num_running == 1
+    assert routine_manager.num_loaded == num_valid_routines
+    assert routine_manager.num_running == 1
 
     # Actually stop the routine.
     stop_command = commands.RoutineCommand(
         "wake", commands.RoutineCommand.Action.STOP
     )
-    notification = manager.process_command(stop_command)
+    notification = routine_manager.process_command(stop_command)
     assert notification == "Stopped the wake routine."
-    assert manager.num_loaded == num_valid_routines
-    assert manager.num_running == 0
+    assert routine_manager.num_loaded == num_valid_routines
+    assert routine_manager.num_running == 0
+
+    # Make sure that the correct events were written to the report file.
+    report_manager.process()
+
+    report_path = reports_path / "sandman2025-09-27.rpt"
+    report_lines = _check_file_and_read_lines(report_path)
+
+    assert len(report_lines) == 7
+
+    header = json.loads(report_lines[0])
+    assert header["version"] == reports.ReportManager.REPORT_VERSION
+
+    event_json = json.loads(report_lines[1])
+    event_time = whenever.ZonedDateTime.parse_common_iso(event_json["when"])
+    assert event_time == first_time
+    assert event_json["info"] == {
+        "type": "routine",
+        "routine": "chicken",
+        "action": "start",
+    }
+
+    event_json = json.loads(report_lines[2])
+    event_time = whenever.ZonedDateTime.parse_common_iso(event_json["when"])
+    assert event_time == first_time
+    assert event_json["info"] == {
+        "type": "routine",
+        "routine": "wake",
+        "action": "stop",
+    }
+
+    event_json = json.loads(report_lines[3])
+    event_time = whenever.ZonedDateTime.parse_common_iso(event_json["when"])
+    assert event_time == first_time
+    assert event_json["info"] == {
+        "type": "routine",
+        "routine": "wake",
+        "action": "start",
+    }
+
+    event_json = json.loads(report_lines[4])
+    event_time = whenever.ZonedDateTime.parse_common_iso(event_json["when"])
+    assert event_time == first_time
+    assert event_json["info"] == {
+        "type": "routine",
+        "routine": "wake",
+        "action": "start",
+    }
+
+    event_json = json.loads(report_lines[5])
+    event_time = whenever.ZonedDateTime.parse_common_iso(event_json["when"])
+    assert event_time == first_time
+    assert event_json["info"] == {
+        "type": "routine",
+        "routine": "sleep",
+        "action": "stop",
+    }
+
+    event_json = json.loads(report_lines[6])
+    event_time = whenever.ZonedDateTime.parse_common_iso(event_json["when"])
+    assert event_time == first_time
+    assert event_json["info"] == {
+        "type": "routine",
+        "routine": "wake",
+        "action": "stop",
+    }
 
     # Processing does nothing with no routines running.
     command_list = []
     notification_list = []
-    manager.process_routines(command_list, notification_list)
-    assert manager.num_loaded == num_valid_routines
-    assert manager.num_running == 0
+    routine_manager.process_routines(command_list, notification_list)
+    assert routine_manager.num_loaded == num_valid_routines
+    assert routine_manager.num_running == 0
     assert len(command_list) == 0
     assert len(notification_list) == 0
 
@@ -840,25 +944,25 @@ def test_routine_manager() -> None:
     start_command = commands.RoutineCommand(
         "wake", commands.RoutineCommand.Action.START
     )
-    notification = manager.process_command(start_command)
+    notification = routine_manager.process_command(start_command)
     assert notification == "Started the wake routine."
-    assert manager.num_loaded == num_valid_routines
-    assert manager.num_running == 1
+    assert routine_manager.num_loaded == num_valid_routines
+    assert routine_manager.num_running == 1
 
     start_command = commands.RoutineCommand(
         "sleep", commands.RoutineCommand.Action.START
     )
-    notification = manager.process_command(start_command)
+    notification = routine_manager.process_command(start_command)
     assert notification == "Started the sleep routine."
-    assert manager.num_loaded == num_valid_routines
-    assert manager.num_running == 2
+    assert routine_manager.num_loaded == num_valid_routines
+    assert routine_manager.num_running == 2
 
     # Processing without time advancement does nothing.
     command_list = []
     notification_list = []
-    manager.process_routines(command_list, notification_list)
-    assert manager.num_loaded == num_valid_routines
-    assert manager.num_running == 2
+    routine_manager.process_routines(command_list, notification_list)
+    assert routine_manager.num_loaded == num_valid_routines
+    assert routine_manager.num_running == 2
     assert len(command_list) == 0
     assert len(notification_list) == 0
 
@@ -866,9 +970,9 @@ def test_routine_manager() -> None:
     timer.set_current_time_ms(1)
     command_list = []
     notification_list = []
-    manager.process_routines(command_list, notification_list)
-    assert manager.num_loaded == num_valid_routines
-    assert manager.num_running == 2
+    routine_manager.process_routines(command_list, notification_list)
+    assert routine_manager.num_loaded == num_valid_routines
+    assert routine_manager.num_running == 2
     assert len(command_list) == 2
     assert len(notification_list) == 0
 
@@ -884,9 +988,9 @@ def test_routine_manager() -> None:
     # Processing again does nothing.
     command_list = []
     notification_list = []
-    manager.process_routines(command_list, notification_list)
-    assert manager.num_loaded == num_valid_routines
-    assert manager.num_running == 2
+    routine_manager.process_routines(command_list, notification_list)
+    assert routine_manager.num_loaded == num_valid_routines
+    assert routine_manager.num_running == 2
     assert len(command_list) == 0
     assert len(notification_list) == 0
 
@@ -895,16 +999,16 @@ def test_routine_manager() -> None:
     start_command = commands.RoutineCommand(
         "sit", commands.RoutineCommand.Action.START
     )
-    notification = manager.process_command(start_command)
+    notification = routine_manager.process_command(start_command)
     assert notification == "Started the sit routine."
-    assert manager.num_loaded == num_valid_routines
-    assert manager.num_running == 3
+    assert routine_manager.num_loaded == num_valid_routines
+    assert routine_manager.num_running == 3
 
     command_list = []
     notification_list = []
-    manager.process_routines(command_list, notification_list)
-    assert manager.num_loaded == num_valid_routines
-    assert manager.num_running == 3
+    routine_manager.process_routines(command_list, notification_list)
+    assert routine_manager.num_loaded == num_valid_routines
+    assert routine_manager.num_running == 3
     assert len(command_list) == 1
     assert len(notification_list) == 0
 
@@ -917,9 +1021,9 @@ def test_routine_manager() -> None:
     timer.set_current_time_ms(2)
     command_list = []
     notification_list = []
-    manager.process_routines(command_list, notification_list)
-    assert manager.num_loaded == num_valid_routines
-    assert manager.num_running == 3
+    routine_manager.process_routines(command_list, notification_list)
+    assert routine_manager.num_loaded == num_valid_routines
+    assert routine_manager.num_running == 3
     assert len(command_list) == 0
     assert len(notification_list) == 0
 
@@ -927,9 +1031,9 @@ def test_routine_manager() -> None:
     timer.set_current_time_ms(3)
     command_list = []
     notification_list = []
-    manager.process_routines(command_list, notification_list)
-    assert manager.num_loaded == num_valid_routines
-    assert manager.num_running == 2
+    routine_manager.process_routines(command_list, notification_list)
+    assert routine_manager.num_loaded == num_valid_routines
+    assert routine_manager.num_running == 2
     assert len(command_list) == 3
     assert len(notification_list) == 1
 
@@ -953,9 +1057,9 @@ def test_routine_manager() -> None:
     timer.set_current_time_ms(4)
     command_list = []
     notification_list = []
-    manager.process_routines(command_list, notification_list)
-    assert manager.num_loaded == num_valid_routines
-    assert manager.num_running == 2
+    routine_manager.process_routines(command_list, notification_list)
+    assert routine_manager.num_loaded == num_valid_routines
+    assert routine_manager.num_running == 2
     assert len(command_list) == 2
     assert len(notification_list) == 0
 
@@ -972,9 +1076,9 @@ def test_routine_manager() -> None:
     timer.set_current_time_ms(5)
     command_list = []
     notification_list = []
-    manager.process_routines(command_list, notification_list)
-    assert manager.num_loaded == num_valid_routines
-    assert manager.num_running == 2
+    routine_manager.process_routines(command_list, notification_list)
+    assert routine_manager.num_loaded == num_valid_routines
+    assert routine_manager.num_running == 2
     assert len(command_list) == 0
     assert len(notification_list) == 0
 
@@ -982,9 +1086,9 @@ def test_routine_manager() -> None:
     timer.set_current_time_ms(6)
     command_list = []
     notification_list = []
-    manager.process_routines(command_list, notification_list)
-    assert manager.num_loaded == num_valid_routines
-    assert manager.num_running == 2
+    routine_manager.process_routines(command_list, notification_list)
+    assert routine_manager.num_loaded == num_valid_routines
+    assert routine_manager.num_running == 2
     assert len(command_list) == 2
     assert len(notification_list) == 0
 

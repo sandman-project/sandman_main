@@ -8,7 +8,7 @@ import logging
 import pathlib
 import typing
 
-from . import commands, time_util
+from . import commands, reports, time_util
 
 _logger = logging.getLogger("sandman.routines")
 
@@ -484,9 +484,12 @@ class Routine:
 class RoutineManager:
     """Manages routine descriptions and running routines."""
 
-    def __init__(self, timer: time_util.Timer) -> None:
+    def __init__(
+        self, timer: time_util.Timer, report_manager: reports.ReportManager
+    ) -> None:
         """Initialize the manager."""
         self.__timer = timer
+        self.__report_manager = report_manager
         self.__descs: dict[str, RoutineDesc] = {}
         self.__routines: dict[str, Routine] = {}
 
@@ -540,9 +543,15 @@ class RoutineManager:
         """
         match command.action:
             case commands.RoutineCommand.Action.START:
+                self.__report_manager.add_routine_event(
+                    command.routine_name, command.action.as_string()
+                )
                 return self.__start_routine(command.routine_name)
 
             case commands.RoutineCommand.Action.STOP:
+                self.__report_manager.add_routine_event(
+                    command.routine_name, command.action.as_string()
+                )
                 return self.__stop_routine(command.routine_name)
 
             case _:
