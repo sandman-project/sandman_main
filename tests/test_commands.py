@@ -107,3 +107,79 @@ def test_move_control_intents() -> None:
     assert command.control_name == "legs"
     assert command.direction == commands.MoveControlCommand.Direction.DOWN
     assert command.source == "voice"
+
+
+def test_control_routine_intents() -> None:
+    """Test control routine intent constructions."""
+    # These intents must have a slots key.
+    command = commands.parse_from_intent(
+        {"intent": {"intentName": "ControlRoutine"}}
+    )
+    assert command is None
+
+    # Which is expected to be a list.
+    command = commands.parse_from_intent(
+        {"intent": {"intentName": "ControlRoutine"}, "slots": None}
+    )
+    assert command is None
+
+    # Which must contain at least two objects with slotName and rawValue keys.
+    # One slot name must be name and another must be action.
+    command = commands.parse_from_intent(
+        {
+            "intent": {"intentName": "ControlRoutine"},
+            "slots": [{"rawValue": 1}, {"slotName": 1}],
+        }
+    )
+    assert command is None
+
+    # The raw value of the name slot must be a string and the action slot
+    # must be either start or stop.
+    command = commands.parse_from_intent(
+        {
+            "intent": {"intentName": "ControlRoutine"},
+            "slots": [
+                {"slotName": "action", "rawValue": "chicken"},
+                {"slotName": "name", "rawValue": -1},
+            ],
+        }
+    )
+    assert command is None
+
+    command = commands.parse_from_intent(
+        {
+            "intent": {"intentName": "ControlRoutine"},
+            "slots": [
+                {"slotName": "action", "rawValue": "chicken"},
+                {"slotName": "name", "rawValue": "wake"},
+            ],
+        }
+    )
+    assert command is None
+
+    # Okay, now let's check some valid ones.
+    command = commands.parse_from_intent(
+        {
+            "intent": {"intentName": "ControlRoutine"},
+            "slots": [
+                {"slotName": "action", "rawValue": "start"},
+                {"slotName": "name", "rawValue": "wake"},
+            ],
+        }
+    )
+    assert isinstance(command, commands.RoutineCommand)
+    assert command.routine_name == "wake"
+    assert command.action == commands.RoutineCommand.Action.START
+
+    command = commands.parse_from_intent(
+        {
+            "intent": {"intentName": "ControlRoutine"},
+            "slots": [
+                {"slotName": "action", "rawValue": "stop"},
+                {"slotName": "name", "rawValue": "wake"},
+            ],
+        }
+    )
+    assert isinstance(command, commands.RoutineCommand)
+    assert command.routine_name == "wake"
+    assert command.action == commands.RoutineCommand.Action.STOP

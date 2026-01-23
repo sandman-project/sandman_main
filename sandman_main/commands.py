@@ -70,7 +70,7 @@ _logger = logging.getLogger("sandman.commands")
 
 def parse_from_intent(
     intent_json: dict[str, typing.Any],
-) -> None | StatusCommand | MoveControlCommand:
+) -> None | StatusCommand | MoveControlCommand | RoutineCommand:
     """Parse an intent from JSON.
 
     Return a command if one is recognized.
@@ -90,13 +90,18 @@ def parse_from_intent(
         _logger.warning("Invalid intent: missing name.")
         return None
 
-    if intent_name == "GetStatus":
-        _logger.info("Recognized a get status intent.")
-        return StatusCommand()
+    match intent_name:
+        case "GetStatus":
+            _logger.info("Recognized a get status intent.")
+            return StatusCommand()
 
-    elif intent_name == "MovePart":
-        _logger.info("Attempting to recognize a move control intent.")
-        return _parse_from_move_control_intent(intent_json)
+        case "MovePart":
+            _logger.info("Attempting to recognize a move control intent.")
+            return _parse_from_move_control_intent(intent_json)
+
+        case "ControlRoutine":
+            _logger.info("Attempting to recognize a control routine intent.")
+            return _parse_from_control_routine_intent(intent_json)
 
     _logger.warning("Unrecognized intent '%s'.", intent_name)
     return None
@@ -160,3 +165,65 @@ def _parse_from_move_control_intent(
         direction.as_string(),
     )
     return MoveControlCommand(control_name, direction, "voice")
+
+
+def _parse_from_control_routine_intent(
+    intent_json: dict[str, typing.Any],
+) -> None | RoutineCommand:
+    """Parse a control routine intent from JSON."""
+    try:
+        slots = intent_json["slots"]
+
+    except KeyError:
+        _logger.warning("Invalid control routine intent: missing slots.")
+        return None
+
+    if isinstance(slots, list) == False:
+        _logger.warning("Invalid control routine intent: slots is not a list.")
+        return None
+
+    # Try to find the routine name and action in the slots.
+    routine_name: str | None = None
+    action: RoutineCommand.Action | None = None
+
+    for slot in slots:
+        # Each slot must have a name and a value.
+        try:
+            slot_name = slot["slotName"]
+
+        except KeyError:
+            continue
+
+        try:
+            slot_value = slot["rawValue"]
+
+        except KeyError:
+            continue
+
+        if slot_name == "name":
+            if type(slot_value) is str:
+                routine_name = slot_value
+
+        elif slot_name == "action":
+            if slot_value == "start":
+                action = RoutineCommand.Action.START
+
+            elif slot_value == "stop":
+                action = RoutineCommand.Action.STOP
+
+    if routine_name is None:
+        _logger.warning(
+            "Invalid control routine intent: missing routine name."
+        )
+        return None
+
+    if action is None:
+        _logger.warning("Invalid routine control intent: missing action.")
+        return None
+
+    _logger.info(
+        "Recognized a control routine intent: '%s' routine '%s'.",
+        action.as_string(),
+        routine_name,
+    )
+    return RoutineCommand(routine_name, action)

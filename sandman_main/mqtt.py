@@ -30,7 +30,9 @@ class MQTTClient:
         """Initialize the instance."""
         self.__logger = logging.getLogger("sandman.mqtt_client")
         self.__pending_commands = collections.deque[
-            commands.StatusCommand | commands.MoveControlCommand
+            commands.StatusCommand
+            | commands.MoveControlCommand
+            | commands.RoutineCommand
         ]()
         self.__pending_notifications = collections.deque[str]()
         self.__is_connected: bool = False
@@ -118,7 +120,12 @@ class MQTTClient:
 
     def pop_command(
         self,
-    ) -> commands.StatusCommand | commands.MoveControlCommand | None:
+    ) -> (
+        commands.StatusCommand
+        | commands.MoveControlCommand
+        | commands.RoutineCommand
+        | None
+    ):
         """Pop the next pending command off the queue, if there is one.
 
         Returns the command or None if the queue is empty.

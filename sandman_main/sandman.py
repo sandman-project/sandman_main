@@ -212,6 +212,9 @@ class Sandman:
                 case commands.MoveControlCommand():
                     self.__process_move_control_command(command)
 
+                case commands.RoutineCommand():
+                    pass
+
                 case unknown:
                     typing.assert_never(unknown)
 
