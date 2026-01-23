@@ -27,57 +27,74 @@ def test_get_status_intent() -> None:
 def test_move_control_intents() -> None:
     """Test move control intent constructions."""
     # These intents must have a slots key.
-    assert (
-        commands.parse_from_intent({"intent": {"intentName": "MovePart"}})
-        is None
+    command = commands.parse_from_intent(
+        {"intent": {"intentName": "MovePart"}}
     )
+    assert command is None
 
     # Which is expected to be a list.
-    assert (
-        commands.parse_from_intent(
-            {"intent": {"intentName": "MovePart"}, "slots": None}
-        )
-        is None
+    command = commands.parse_from_intent(
+        {"intent": {"intentName": "MovePart"}, "slots": None}
     )
+    assert command is None
 
     # Which must contain at least two objects with slotName and rawValue keys.
     # One slot name must be name and another must be direction.
-    assert (
-        commands.parse_from_intent(
-            {
-                "intent": {"intentName": "MovePart"},
-                "slots": [{"rawValue": 1}, {"slotName": 1}],
-            }
-        )
-        is None
+    command = commands.parse_from_intent(
+        {
+            "intent": {"intentName": "MovePart"},
+            "slots": [{"rawValue": 1}],
+        }
     )
+    assert command is None
+
+    command = commands.parse_from_intent(
+        {
+            "intent": {"intentName": "MovePart"},
+            "slots": [{"slotName": 1}],
+        }
+    )
+    assert command is None
+
+    command = commands.parse_from_intent(
+        {
+            "intent": {"intentName": "MovePart"},
+            "slots": [{"slotName": "name"}],
+        }
+    )
+    assert command is None
+
+    command = commands.parse_from_intent(
+        {
+            "intent": {"intentName": "MovePart"},
+            "slots": [{"slotName": "name"}],
+        }
+    )
+    assert command is None
 
     # The raw value of the name slot must be a string and the direction slot
     # must be either raise or lower.
-    assert (
-        commands.parse_from_intent(
-            {
-                "intent": {"intentName": "MovePart"},
-                "slots": [
-                    {"slotName": "direction", "rawValue": "chicken"},
-                    {"slotName": "name", "rawValue": -1},
-                ],
-            }
-        )
-        is None
+    command = commands.parse_from_intent(
+        {
+            "intent": {"intentName": "MovePart"},
+            "slots": [
+                {"slotName": "direction", "rawValue": "chicken"},
+                {"slotName": "name", "rawValue": -1},
+            ],
+        }
     )
-    assert (
-        commands.parse_from_intent(
-            {
-                "intent": {"intentName": "MovePart"},
-                "slots": [
-                    {"slotName": "direction", "rawValue": "chicken"},
-                    {"slotName": "name", "rawValue": "legs"},
-                ],
-            }
-        )
-        is None
+    assert command is None
+
+    command = commands.parse_from_intent(
+        {
+            "intent": {"intentName": "MovePart"},
+            "slots": [
+                {"slotName": "direction", "rawValue": "chicken"},
+                {"slotName": "name", "rawValue": "legs"},
+            ],
+        }
     )
+    assert command is None
 
     # Okay, now let's check some valid ones.
     command = commands.parse_from_intent(
@@ -128,7 +145,31 @@ def test_control_routine_intents() -> None:
     command = commands.parse_from_intent(
         {
             "intent": {"intentName": "ControlRoutine"},
-            "slots": [{"rawValue": 1}, {"slotName": 1}],
+            "slots": [{"rawValue": 1}],
+        }
+    )
+    assert command is None
+
+    command = commands.parse_from_intent(
+        {
+            "intent": {"intentName": "ControlRoutine"},
+            "slots": [{"slotName": 1}],
+        }
+    )
+    assert command is None
+
+    command = commands.parse_from_intent(
+        {
+            "intent": {"intentName": "ControlRoutine"},
+            "slots": [{"slotName": "name"}],
+        }
+    )
+    assert command is None
+
+    command = commands.parse_from_intent(
+        {
+            "intent": {"intentName": "ControlRoutine"},
+            "slots": [{"slotName": "name"}],
         }
     )
     assert command is None
