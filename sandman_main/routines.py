@@ -431,7 +431,14 @@ class Routine:
         """Get whether the routine is finished."""
         return self.__is_finished
 
-    def process(self, command_list: list[commands.MoveControlCommand]) -> None:
+    def process(
+        self,
+        command_list: list[
+            commands.StatusCommand
+            | commands.MoveControlCommand
+            | commands.RoutineCommand
+        ],
+    ) -> None:
         """Process the routine."""
         if self.__is_finished == True:
             return
@@ -564,7 +571,11 @@ class RoutineManager:
 
     def process_routines(
         self,
-        command_list: list[commands.MoveControlCommand],
+        command_list: list[
+            commands.StatusCommand
+            | commands.MoveControlCommand
+            | commands.RoutineCommand
+        ],
         notification_list: list[str],
     ) -> None:
         """Process the running routines."""

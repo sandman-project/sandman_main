@@ -13,6 +13,7 @@ from . import (
     gpio,
     mqtt,
     reports,
+    routines,
     setting,
     time_util,
 )
@@ -89,6 +90,7 @@ class Sandman:
         setting.bootstrap_settings(self.__base_dir)
         control_configs.bootstrap_control_configs(self.__base_dir)
         reports.bootstrap_reports(self.__base_dir)
+        routines.bootstrap_routines(self.__base_dir)
 
         self.__settings = setting.Settings.parse_from_file(
             self.__base_dir + "settings.cfg"
@@ -98,6 +100,10 @@ class Sandman:
         self.__report_manager = reports.ReportManager(
             self.__time_source, self.__base_dir
         )
+
+        self.__routine_manager = routines.RoutineManager(
+            self.__timer, self.__report_manager
+        )
         return True
 
     def run(self) -> None:
@@ -105,6 +111,7 @@ class Sandman:
         self.__logger.info("Starting Sandman...")
 
         self.__initialize_controls()
+        self.__routine_manager.initialize(self.__base_dir)
 
         self.__mqtt_client = mqtt.MQTTClient()
 
@@ -129,6 +136,8 @@ class Sandman:
         self.__mqtt_client.stop()
 
         self.__logger.info("Sandman exiting.")
+
+        self.__routine_manager.uninitialize()
 
         # Uninitialize the controls.
         self.__uninitialize_controls()
@@ -192,33 +201,65 @@ class Sandman:
 
     def __process(self) -> None:
         """Process during the main loop."""
-        self.__process_commands()
+        command_list: list[
+            commands.StatusCommand
+            | commands.MoveControlCommand
+            | commands.RoutineCommand
+        ] = []
+        notification_list: list[str] = []
 
-        self.__process_controls()
+        self.__routine_manager.process_routines(
+            command_list, notification_list
+        )
+
+        # Fetch any commands from MQTT as well.
+        command = self.__mqtt_client.pop_command()
+
+        while command is not None:
+            command_list.append(command)
+
+            command = self.__mqtt_client.pop_command()
+
+        self.__process_commands(notification_list, command_list)
+
+        self.__process_controls(notification_list)
 
         self.__mqtt_client.process()
         self.__report_manager.process()
 
-    def __process_commands(self) -> None:
-        """Process pending commands."""
-        command = self.__mqtt_client.pop_command()
+        # Play all the notifications.
+        for notification in notification_list:
+            self.__mqtt_client.play_notification(notification)
 
-        while command is not None:
+    def __process_commands(
+        self,
+        notification_list: list[str],
+        command_list: list[
+            commands.StatusCommand
+            | commands.MoveControlCommand
+            | commands.RoutineCommand
+        ],
+    ) -> None:
+        """Process pending commands."""
+        for command in command_list:
             match command:
                 case commands.StatusCommand():
-                    self.__mqtt_client.play_notification("Sandman is running.")
+                    notification_list.append("Sandman is running.")
                     self.__report_manager.add_status_event()
 
                 case commands.MoveControlCommand():
                     self.__process_move_control_command(command)
 
                 case commands.RoutineCommand():
-                    pass
+                    notification = self.__routine_manager.process_command(
+                        command
+                    )
+
+                    if notification != "":
+                        notification_list.append(notification)
 
                 case unknown:
                     typing.assert_never(unknown)
-
-            command = self.__mqtt_client.pop_command()
 
     def __process_move_control_command(
         self, command: commands.MoveControlCommand
@@ -254,15 +295,10 @@ class Sandman:
             case unknown:
                 typing.assert_never(unknown)
 
-    def __process_controls(self) -> None:
+    def __process_controls(self, notification_list: list[str]) -> None:
         """Process controls."""
-        notifications: list[str] = []
-
         for _name, control in self.__controls.items():
-            control.process(notifications)
-
-        for notification in notifications:
-            self.__mqtt_client.play_notification(notification)
+            control.process(notification_list)
 
 
 def create_app(
