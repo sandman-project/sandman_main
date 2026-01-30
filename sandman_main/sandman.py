@@ -244,8 +244,7 @@ class Sandman:
         for command in command_list:
             match command:
                 case commands.StatusCommand():
-                    notification_list.append("Sandman is running.")
-                    self.__report_manager.add_status_event()
+                    self.__process_status_command(notification_list)
 
                 case commands.MoveControlCommand():
                     self.__process_move_control_command(command)
@@ -260,6 +259,18 @@ class Sandman:
 
                 case unknown:
                     typing.assert_never(unknown)
+
+    def __process_status_command(self, notification_list: list[str]) -> None:
+        """Process a status command."""
+        self.__report_manager.add_status_event()
+
+        notification_list.append("Sandman is running.")
+
+        # Add a notification for each running routine.
+        running_names = self.__routine_manager.get_running_names()
+
+        for name in running_names:
+            notification_list.append(f"The {name} routine is running.")
 
     def __process_move_control_command(
         self, command: commands.MoveControlCommand
