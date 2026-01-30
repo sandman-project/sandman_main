@@ -843,11 +843,13 @@ def test_routine_manager(tmp_path: pathlib.Path) -> None:
     assert notification == "Started the wake routine."
     assert routine_manager.num_loaded == num_valid_routines
     assert routine_manager.num_running == 1
+    assert "wake" in routine_manager.get_running_names()
 
     notification = routine_manager.process_command(start_command)
     assert notification == "The wake routine is already running."
     assert routine_manager.num_loaded == num_valid_routines
     assert routine_manager.num_running == 1
+    assert "wake" in routine_manager.get_running_names()
 
     stop_command = commands.RoutineCommand(
         "sleep", commands.RoutineCommand.Action.STOP
@@ -856,6 +858,7 @@ def test_routine_manager(tmp_path: pathlib.Path) -> None:
     assert notification == "The sleep routine is not running."
     assert routine_manager.num_loaded == num_valid_routines
     assert routine_manager.num_running == 1
+    assert "wake" in routine_manager.get_running_names()
 
     # Actually stop the routine.
     stop_command = commands.RoutineCommand(
@@ -948,6 +951,7 @@ def test_routine_manager(tmp_path: pathlib.Path) -> None:
     assert notification == "Started the wake routine."
     assert routine_manager.num_loaded == num_valid_routines
     assert routine_manager.num_running == 1
+    assert "wake" in routine_manager.get_running_names()
 
     start_command = commands.RoutineCommand(
         "sleep", commands.RoutineCommand.Action.START
@@ -956,6 +960,8 @@ def test_routine_manager(tmp_path: pathlib.Path) -> None:
     assert notification == "Started the sleep routine."
     assert routine_manager.num_loaded == num_valid_routines
     assert routine_manager.num_running == 2
+    assert "wake" in routine_manager.get_running_names()
+    assert "sleep" in routine_manager.get_running_names()
 
     # Processing without time advancement does nothing.
     command_list = []
@@ -963,6 +969,8 @@ def test_routine_manager(tmp_path: pathlib.Path) -> None:
     routine_manager.process_routines(command_list, notification_list)
     assert routine_manager.num_loaded == num_valid_routines
     assert routine_manager.num_running == 2
+    assert "wake" in routine_manager.get_running_names()
+    assert "sleep" in routine_manager.get_running_names()
     assert len(command_list) == 0
     assert len(notification_list) == 0
 
@@ -973,6 +981,8 @@ def test_routine_manager(tmp_path: pathlib.Path) -> None:
     routine_manager.process_routines(command_list, notification_list)
     assert routine_manager.num_loaded == num_valid_routines
     assert routine_manager.num_running == 2
+    assert "wake" in routine_manager.get_running_names()
+    assert "sleep" in routine_manager.get_running_names()
     assert len(command_list) == 2
     assert len(notification_list) == 0
 
@@ -991,6 +1001,8 @@ def test_routine_manager(tmp_path: pathlib.Path) -> None:
     routine_manager.process_routines(command_list, notification_list)
     assert routine_manager.num_loaded == num_valid_routines
     assert routine_manager.num_running == 2
+    assert "wake" in routine_manager.get_running_names()
+    assert "sleep" in routine_manager.get_running_names()
     assert len(command_list) == 0
     assert len(notification_list) == 0
 
@@ -1003,12 +1015,18 @@ def test_routine_manager(tmp_path: pathlib.Path) -> None:
     assert notification == "Started the sit routine."
     assert routine_manager.num_loaded == num_valid_routines
     assert routine_manager.num_running == 3
+    assert "wake" in routine_manager.get_running_names()
+    assert "sleep" in routine_manager.get_running_names()
+    assert "sit" in routine_manager.get_running_names()
 
     command_list = []
     notification_list = []
     routine_manager.process_routines(command_list, notification_list)
     assert routine_manager.num_loaded == num_valid_routines
     assert routine_manager.num_running == 3
+    assert "wake" in routine_manager.get_running_names()
+    assert "sleep" in routine_manager.get_running_names()
+    assert "sit" in routine_manager.get_running_names()
     assert len(command_list) == 1
     assert len(notification_list) == 0
 
@@ -1024,6 +1042,9 @@ def test_routine_manager(tmp_path: pathlib.Path) -> None:
     routine_manager.process_routines(command_list, notification_list)
     assert routine_manager.num_loaded == num_valid_routines
     assert routine_manager.num_running == 3
+    assert "wake" in routine_manager.get_running_names()
+    assert "sleep" in routine_manager.get_running_names()
+    assert "sit" in routine_manager.get_running_names()
     assert len(command_list) == 0
     assert len(notification_list) == 0
 
@@ -1034,6 +1055,8 @@ def test_routine_manager(tmp_path: pathlib.Path) -> None:
     routine_manager.process_routines(command_list, notification_list)
     assert routine_manager.num_loaded == num_valid_routines
     assert routine_manager.num_running == 2
+    assert "wake" in routine_manager.get_running_names()
+    assert "sleep" in routine_manager.get_running_names()
     assert len(command_list) == 3
     assert len(notification_list) == 1
 
@@ -1060,6 +1083,8 @@ def test_routine_manager(tmp_path: pathlib.Path) -> None:
     routine_manager.process_routines(command_list, notification_list)
     assert routine_manager.num_loaded == num_valid_routines
     assert routine_manager.num_running == 2
+    assert "wake" in routine_manager.get_running_names()
+    assert "sleep" in routine_manager.get_running_names()
     assert len(command_list) == 2
     assert len(notification_list) == 0
 
@@ -1079,6 +1104,8 @@ def test_routine_manager(tmp_path: pathlib.Path) -> None:
     routine_manager.process_routines(command_list, notification_list)
     assert routine_manager.num_loaded == num_valid_routines
     assert routine_manager.num_running == 2
+    assert "wake" in routine_manager.get_running_names()
+    assert "sleep" in routine_manager.get_running_names()
     assert len(command_list) == 0
     assert len(notification_list) == 0
 
@@ -1089,6 +1116,8 @@ def test_routine_manager(tmp_path: pathlib.Path) -> None:
     routine_manager.process_routines(command_list, notification_list)
     assert routine_manager.num_loaded == num_valid_routines
     assert routine_manager.num_running == 2
+    assert "wake" in routine_manager.get_running_names()
+    assert "sleep" in routine_manager.get_running_names()
     assert len(command_list) == 2
     assert len(notification_list) == 0
 

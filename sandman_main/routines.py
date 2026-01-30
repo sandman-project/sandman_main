@@ -510,6 +510,15 @@ class RoutineManager:
         """Get the number of running routines."""
         return len(self.__routines)
 
+    def get_running_names(self) -> list[str]:
+        """Get the names of the running routines."""
+        names: list[str] = []
+
+        for name, _routine in self.__routines.items():
+            names.append(name)
+
+        return names
+
     def initialize(self, base_dir: str) -> None:
         """Initialize the manager (load routine descriptions)."""
         self.uninitialize()
