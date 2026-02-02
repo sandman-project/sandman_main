@@ -13,7 +13,7 @@ class StatusCommand:
 
 
 @dataclasses.dataclass
-class MoveControlCommand:
+class ControlCommand:
     """A command to move a control."""
 
     @enum.unique
@@ -26,9 +26,9 @@ class MoveControlCommand:
         def as_string(self) -> str:
             """Return a readable phrase describing the direction."""
             match self:
-                case MoveControlCommand.Direction.UP:
+                case ControlCommand.Direction.UP:
                     return "up"
-                case MoveControlCommand.Direction.DOWN:
+                case ControlCommand.Direction.DOWN:
                     return "down"
                 case _:
                     typing.assert_never(self)
@@ -70,7 +70,7 @@ _logger = logging.getLogger("sandman.commands")
 
 def parse_from_intent(
     intent_json: dict[str, typing.Any],
-) -> None | StatusCommand | MoveControlCommand | RoutineCommand:
+) -> None | StatusCommand | ControlCommand | RoutineCommand:
     """Parse an intent from JSON.
 
     Return a command if one is recognized.
@@ -168,7 +168,7 @@ def _parse_slots_from_intent(
 
 def _parse_from_move_control_intent(
     intent_json: dict[str, typing.Any],
-) -> None | MoveControlCommand:
+) -> None | ControlCommand:
     """Parse a move control intent from JSON."""
     slots = _parse_slots_from_intent(intent_json)
 
@@ -178,7 +178,7 @@ def _parse_from_move_control_intent(
 
     # Try to find the control name and direction in the slots.
     control_name: str | None = None
-    direction: MoveControlCommand.Direction | None = None
+    direction: ControlCommand.Direction | None = None
 
     for slot in slots:
         if slot.name == "name":
@@ -186,10 +186,10 @@ def _parse_from_move_control_intent(
 
         elif slot.name == "direction":
             if slot.value == "raise":
-                direction = MoveControlCommand.Direction.UP
+                direction = ControlCommand.Direction.UP
 
             elif slot.value == "lower":
-                direction = MoveControlCommand.Direction.DOWN
+                direction = ControlCommand.Direction.DOWN
 
     if control_name is None:
         _logger.warning("Invalid move control intent: missing control name.")
@@ -204,7 +204,7 @@ def _parse_from_move_control_intent(
         control_name,
         direction.as_string(),
     )
-    return MoveControlCommand(control_name, direction, "voice")
+    return ControlCommand(control_name, direction, "voice")
 
 
 def _parse_from_control_routine_intent(

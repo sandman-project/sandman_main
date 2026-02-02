@@ -31,7 +31,7 @@ class MQTTClient:
         self.__logger = logging.getLogger("sandman.mqtt_client")
         self.__pending_commands = collections.deque[
             commands.StatusCommand
-            | commands.MoveControlCommand
+            | commands.ControlCommand
             | commands.RoutineCommand
         ]()
         self.__pending_notifications = collections.deque[str]()
@@ -122,7 +122,7 @@ class MQTTClient:
         self,
     ) -> (
         commands.StatusCommand
-        | commands.MoveControlCommand
+        | commands.ControlCommand
         | commands.RoutineCommand
         | None
     ):

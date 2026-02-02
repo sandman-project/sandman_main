@@ -203,7 +203,7 @@ class Sandman:
         """Process during the main loop."""
         command_list: list[
             commands.StatusCommand
-            | commands.MoveControlCommand
+            | commands.ControlCommand
             | commands.RoutineCommand
         ] = []
         notification_list: list[str] = []
@@ -236,7 +236,7 @@ class Sandman:
         notification_list: list[str],
         command_list: list[
             commands.StatusCommand
-            | commands.MoveControlCommand
+            | commands.ControlCommand
             | commands.RoutineCommand
         ],
     ) -> None:
@@ -246,7 +246,7 @@ class Sandman:
                 case commands.StatusCommand():
                     self.__process_status_command(notification_list)
 
-                case commands.MoveControlCommand():
+                case commands.ControlCommand():
                     self.__process_move_control_command(command)
 
                 case commands.RoutineCommand():
@@ -273,7 +273,7 @@ class Sandman:
             notification_list.append(f"The {name} routine is running.")
 
     def __process_move_control_command(
-        self, command: commands.MoveControlCommand
+        self, command: commands.ControlCommand
     ) -> None:
         """Process a move control command."""
         # See if we have a control with a matching name.
@@ -287,7 +287,7 @@ class Sandman:
             return
 
         match command.direction:
-            case commands.MoveControlCommand.Direction.UP:
+            case commands.ControlCommand.Direction.UP:
                 control.set_desired_state(controls.Control.State.MOVE_UP)
                 self.__report_manager.add_control_event(
                     command.control_name,
@@ -295,7 +295,7 @@ class Sandman:
                     command.source,
                 )
 
-            case commands.MoveControlCommand.Direction.DOWN:
+            case commands.ControlCommand.Direction.DOWN:
                 control.set_desired_state(controls.Control.State.MOVE_DOWN)
                 self.__report_manager.add_control_event(
                     command.control_name,
