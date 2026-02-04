@@ -3,9 +3,11 @@
 import pathlib
 
 import pytest
+import whenever
 
 import sandman_main.controls as controls
 import sandman_main.gpio as gpio
+import sandman_main.reports as reports
 import tests.test_time_util as test_time_util
 
 _default_name = ""
@@ -829,6 +831,55 @@ def test_control_no_desired_cool_down() -> None:
 
     assert control.uninitialize() == True
     gpio_manager.uninitialize()
+
+
+def test_control_manager(tmp_path: pathlib.Path) -> None:
+    """Test the control manager."""
+    timer = test_time_util.TestTimer()
+
+    gpio_manager = gpio.GPIOManager(is_live_mode=False)
+    gpio_manager.initialize()
+
+    time_source = test_time_util.TestTimeSource()
+
+    first_time = whenever.ZonedDateTime(
+        year=2025,
+        month=9,
+        day=28,
+        hour=16,
+        minute=59,
+        second=59,
+        tz="America/Chicago",
+    )
+    time_source.set_current_time(first_time)
+    assert time_source.get_current_time() == first_time
+
+    reports_path = tmp_path / "reports/"
+    reports.bootstrap_reports(str(tmp_path) + "/")
+    assert reports_path.exists() == True
+
+    report_manager = reports.ReportManager(time_source, str(tmp_path) + "/")
+
+    controls.bootstrap_controls(str(tmp_path) + "/")
+
+    control_manager = controls.ControlManager(
+        timer, gpio_manager, report_manager
+    )
+    assert control_manager.num_controls == 0
+
+    num_expected_controls = 3
+    control_manager.initialize(str(tmp_path) + "/")
+    assert control_manager.num_controls == num_expected_controls
+
+    # Initializing again doesn't double up.
+    control_manager.initialize(str(tmp_path) + "/")
+    assert control_manager.num_controls == num_expected_controls
+
+    control_manager.uninitialize()
+    assert control_manager.num_controls == 0
+
+    control_manager.initialize(str(tmp_path) + "/")
+    assert control_manager.num_controls == num_expected_controls
 
 
 def test_control_bootstrap(tmp_path: pathlib.Path) -> None:

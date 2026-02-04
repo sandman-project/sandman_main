@@ -9,7 +9,7 @@ import logging
 import pathlib
 import typing
 
-from . import gpio, time_util
+from . import gpio, reports, time_util
 
 _logger = logging.getLogger("sandman.control_config")
 
@@ -558,6 +558,75 @@ class Control:
 
         self.__desired_state = Control.State.IDLE
         self.__set_state(notifications, Control.State.IDLE)
+
+
+class ControlManager:
+    """Manages controls."""
+
+    def __init__(
+        self,
+        timer: time_util.Timer,
+        gpio_manager: gpio.GPIOManager,
+        report_manager: reports.ReportManager,
+    ) -> None:
+        """Initialize the manager."""
+        self.__timer = timer
+        self.__gpio_manager = gpio_manager
+        self.__report_manager = report_manager
+        self.__controls: dict[str, Control] = {}
+
+    @property
+    def num_controls(self) -> int:
+        """Get the number of controls."""
+        return len(self.__controls)
+
+    def initialize(self, base_dir: str) -> None:
+        """Initialize the manager (load controls)."""
+        self.uninitialize()
+
+        control_path = pathlib.Path(base_dir + "controls/")
+        _logger.info("Loading controls from '%s'.", str(control_path))
+
+        for config_path in control_path.glob("*.ctl"):
+            # Try parsing the config.
+            config_file = str(config_path)
+            _logger.info("Loading control from '%s'.", config_file)
+
+            config = ControlConfig.parse_from_file(config_file)
+
+            if config.is_valid() == False:
+                continue
+
+            # Make sure it control with this name doesn't already exist.
+            if config.name in self.__controls:
+                _logger.warning(
+                    "A control with name '%s' already exists. Ignoring new "
+                    + "config.",
+                    config.name,
+                )
+                continue
+
+            control = Control(config.name, self.__timer, self.__gpio_manager)
+
+            if (
+                control.initialize(
+                    up_gpio_line=config.up_gpio_line,
+                    down_gpio_line=config.down_gpio_line,
+                    moving_duration_ms=config.moving_duration_ms,
+                    cool_down_duration_ms=config.cool_down_duration_ms,
+                )
+                == False
+            ):
+                continue
+
+            self.__controls[config.name] = control
+
+    def uninitialize(self) -> None:
+        """Uninitialize the manager."""
+        for _name, control in self.__controls.items():
+            control.uninitialize()
+
+        self.__controls.clear()
 
 
 def bootstrap_controls(base_dir: str) -> None:
