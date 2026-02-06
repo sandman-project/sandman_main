@@ -674,6 +674,11 @@ class ControlManager:
 
         return True
 
+    def process_controls(self, notification_list: list[str]) -> None:
+        """Process controls."""
+        for _name, control in self.__controls.items():
+            control.process(notification_list)
+
 
 def bootstrap_controls(base_dir: str) -> None:
     """Handle bootstrapping for controls."""

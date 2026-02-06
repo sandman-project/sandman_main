@@ -931,6 +931,37 @@ def test_control_manager(tmp_path: pathlib.Path) -> None:
 
     # CHECK THE REPORT!
 
+    # State changes happen after processing.
+    notification_list = []
+    control_manager.process_controls(notification_list)
+    assert len(notification_list) == 2
+    assert "Lowering the back." in notification_list
+    assert "Raising the elevation." in notification_list
+    states = control_manager.get_states()
+    _check_control_state(states, "back", controls.Control.State.MOVE_DOWN)
+    _check_control_state(states, "legs", controls.Control.State.IDLE)
+    _check_control_state(states, "elevation", controls.Control.State.MOVE_UP)
+
+    # But nothing happens if we process again without advancing time.
+    notification_list = []
+    control_manager.process_controls(notification_list)
+    assert len(notification_list) == 0
+    states = control_manager.get_states()
+    _check_control_state(states, "back", controls.Control.State.MOVE_DOWN)
+    _check_control_state(states, "legs", controls.Control.State.IDLE)
+    _check_control_state(states, "elevation", controls.Control.State.MOVE_UP)
+
+    # If we advance enough time, the elevation should stop.
+    timer.set_current_time_ms(4000)
+    notification_list = []
+    control_manager.process_controls(notification_list)
+    assert len(notification_list) == 1
+    assert "elevation stopped." in notification_list
+    states = control_manager.get_states()
+    _check_control_state(states, "back", controls.Control.State.MOVE_DOWN)
+    _check_control_state(states, "legs", controls.Control.State.IDLE)
+    _check_control_state(states, "elevation", controls.Control.State.COOL_DOWN)
+
 
 def test_control_bootstrap(tmp_path: pathlib.Path) -> None:
     """Test control bootstrapping."""
