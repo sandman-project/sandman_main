@@ -907,6 +907,12 @@ def test_control_manager(tmp_path: pathlib.Path) -> None:
     control_manager.uninitialize()
     assert control_manager.num_controls == 0
 
+    control_manager.initialize("tests/data/controls/manager_duplicate/")
+    assert control_manager.num_controls == 2
+
+    control_manager.uninitialize()
+    assert control_manager.num_controls == 0
+
     # Now that we have tested various loading situations, test manipulating
     # controls.
     control_manager.initialize(str(tmp_path) + "/")
