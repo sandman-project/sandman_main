@@ -1,5 +1,6 @@
 """Tests controls."""
 
+import json
 import pathlib
 
 import pytest
@@ -25,6 +26,22 @@ def _check_default_config(config: controls.ControlConfig) -> None:
     assert config.moving_duration_ms == _default_moving_duration_ms
     assert config.cool_down_duration_ms == _default_cool_down_duration_ms
     assert config.is_valid() == False
+
+
+def _check_file_and_read_lines(file_path: pathlib.Path) -> list[str]:
+    """Check that a file exists and read all of its lines."""
+    file_exists = file_path.exists()
+    assert file_exists == True
+
+    lines = []
+
+    if file_exists == False:
+        return lines
+
+    with open(str(file_path)) as file:
+        lines = file.readlines()
+
+    return lines
 
 
 def test_control_config_initialization() -> None:
@@ -929,7 +946,36 @@ def test_control_manager(tmp_path: pathlib.Path) -> None:
     _check_control_state(states, "legs", controls.Control.State.IDLE)
     _check_control_state(states, "elevation", controls.Control.State.IDLE)
 
-    # CHECK THE REPORT!
+    # Make sure that the correct events were written to the report file.
+    report_manager.process()
+
+    report_path = reports_path / "sandman2025-09-27.rpt"
+    report_lines = _check_file_and_read_lines(report_path)
+
+    assert len(report_lines) == 3
+
+    header = json.loads(report_lines[0])
+    assert header["version"] == reports.ReportManager.REPORT_VERSION
+
+    event_json = json.loads(report_lines[1])
+    event_time = whenever.ZonedDateTime.parse_common_iso(event_json["when"])
+    assert event_time == first_time
+    assert event_json["info"] == {
+        "type": "control",
+        "control": "back",
+        "action": "down",
+        "source": "test",
+    }
+
+    event_json = json.loads(report_lines[2])
+    event_time = whenever.ZonedDateTime.parse_common_iso(event_json["when"])
+    assert event_time == first_time
+    assert event_json["info"] == {
+        "type": "control",
+        "control": "elevation",
+        "action": "up",
+        "source": "test",
+    }
 
     # State changes happen after processing.
     notification_list = []
