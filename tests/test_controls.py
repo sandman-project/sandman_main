@@ -5,6 +5,7 @@ import pathlib
 import pytest
 import whenever
 
+import sandman_main.commands as commands
 import sandman_main.controls as controls
 import sandman_main.gpio as gpio
 import sandman_main.reports as reports
@@ -833,6 +834,17 @@ def test_control_no_desired_cool_down() -> None:
     gpio_manager.uninitialize()
 
 
+def _check_control_state(
+    states: dict[str, controls.Control.State],
+    name: str,
+    state: controls.Control.State,
+) -> None:
+    """Check that a control with a name exists with the expected state."""
+    assert name in states
+    if name in states:
+        assert states[name] == state
+
+
 def test_control_manager(tmp_path: pathlib.Path) -> None:
     """Test the control manager."""
     timer = test_time_util.TestTimer()
@@ -878,8 +890,46 @@ def test_control_manager(tmp_path: pathlib.Path) -> None:
     control_manager.uninitialize()
     assert control_manager.num_controls == 0
 
+    # Now that we have tested various loading situations, test manipulating
+    # controls.
     control_manager.initialize(str(tmp_path) + "/")
     assert control_manager.num_controls == num_expected_controls
+    states = control_manager.get_states()
+    _check_control_state(states, "back", controls.Control.State.IDLE)
+    _check_control_state(states, "legs", controls.Control.State.IDLE)
+    _check_control_state(states, "elevation", controls.Control.State.IDLE)
+
+    # Commands for nonexistent controls fail.
+    command = commands.ControlCommand(
+        "chicken", commands.ControlCommand.Direction.DOWN, "test"
+    )
+    assert control_manager.process_command(command) == False
+    states = control_manager.get_states()
+    _check_control_state(states, "back", controls.Control.State.IDLE)
+    _check_control_state(states, "legs", controls.Control.State.IDLE)
+    _check_control_state(states, "elevation", controls.Control.State.IDLE)
+
+    # Commands for controls that exist succeed, but state doesn't update before
+    # processing.
+    command = commands.ControlCommand(
+        "back", commands.ControlCommand.Direction.DOWN, "test"
+    )
+    assert control_manager.process_command(command) == True
+    states = control_manager.get_states()
+    _check_control_state(states, "back", controls.Control.State.IDLE)
+    _check_control_state(states, "legs", controls.Control.State.IDLE)
+    _check_control_state(states, "elevation", controls.Control.State.IDLE)
+
+    command = commands.ControlCommand(
+        "elevation", commands.ControlCommand.Direction.UP, "test"
+    )
+    assert control_manager.process_command(command) == True
+    states = control_manager.get_states()
+    _check_control_state(states, "back", controls.Control.State.IDLE)
+    _check_control_state(states, "legs", controls.Control.State.IDLE)
+    _check_control_state(states, "elevation", controls.Control.State.IDLE)
+
+    # CHECK THE REPORT!
 
 
 def test_control_bootstrap(tmp_path: pathlib.Path) -> None:

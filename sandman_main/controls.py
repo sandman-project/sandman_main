@@ -9,7 +9,7 @@ import logging
 import pathlib
 import typing
 
-from . import gpio, reports, time_util
+from . import commands, gpio, reports, time_util
 
 _logger = logging.getLogger("sandman.control_config")
 
@@ -580,6 +580,15 @@ class ControlManager:
         """Get the number of controls."""
         return len(self.__controls)
 
+    def get_states(self) -> dict[str, Control.State]:
+        """Get the states of the controls."""
+        states: dict[str, Control.State] = {}
+
+        for name, control in self.__controls.items():
+            states[name] = control.state
+
+        return states
+
     def initialize(self, base_dir: str) -> None:
         """Initialize the manager (load controls)."""
         self.uninitialize()
@@ -627,6 +636,43 @@ class ControlManager:
             control.uninitialize()
 
         self.__controls.clear()
+
+    def process_command(self, command: commands.ControlCommand) -> bool:
+        """Process a control command.
+
+        Returns whether the command was successful.
+        """
+        # See if we have a control with a matching name.
+        try:
+            control = self.__controls[command.control_name]
+
+        except KeyError:
+            _logger.warning(
+                "No control with name '%s' found.", command.control_name
+            )
+            return False
+
+        match command.direction:
+            case commands.ControlCommand.Direction.UP:
+                control.set_desired_state(Control.State.MOVE_UP)
+                self.__report_manager.add_control_event(
+                    command.control_name,
+                    command.direction.as_string(),
+                    command.source,
+                )
+
+            case commands.ControlCommand.Direction.DOWN:
+                control.set_desired_state(Control.State.MOVE_DOWN)
+                self.__report_manager.add_control_event(
+                    command.control_name,
+                    command.direction.as_string(),
+                    command.source,
+                )
+
+            case unknown:
+                typing.assert_never(unknown)
+
+        return True
 
 
 def bootstrap_controls(base_dir: str) -> None:
