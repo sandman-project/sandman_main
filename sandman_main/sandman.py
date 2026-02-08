@@ -27,7 +27,6 @@ class Sandman:
         self.__time_source = time_util.TimeSource()
         # Change this if you want to run off device.
         self.__gpio_manager = gpio.GPIOManager(is_live_mode=True)
-        self.__controls: dict[str, controls.Control] = {}
 
     def __setup_logging(self) -> None:
         """Set up logging."""
@@ -100,6 +99,10 @@ class Sandman:
             self.__time_source, self.__base_dir
         )
 
+        self.__control_manager = controls.ControlManager(
+            self.__timer, self.__gpio_manager, self.__report_manager
+        )
+
         self.__routine_manager = routines.RoutineManager(
             self.__timer, self.__report_manager
         )
@@ -109,7 +112,7 @@ class Sandman:
         """Run the program."""
         self.__logger.info("Starting Sandman...")
 
-        self.__initialize_controls()
+        self.__control_manager.initialize(self.__base_dir)
         self.__routine_manager.initialize(self.__base_dir)
 
         self.__mqtt_client = mqtt.MQTTClient()
@@ -139,64 +142,13 @@ class Sandman:
         self.__routine_manager.uninitialize()
 
         # Uninitialize the controls.
-        self.__uninitialize_controls()
+        self.__control_manager.uninitialize()
 
         self.__gpio_manager.uninitialize()
 
     def is_testing(self) -> bool:
         """Return whether the app is in test mode."""
         return self.__is_testing
-
-    def __initialize_controls(self) -> None:
-        """Initialize the controls."""
-        # If there are existing controls, uninitialize them.
-        self.__uninitialize_controls()
-
-        control_path = pathlib.Path(self.__base_dir + "controls/")
-        self.__logger.info("Loading controls from '%s'.", str(control_path))
-
-        for config_path in control_path.glob("*.ctl"):
-            # Try parsing the config.
-            config_file = str(config_path)
-            self.__logger.info("Loading control from '%s'.", config_file)
-
-            config = controls.ControlConfig.parse_from_file(config_file)
-
-            if config.is_valid() == False:
-                continue
-
-            # Make sure it control with this name doesn't already exist.
-            if config.name in self.__controls:
-                self.__logger.warning(
-                    "A control with name '%s' already exists. Ignoring new "
-                    + "config.",
-                    config.name,
-                )
-                continue
-
-            control = controls.Control(
-                config.name, self.__timer, self.__gpio_manager
-            )
-
-            if (
-                control.initialize(
-                    up_gpio_line=config.up_gpio_line,
-                    down_gpio_line=config.down_gpio_line,
-                    moving_duration_ms=config.moving_duration_ms,
-                    cool_down_duration_ms=config.cool_down_duration_ms,
-                )
-                == False
-            ):
-                continue
-
-            self.__controls[config.name] = control
-
-    def __uninitialize_controls(self) -> None:
-        """Uninitialize the controls."""
-        for _name, control in self.__controls.items():
-            control.uninitialize()
-
-        self.__controls.clear()
 
     def __process(self) -> None:
         """Process during the main loop."""
@@ -221,7 +173,7 @@ class Sandman:
 
         self.__process_commands(notification_list, command_list)
 
-        self.__process_controls(notification_list)
+        self.__control_manager.process_controls(notification_list)
 
         self.__mqtt_client.process()
         self.__report_manager.process()
@@ -246,7 +198,7 @@ class Sandman:
                     self.__process_status_command(notification_list)
 
                 case commands.ControlCommand():
-                    self.__process_move_control_command(command)
+                    self.__control_manager.process_command(command)
 
                 case commands.RoutineCommand():
                     notification = self.__routine_manager.process_command(
@@ -270,45 +222,6 @@ class Sandman:
 
         for name in running_names:
             notification_list.append(f"The {name} routine is running.")
-
-    def __process_move_control_command(
-        self, command: commands.ControlCommand
-    ) -> None:
-        """Process a move control command."""
-        # See if we have a control with a matching name.
-        try:
-            control = self.__controls[command.control_name]
-
-        except KeyError:
-            self.__logger.warning(
-                "No control with name '%s' found.", command.control_name
-            )
-            return
-
-        match command.direction:
-            case commands.ControlCommand.Direction.UP:
-                control.set_desired_state(controls.Control.State.MOVE_UP)
-                self.__report_manager.add_control_event(
-                    command.control_name,
-                    command.direction.as_string(),
-                    command.source,
-                )
-
-            case commands.ControlCommand.Direction.DOWN:
-                control.set_desired_state(controls.Control.State.MOVE_DOWN)
-                self.__report_manager.add_control_event(
-                    command.control_name,
-                    command.direction.as_string(),
-                    command.source,
-                )
-
-            case unknown:
-                typing.assert_never(unknown)
-
-    def __process_controls(self, notification_list: list[str]) -> None:
-        """Process controls."""
-        for _name, control in self.__controls.items():
-            control.process(notification_list)
 
 
 def create_app(
