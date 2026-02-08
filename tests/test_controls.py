@@ -909,6 +909,18 @@ def test_control_manager(tmp_path: pathlib.Path) -> None:
 
     control_manager.initialize("tests/data/controls/manager_duplicate/")
     assert control_manager.num_controls == 2
+    states = control_manager.get_states()
+    _check_control_state(states, "back", controls.Control.State.IDLE)
+    _check_control_state(states, "legs", controls.Control.State.IDLE)
+
+    control_manager.uninitialize()
+    assert control_manager.num_controls == 0
+
+    control_manager.initialize("tests/data/controls/manager_invalid/")
+    assert control_manager.num_controls == 2
+    states = control_manager.get_states()
+    _check_control_state(states, "back", controls.Control.State.IDLE)
+    _check_control_state(states, "elevation", controls.Control.State.IDLE)
 
     control_manager.uninitialize()
     assert control_manager.num_controls == 0
