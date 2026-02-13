@@ -39,4 +39,5 @@ USER app
 # without uv.
 ENV PATH="/app/.venv/bin:$PATH"
 
-CMD ["python3", "/app/run_sandman.py"]
+# -u is for unbuffered output.
+CMD ["python3", "-u", "/app/run_sandman.py"]

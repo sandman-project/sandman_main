@@ -5,6 +5,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: sandman_main
+    init: true
     restart: unless-stopped
     group_add:
       - ${GPIO_GID}
