@@ -123,6 +123,10 @@ class Sandman:
         if self.__mqtt_client.start() == False:
             return
 
+        startup_delay_sec = self.__settings.startup_delay_sec
+        self.__logger.info("Sleeping for %i seconds...", startup_delay_sec)
+        time.sleep(startup_delay_sec)
+
         self.__mqtt_client.play_notification("Sandman initialized.")
 
         try:
