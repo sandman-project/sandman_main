@@ -15,6 +15,7 @@ class Settings:
     def __init__(self) -> None:
         """Initialize the control config."""
         self.__time_zone_name: str = ""
+        self.__startup_delay_sec: int = -1
 
     @property
     def time_zone_name(self) -> str:
@@ -35,12 +36,31 @@ class Settings:
 
         self.__time_zone_name = time_zone_name
 
+    @property
+    def startup_delay_sec(self) -> int:
+        """Get the startup delay (in seconds)."""
+        return self.__startup_delay_sec
+
+    @startup_delay_sec.setter
+    def startup_delay_sec(self, startup_delay_sec: int) -> None:
+        """Set the startup delay (in seconds)."""
+        if isinstance(startup_delay_sec, int) == False:
+            raise TypeError("Startup delay must be an integer.")
+
+        if startup_delay_sec < 0:
+            raise ValueError("Startup delay must be non-negative.")
+
+        self.__startup_delay_sec = startup_delay_sec
+
     def is_valid(self) -> bool:
         """Check whether these are valid settings."""
         try:
             _zone_info = zoneinfo.ZoneInfo(self.__time_zone_name)
 
         except Exception:
+            return False
+
+        if self.__startup_delay_sec < 0:
             return False
 
         return True
@@ -50,7 +70,9 @@ class Settings:
         if not isinstance(other, Settings):
             return NotImplemented
 
-        return self.__time_zone_name == other.__time_zone_name
+        return (self.__time_zone_name == other.__time_zone_name) and (
+            self.__startup_delay_sec == other.__startup_delay_sec
+        )
 
     @classmethod
     def parse_from_file(cls, filename: str) -> typing.Self:
@@ -85,6 +107,24 @@ class Settings:
                         filename,
                     )
 
+                try:
+                    new_settings.startup_delay_sec = settings_json[
+                        "startupDelaySec"
+                    ]
+
+                except KeyError:
+                    _logger.warning(
+                        "Missing 'startupDelaySec' key in settings file '%s'.",
+                        filename,
+                    )
+
+                except (TypeError, ValueError):
+                    _logger.warning(
+                        "Invalid startup delay '%s' in settings file '%s'.",
+                        str(settings_json["startupDelaySec"]),
+                        filename,
+                    )
+
         except FileNotFoundError as error:
             _logger.error("Could not find settings file '%s'.", filename)
             raise error
@@ -99,6 +139,7 @@ class Settings:
 
         settings_json = {
             "timeZoneName": self.__time_zone_name,
+            "startupDelaySec": self.__startup_delay_sec,
         }
 
         try:
@@ -122,5 +163,6 @@ def bootstrap_settings(base_dir: str) -> None:
     # Set up some default settings.
     new_settings = Settings()
     new_settings.time_zone_name = "America/Chicago"
+    new_settings.startup_delay_sec = 4
 
     new_settings.save_to_file(str(settings_path))
