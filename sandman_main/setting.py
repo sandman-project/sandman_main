@@ -167,3 +167,28 @@ def bootstrap_settings(base_dir: str) -> None:
     new_settings = Settings()
 
     new_settings.save_to_file(str(settings_path))
+
+
+def load_or_create_settings(base_dir: str) -> Settings:
+    """Load or create settings.
+
+    If settings are missing, default values are saved. If they exist but have
+    any missing or invalid values, they will be replaced by defaults and
+    saved.
+    """
+    settings_path = pathlib.Path(base_dir + "settings.cfg")
+
+    if settings_path.exists() == False:
+        _logger.info(
+            "Creating missing settings file '%s'.", str(settings_path)
+        )
+
+        new_settings = Settings()
+        new_settings.save_to_file(str(settings_path))
+
+        return new_settings
+
+    loaded_settings = Settings.parse_from_file(str(settings_path))
+    loaded_settings.save_to_file(str(settings_path))
+
+    return loaded_settings

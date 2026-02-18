@@ -185,34 +185,33 @@ def test_settings_saving(tmp_path: pathlib.Path) -> None:
         original_settings.save_to_file("")
 
 
-def test_settings_bootstrap(tmp_path: pathlib.Path) -> None:
-    """Test setting bootstrapping."""
+def test_settings_load_or_create(tmp_path: pathlib.Path) -> None:
+    """Test loading or creating settings."""
     settings_path = tmp_path / "settings.cfg"
     assert settings_path.exists() == False
 
-    setting.bootstrap_settings(str(tmp_path) + "/")
+    created_settings = setting.load_or_create_settings(str(tmp_path) + "/")
     assert settings_path.exists() == True
 
     # Check that the settings are as expected.
-    expected_time_zone_name = "America/Chicago"
-    expected_startup_delay_sec = 4
+    expected_settings = setting.Settings()
+    assert expected_settings.is_valid() == True
+
+    assert created_settings == expected_settings
 
     written_settings = setting.Settings.parse_from_file(str(settings_path))
-    assert written_settings.is_valid() == True
-    assert written_settings.time_zone_name == expected_time_zone_name
-    assert written_settings.startup_delay_sec == expected_startup_delay_sec
+    assert written_settings == expected_settings
 
-    # Bootstrap should not overwrite existing settings.
-    expected_time_zone_name = "America/New_York"
-    expected_startup_delay_sec = 2
-    updated_settings = written_settings
-    updated_settings.time_zone_name = expected_time_zone_name
-    updated_settings.startup_delay_sec = expected_startup_delay_sec
+    # Load or create should not overwrite valid existing settings.
+    updated_settings = setting.Settings()
+    updated_settings.time_zone_name = "America/New_York"
+    updated_settings.startup_delay_sec = 2
     updated_settings.save_to_file(str(settings_path))
 
-    setting.bootstrap_settings(str(tmp_path) + "/")
+    loaded_settings = setting.load_or_create_settings(str(tmp_path) + "/")
+    assert loaded_settings == updated_settings
 
     written_settings = setting.Settings.parse_from_file(str(settings_path))
-    assert written_settings.is_valid() == True
-    assert written_settings.time_zone_name == expected_time_zone_name
-    assert written_settings.startup_delay_sec == expected_startup_delay_sec
+    assert written_settings == updated_settings
+
+    # Test missing and invalid values.
