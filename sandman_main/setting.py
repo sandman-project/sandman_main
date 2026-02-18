@@ -12,10 +12,13 @@ _logger = logging.getLogger("sandman.settings")
 class Settings:
     """Specifies the overall settings."""
 
+    DEFAULT_TIME_ZONE_NAME = "America/Chicago"
+    DEFAULT_STARTUP_DELAY_SEC = 4
+
     def __init__(self) -> None:
         """Initialize the control config."""
-        self.__time_zone_name: str = ""
-        self.__startup_delay_sec: int = -1
+        self.__time_zone_name: str = self.DEFAULT_TIME_ZONE_NAME
+        self.__startup_delay_sec: int = self.DEFAULT_STARTUP_DELAY_SEC
 
     @property
     def time_zone_name(self) -> str:
@@ -162,7 +165,5 @@ def bootstrap_settings(base_dir: str) -> None:
 
     # Set up some default settings.
     new_settings = Settings()
-    new_settings.time_zone_name = "America/Chicago"
-    new_settings.startup_delay_sec = 4
 
     new_settings.save_to_file(str(settings_path))

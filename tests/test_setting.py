@@ -6,14 +6,16 @@ import pytest
 
 import sandman_main.setting as setting
 
-_default_time_zone_name = ""
-_default_startup_delay_sec = -1
-
 
 def _check_default_settings(test_settings: setting.Settings) -> None:
-    assert test_settings.time_zone_name == _default_time_zone_name
-    assert test_settings.startup_delay_sec == _default_startup_delay_sec
-    assert test_settings.is_valid() == False
+    assert (
+        test_settings.time_zone_name == setting.Settings.DEFAULT_TIME_ZONE_NAME
+    )
+    assert (
+        test_settings.startup_delay_sec
+        == setting.Settings.DEFAULT_STARTUP_DELAY_SEC
+    )
+    assert test_settings.is_valid() == True
 
 
 def test_settings_initialization() -> None:
@@ -33,34 +35,33 @@ def test_settings_initialization() -> None:
         test_settings.time_zone_name = "America"
     _check_default_settings(test_settings)
 
-    intended_time_zone_name = "America/Chicago"
-
-    test_settings.time_zone_name = intended_time_zone_name
-    assert test_settings.time_zone_name == intended_time_zone_name
-    assert test_settings.startup_delay_sec == _default_startup_delay_sec
-    assert test_settings.is_valid() == False
-
-    with pytest.raises(ValueError):
-        test_settings.time_zone_name = ""
-    assert test_settings.time_zone_name == intended_time_zone_name
-    assert test_settings.startup_delay_sec == _default_startup_delay_sec
-    assert test_settings.is_valid() == False
-
     with pytest.raises(TypeError):
         test_settings.startup_delay_sec = ""
-    assert test_settings.time_zone_name == intended_time_zone_name
-    assert test_settings.startup_delay_sec == _default_startup_delay_sec
-    assert test_settings.is_valid() == False
+    _check_default_settings(test_settings)
 
     with pytest.raises(ValueError):
         test_settings.startup_delay_sec = -2
+    _check_default_settings(test_settings)
+
+    intended_time_zone_name = "America/New_York"
+
+    test_settings.time_zone_name = intended_time_zone_name
     assert test_settings.time_zone_name == intended_time_zone_name
-    assert test_settings.startup_delay_sec == _default_startup_delay_sec
-    assert test_settings.is_valid() == False
+    assert (
+        test_settings.startup_delay_sec
+        == setting.Settings.DEFAULT_STARTUP_DELAY_SEC
+    )
+    assert test_settings.is_valid() == True
 
     intended_startup_delay_sec = 2
 
     test_settings.startup_delay_sec = intended_startup_delay_sec
+    assert test_settings.time_zone_name == intended_time_zone_name
+    assert test_settings.startup_delay_sec == intended_startup_delay_sec
+    assert test_settings.is_valid() == True
+
+    with pytest.raises(ValueError):
+        test_settings.time_zone_name = ""
     assert test_settings.time_zone_name == intended_time_zone_name
     assert test_settings.startup_delay_sec == intended_startup_delay_sec
     assert test_settings.is_valid() == True
@@ -91,50 +92,65 @@ def test_settings_loading() -> None:
     )
     _check_default_settings(test_settings)
 
-    intended_time_zone_name = "America/Chicago"
+    intended_time_zone_name = "America/New_York"
     intended_startup_delay_sec = 2
 
     test_settings = setting.Settings.parse_from_file(
         settings_dir + "settings_missing_time_zone.cfg"
     )
-    assert test_settings.time_zone_name == _default_time_zone_name
+    assert (
+        test_settings.time_zone_name == setting.Settings.DEFAULT_TIME_ZONE_NAME
+    )
     assert test_settings.startup_delay_sec == intended_startup_delay_sec
-    assert test_settings.is_valid() == False
+    assert test_settings.is_valid() == True
 
     test_settings = setting.Settings.parse_from_file(
         settings_dir + "settings_type_time_zone.cfg"
     )
-    assert test_settings.time_zone_name == _default_time_zone_name
+    assert (
+        test_settings.time_zone_name == setting.Settings.DEFAULT_TIME_ZONE_NAME
+    )
     assert test_settings.startup_delay_sec == intended_startup_delay_sec
-    assert test_settings.is_valid() == False
+    assert test_settings.is_valid() == True
 
     test_settings = setting.Settings.parse_from_file(
         settings_dir + "settings_invalid_time_zone.cfg"
     )
-    assert test_settings.time_zone_name == _default_time_zone_name
+    assert (
+        test_settings.time_zone_name == setting.Settings.DEFAULT_TIME_ZONE_NAME
+    )
     assert test_settings.startup_delay_sec == intended_startup_delay_sec
-    assert test_settings.is_valid() == False
+    assert test_settings.is_valid() == True
 
     test_settings = setting.Settings.parse_from_file(
         settings_dir + "settings_missing_startup_delay.cfg"
     )
     assert test_settings.time_zone_name == intended_time_zone_name
-    assert test_settings.startup_delay_sec == _default_startup_delay_sec
-    assert test_settings.is_valid() == False
+    assert (
+        test_settings.startup_delay_sec
+        == setting.Settings.DEFAULT_STARTUP_DELAY_SEC
+    )
+    assert test_settings.is_valid() == True
 
     test_settings = setting.Settings.parse_from_file(
         settings_dir + "settings_type_startup_delay.cfg"
     )
     assert test_settings.time_zone_name == intended_time_zone_name
-    assert test_settings.startup_delay_sec == _default_startup_delay_sec
-    assert test_settings.is_valid() == False
+    assert (
+        test_settings.startup_delay_sec
+        == setting.Settings.DEFAULT_STARTUP_DELAY_SEC
+    )
+    assert test_settings.is_valid() == True
 
     test_settings = setting.Settings.parse_from_file(
         settings_dir + "settings_invalid_startup_delay.cfg"
     )
     assert test_settings.time_zone_name == intended_time_zone_name
-    assert test_settings.startup_delay_sec == _default_startup_delay_sec
-    assert test_settings.is_valid() == False
+    assert (
+        test_settings.startup_delay_sec
+        == setting.Settings.DEFAULT_STARTUP_DELAY_SEC
+    )
+    assert test_settings.is_valid() == True
 
     test_settings = setting.Settings.parse_from_file(
         settings_dir + "settings_valid.cfg"
@@ -146,15 +162,8 @@ def test_settings_loading() -> None:
 
 def test_settings_saving(tmp_path: pathlib.Path) -> None:
     """Test settings saving."""
-    # Don't write invalid settings.
-    original_settings = setting.Settings()
-    assert original_settings.is_valid() == False
-
-    filename = tmp_path / "test_invalid.cfg"
-    assert filename.exists() == False
-
-    original_settings.save_to_file(str(filename))
-    assert filename.exists() == False
+    # We want to test that you cannot write an invalid set of settings, but we
+    # don't have a way to produce an invalid set.
 
     # After writing valid settings, they should be the same when read back in.
     original_settings = setting.Settings.parse_from_file(
