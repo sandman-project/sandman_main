@@ -214,4 +214,25 @@ def test_settings_load_or_create(tmp_path: pathlib.Path) -> None:
     written_settings = setting.Settings.parse_from_file(str(settings_path))
     assert written_settings == updated_settings
 
-    # Test missing and invalid values.
+    # Test repair of missing values.
+    repair_path = tmp_path / "repair0"
+    repair_path.mkdir()
+
+    _source_settings = pathlib.Path(
+        "tests/data/settings/settings_missing_startup_delay.cfg"
+    )
+
+    #
+    # source_settings.rename(repair_path / "settings.cfg")
+
+    # The startup delay is missing, so should be the default value.
+    # expected_settings = setting.Settings()
+    # expected_settings.time_zone_name = "America/New_York"
+
+    # loaded_settings = setting.load_or_create_settings(str(repair_path) + "/")
+    # assert loaded_settings == expected_settings
+
+    # written_settings = setting.Settings.parse_from_file(
+    #     str(repair_path) + "/settings.cfg"
+    # )
+    # assert written_settings == expected_settings
