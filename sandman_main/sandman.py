@@ -85,14 +85,12 @@ class Sandman:
         self.__gpio_manager.initialize()
 
         # We only bootstrap once.
-        setting.bootstrap_settings(self.__base_dir)
         controls.bootstrap_controls(self.__base_dir)
         reports.bootstrap_reports(self.__base_dir)
         routines.bootstrap_routines(self.__base_dir)
 
-        self.__settings = setting.Settings.parse_from_file(
-            self.__base_dir + "settings.cfg"
-        )
+        self.__settings = setting.load_or_create_settings(self.__base_dir)
+
         self.__time_source.set_time_zone_name(self.__settings.time_zone_name)
 
         self.__report_manager = reports.ReportManager(

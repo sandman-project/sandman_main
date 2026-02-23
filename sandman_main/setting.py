@@ -154,21 +154,6 @@ class Settings:
             raise error
 
 
-def bootstrap_settings(base_dir: str) -> None:
-    """Handle bootstrapping for settings."""
-    settings_path = pathlib.Path(base_dir + "settings.cfg")
-
-    if settings_path.exists() == True:
-        return
-
-    _logger.info("Creating missing settings file '%s'.", str(settings_path))
-
-    # Set up some default settings.
-    new_settings = Settings()
-
-    new_settings.save_to_file(str(settings_path))
-
-
 def load_or_create_settings(base_dir: str) -> Settings:
     """Load or create settings.
 
