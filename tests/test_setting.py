@@ -1,6 +1,7 @@
 """Tests settings."""
 
 import pathlib
+import shutil
 
 import pytest
 
@@ -215,24 +216,49 @@ def test_settings_load_or_create(tmp_path: pathlib.Path) -> None:
     assert written_settings == updated_settings
 
     # Test repair of missing values.
-    repair_path = tmp_path / "repair0"
+    repair_path = tmp_path / "repair_missing"
     repair_path.mkdir()
 
-    _source_settings = pathlib.Path(
+    source_settings = pathlib.Path(
         "tests/data/settings/settings_missing_startup_delay.cfg"
     )
 
-    #
-    # source_settings.rename(repair_path / "settings.cfg")
+    # Replace this once we are on Python 3.14 where pathlib has file copy
+    # operations.
+    shutil.copyfile(str(source_settings), str(repair_path / "settings.cfg"))
 
     # The startup delay is missing, so should be the default value.
-    # expected_settings = setting.Settings()
-    # expected_settings.time_zone_name = "America/New_York"
+    expected_settings = setting.Settings()
+    expected_settings.time_zone_name = "America/New_York"
 
-    # loaded_settings = setting.load_or_create_settings(str(repair_path) + "/")
-    # assert loaded_settings == expected_settings
+    loaded_settings = setting.load_or_create_settings(str(repair_path) + "/")
+    assert loaded_settings == expected_settings
 
-    # written_settings = setting.Settings.parse_from_file(
-    #     str(repair_path) + "/settings.cfg"
-    # )
-    # assert written_settings == expected_settings
+    written_settings = setting.Settings.parse_from_file(
+        str(repair_path) + "/settings.cfg"
+    )
+    assert written_settings == expected_settings
+
+    # Test repair of invalid values.
+    repair_path = tmp_path / "repair_invalid"
+    repair_path.mkdir()
+
+    source_settings = pathlib.Path(
+        "tests/data/settings/settings_invalid_time_zone.cfg"
+    )
+
+    # Replace this once we are on Python 3.14 where pathlib has file copy
+    # operations.
+    shutil.copyfile(str(source_settings), str(repair_path / "settings.cfg"))
+
+    # The time zone is invalid, so should be the default value.
+    expected_settings = setting.Settings()
+    expected_settings.startup_delay_sec = 2
+
+    loaded_settings = setting.load_or_create_settings(str(repair_path) + "/")
+    assert loaded_settings == expected_settings
+
+    written_settings = setting.Settings.parse_from_file(
+        str(repair_path) + "/settings.cfg"
+    )
+    assert written_settings == expected_settings
