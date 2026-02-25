@@ -196,7 +196,21 @@ def load_or_create_settings(base_dir: str) -> Settings:
     if loaded_settings.was_any_invalid_on_load == True:
         # Replace this once we are on Python 3.14 where pathlib has file copy
         # operations.
-        shutil.copyfile(str(settings_path), str(settings_path) + ".bak")
+        backup_filename = str(settings_path) + ".bak"
+        shutil.copyfile(str(settings_path), backup_filename)
+        _logger.warning(
+            "Settings file '%s' had an invalid value. A backup copy '%s' for "
+            + "investigation.",
+            str(settings_path),
+            backup_filename,
+        )
+
+    if loaded_settings.was_any_missing_on_load == True:
+        _logger.info(
+            "Settings file '%s' had a missing value but it was filled with the"
+            + "the default.",
+            str(settings_path),
+        )
 
     loaded_settings.save_to_file(str(settings_path))
 
