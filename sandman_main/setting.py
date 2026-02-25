@@ -3,6 +3,7 @@
 import json
 import logging
 import pathlib
+import shutil
 import typing
 import zoneinfo
 
@@ -190,6 +191,13 @@ def load_or_create_settings(base_dir: str) -> Settings:
         return new_settings
 
     loaded_settings = Settings.parse_from_file(str(settings_path))
+
+    # If there were any invalid values, save a copy for investigation purposes.
+    if loaded_settings.was_any_invalid_on_load == True:
+        # Replace this once we are on Python 3.14 where pathlib has file copy
+        # operations.
+        shutil.copyfile(str(settings_path), str(settings_path) + ".bak")
+
     loaded_settings.save_to_file(str(settings_path))
 
     return loaded_settings

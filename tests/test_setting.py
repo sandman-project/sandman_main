@@ -221,6 +221,9 @@ def test_settings_load_or_create(tmp_path: pathlib.Path) -> None:
     assert written_settings.was_any_missing_on_load == False
     assert written_settings.was_any_invalid_on_load == False
 
+    backup_path = tmp_path / "settings.cfg.bak"
+    assert backup_path.exists() == False
+
     # Load or create should not overwrite valid existing settings.
     updated_settings = setting.Settings()
     updated_settings.time_zone_name = "America/New_York"
@@ -236,6 +239,9 @@ def test_settings_load_or_create(tmp_path: pathlib.Path) -> None:
     assert written_settings == updated_settings
     assert written_settings.was_any_missing_on_load == False
     assert written_settings.was_any_invalid_on_load == False
+
+    backup_path = tmp_path / "settings.cfg.bak"
+    assert backup_path.exists() == False
 
     # Test repair of missing values.
     repair_path = tmp_path / "repair_missing"
@@ -265,6 +271,9 @@ def test_settings_load_or_create(tmp_path: pathlib.Path) -> None:
     assert written_settings.was_any_missing_on_load == False
     assert written_settings.was_any_invalid_on_load == False
 
+    backup_path = repair_path / "settings.cfg.bak"
+    assert backup_path.exists() == False
+
     # Test repair of invalid values.
     repair_path = tmp_path / "repair_invalid"
     repair_path.mkdir()
@@ -292,3 +301,7 @@ def test_settings_load_or_create(tmp_path: pathlib.Path) -> None:
     assert written_settings == expected_settings
     assert written_settings.was_any_missing_on_load == False
     assert written_settings.was_any_invalid_on_load == False
+
+    # Make sure that a backup of the invalid settings was created.
+    backup_path = repair_path / "settings.cfg.bak"
+    assert backup_path.exists() == True
