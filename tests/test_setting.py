@@ -103,6 +103,8 @@ def test_settings_loading() -> None:
         test_settings.time_zone_name == setting.Settings.DEFAULT_TIME_ZONE_NAME
     )
     assert test_settings.startup_delay_sec == intended_startup_delay_sec
+    assert test_settings.was_any_missing_on_load == True
+    assert test_settings.was_any_invalid_on_load == False
     assert test_settings.is_valid() == True
 
     test_settings = setting.Settings.parse_from_file(
@@ -112,6 +114,8 @@ def test_settings_loading() -> None:
         test_settings.time_zone_name == setting.Settings.DEFAULT_TIME_ZONE_NAME
     )
     assert test_settings.startup_delay_sec == intended_startup_delay_sec
+    assert test_settings.was_any_missing_on_load == False
+    assert test_settings.was_any_invalid_on_load == True
     assert test_settings.is_valid() == True
 
     test_settings = setting.Settings.parse_from_file(
@@ -121,6 +125,8 @@ def test_settings_loading() -> None:
         test_settings.time_zone_name == setting.Settings.DEFAULT_TIME_ZONE_NAME
     )
     assert test_settings.startup_delay_sec == intended_startup_delay_sec
+    assert test_settings.was_any_missing_on_load == False
+    assert test_settings.was_any_invalid_on_load == True
     assert test_settings.is_valid() == True
 
     test_settings = setting.Settings.parse_from_file(
@@ -131,6 +137,8 @@ def test_settings_loading() -> None:
         test_settings.startup_delay_sec
         == setting.Settings.DEFAULT_STARTUP_DELAY_SEC
     )
+    assert test_settings.was_any_missing_on_load == True
+    assert test_settings.was_any_invalid_on_load == False
     assert test_settings.is_valid() == True
 
     test_settings = setting.Settings.parse_from_file(
@@ -141,6 +149,8 @@ def test_settings_loading() -> None:
         test_settings.startup_delay_sec
         == setting.Settings.DEFAULT_STARTUP_DELAY_SEC
     )
+    assert test_settings.was_any_missing_on_load == False
+    assert test_settings.was_any_invalid_on_load == True
     assert test_settings.is_valid() == True
 
     test_settings = setting.Settings.parse_from_file(
@@ -151,6 +161,8 @@ def test_settings_loading() -> None:
         test_settings.startup_delay_sec
         == setting.Settings.DEFAULT_STARTUP_DELAY_SEC
     )
+    assert test_settings.was_any_missing_on_load == False
+    assert test_settings.was_any_invalid_on_load == True
     assert test_settings.is_valid() == True
 
     test_settings = setting.Settings.parse_from_file(
@@ -158,6 +170,8 @@ def test_settings_loading() -> None:
     )
     assert test_settings.time_zone_name == intended_time_zone_name
     assert test_settings.startup_delay_sec == intended_startup_delay_sec
+    assert test_settings.was_any_missing_on_load == False
+    assert test_settings.was_any_invalid_on_load == False
     assert test_settings.is_valid() == True
 
 
@@ -179,6 +193,8 @@ def test_settings_saving(tmp_path: pathlib.Path) -> None:
     assert filename.exists() == True
 
     written_settings = setting.Settings.parse_from_file(str(filename))
+    assert written_settings.was_any_missing_on_load == False
+    assert written_settings.was_any_invalid_on_load == False
     assert written_settings.is_valid() == True
     assert written_settings == original_settings
 
@@ -202,6 +218,8 @@ def test_settings_load_or_create(tmp_path: pathlib.Path) -> None:
 
     written_settings = setting.Settings.parse_from_file(str(settings_path))
     assert written_settings == expected_settings
+    assert written_settings.was_any_missing_on_load == False
+    assert written_settings.was_any_invalid_on_load == False
 
     # Load or create should not overwrite valid existing settings.
     updated_settings = setting.Settings()
@@ -211,9 +229,13 @@ def test_settings_load_or_create(tmp_path: pathlib.Path) -> None:
 
     loaded_settings = setting.load_or_create_settings(str(tmp_path) + "/")
     assert loaded_settings == updated_settings
+    assert loaded_settings.was_any_missing_on_load == False
+    assert loaded_settings.was_any_invalid_on_load == False
 
     written_settings = setting.Settings.parse_from_file(str(settings_path))
     assert written_settings == updated_settings
+    assert written_settings.was_any_missing_on_load == False
+    assert written_settings.was_any_invalid_on_load == False
 
     # Test repair of missing values.
     repair_path = tmp_path / "repair_missing"
@@ -233,11 +255,15 @@ def test_settings_load_or_create(tmp_path: pathlib.Path) -> None:
 
     loaded_settings = setting.load_or_create_settings(str(repair_path) + "/")
     assert loaded_settings == expected_settings
+    assert loaded_settings.was_any_missing_on_load == True
+    assert loaded_settings.was_any_invalid_on_load == False
 
     written_settings = setting.Settings.parse_from_file(
         str(repair_path) + "/settings.cfg"
     )
     assert written_settings == expected_settings
+    assert written_settings.was_any_missing_on_load == False
+    assert written_settings.was_any_invalid_on_load == False
 
     # Test repair of invalid values.
     repair_path = tmp_path / "repair_invalid"
@@ -257,8 +283,12 @@ def test_settings_load_or_create(tmp_path: pathlib.Path) -> None:
 
     loaded_settings = setting.load_or_create_settings(str(repair_path) + "/")
     assert loaded_settings == expected_settings
+    assert loaded_settings.was_any_missing_on_load == False
+    assert loaded_settings.was_any_invalid_on_load == True
 
     written_settings = setting.Settings.parse_from_file(
         str(repair_path) + "/settings.cfg"
     )
     assert written_settings == expected_settings
+    assert written_settings.was_any_missing_on_load == False
+    assert written_settings.was_any_invalid_on_load == False

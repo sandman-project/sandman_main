@@ -19,6 +19,8 @@ class Settings:
         """Initialize the control config."""
         self.__time_zone_name: str = self.DEFAULT_TIME_ZONE_NAME
         self.__startup_delay_sec: int = self.DEFAULT_STARTUP_DELAY_SEC
+        self.__was_any_missing_on_load = False
+        self.__was_any_invalid_on_load = False
 
     @property
     def time_zone_name(self) -> str:
@@ -54,6 +56,16 @@ class Settings:
             raise ValueError("Startup delay must be non-negative.")
 
         self.__startup_delay_sec = startup_delay_sec
+
+    @property
+    def was_any_missing_on_load(self) -> bool:
+        """Get whether there were any missing values when loading."""
+        return self.__was_any_missing_on_load
+
+    @property
+    def was_any_invalid_on_load(self) -> bool:
+        """Get whether there were any invalid values when loading."""
+        return self.__was_any_invalid_on_load
 
     def is_valid(self) -> bool:
         """Check whether these are valid settings."""
@@ -98,12 +110,14 @@ class Settings:
                     new_settings.time_zone_name = settings_json["timeZoneName"]
 
                 except KeyError:
+                    new_settings.__was_any_missing_on_load = True
                     _logger.warning(
                         "Missing 'timeZoneName' key in settings file '%s'.",
                         filename,
                     )
 
                 except (TypeError, ValueError):
+                    new_settings.__was_any_invalid_on_load = True
                     _logger.warning(
                         "Invalid time zone name '%s' in settings file '%s'.",
                         str(settings_json["timeZoneName"]),
@@ -116,12 +130,14 @@ class Settings:
                     ]
 
                 except KeyError:
+                    new_settings.__was_any_missing_on_load = True
                     _logger.warning(
                         "Missing 'startupDelaySec' key in settings file '%s'.",
                         filename,
                     )
 
                 except (TypeError, ValueError):
+                    new_settings.__was_any_invalid_on_load = True
                     _logger.warning(
                         "Invalid startup delay '%s' in settings file '%s'.",
                         str(settings_json["startupDelaySec"]),
