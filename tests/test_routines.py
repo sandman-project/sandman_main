@@ -1139,6 +1139,16 @@ def test_routine_bootstrap(tmp_path: pathlib.Path) -> None:
     routines.bootstrap_routines(str(tmp_path) + "/")
     assert routines_path.exists() == True
 
+    # Bootstrapping should make an empty sleep routine.
+    sleep_routine_path = routines_path / "sleep.rtn"
+    assert sleep_routine_path.exists() == True
+
+    sleep_desc = routines.RoutineDesc.parse_from_file(str(sleep_routine_path))
+    assert sleep_desc.name == "sleep"
+    assert sleep_desc.is_looping == True
+    assert len(sleep_desc.steps) == 0
+    assert sleep_desc.is_valid() == True
+
     original_desc = routines.RoutineDesc.parse_from_file(
         "tests/data/routines/routine_test_valid_steps.rtn"
     )

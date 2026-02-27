@@ -652,3 +652,10 @@ def bootstrap_routines(base_dir: str) -> None:
             "Failed to create routines directory '%s'.", str(routines_path)
         )
         return
+
+    # Make an empty sleep routine.
+    sleep_desc = RoutineDesc()
+    sleep_desc.name = "sleep"
+    sleep_desc.is_looping = True
+
+    sleep_desc.save_to_file(str(routines_path / "sleep.rtn"))
