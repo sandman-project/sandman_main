@@ -202,7 +202,9 @@ class Sandman:
                     self.__process_status_command(notification_list)
 
                 case commands.ControlCommand():
-                    self.__control_manager.process_command(command)
+                    self.__control_manager.process_command(
+                        notification_list, command
+                    )
 
                 case commands.RoutineCommand():
                     notification = self.__routine_manager.process_command(

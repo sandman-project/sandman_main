@@ -447,7 +447,9 @@ class Control:
         """Get the current state."""
         return self.__state
 
-    def set_desired_state(self, state: State) -> None:
+    def set_desired_state(
+        self, notification_list: list[str], state: State
+    ) -> None:
         """Set the next state."""
         if self.__initialized == False:
             raise ValueError(
@@ -455,6 +457,12 @@ class Control:
             )
 
         if state == Control.State.COOL_DOWN:
+            return
+
+        if self.__locked == True:
+            notification_list.append(
+                f"Cannot move the {self.__name}, it is locked."
+            )
             return
 
         self.__desired_state = state
@@ -466,24 +474,24 @@ class Control:
         """Get whether the control is locked."""
         return self.__locked
 
-    def lock(self, notifications: list[str]) -> None:
+    def lock(self, notification_list: list[str]) -> None:
         """Lock the control."""
         if self.__locked == True:
-            notifications.append(f"The {self.__name} is already locked.")
+            notification_list.append(f"The {self.__name} is already locked.")
             return
 
         self.__locked = True
-        notifications.append(f"Locked the {self.__name}.")
+        notification_list.append(f"Locked the {self.__name}.")
         self.__logger.info("Locked.")
 
-    def unlock(self, notifications: list[str]) -> None:
+    def unlock(self, notification_list: list[str]) -> None:
         """Unlock the control."""
         if self.__locked == False:
-            notifications.append(f"The {self.__name} is already unlocked.")
+            notification_list.append(f"The {self.__name} is already unlocked.")
             return
 
         self.__locked = False
-        notifications.append(f"Unlocked the {self.__name}.")
+        notification_list.append(f"Unlocked the {self.__name}.")
         self.__logger.info("Unlocked.")
 
     def process(self, notifications: list[str]) -> None:
@@ -663,7 +671,9 @@ class ControlManager:
 
         self.__controls.clear()
 
-    def process_command(self, command: commands.ControlCommand) -> bool:
+    def process_command(
+        self, notification_list: list[str], command: commands.ControlCommand
+    ) -> bool:
         """Process a control command.
 
         Returns whether the command was successful.
@@ -680,7 +690,9 @@ class ControlManager:
 
         match command.direction:
             case commands.ControlCommand.Direction.UP:
-                control.set_desired_state(Control.State.MOVE_UP)
+                control.set_desired_state(
+                    notification_list, Control.State.MOVE_UP
+                )
                 self.__report_manager.add_control_event(
                     command.control_name,
                     command.direction.as_string(),
@@ -688,7 +700,9 @@ class ControlManager:
                 )
 
             case commands.ControlCommand.Direction.DOWN:
-                control.set_desired_state(Control.State.MOVE_DOWN)
+                control.set_desired_state(
+                    notification_list, Control.State.MOVE_DOWN
+                )
                 self.__report_manager.add_control_event(
                     command.control_name,
                     command.direction.as_string(),
