@@ -340,6 +340,7 @@ def test_control_initialization() -> None:
     # A control should start off idle.
     control = controls.Control("test_initialization", timer, gpio_manager)
     assert control.state == controls.Control.State.IDLE
+    assert control.locked == False
     assert len(gpio_manager.acquired_lines) == 0
 
     notifications = []
@@ -846,6 +847,121 @@ def test_control_no_desired_cool_down() -> None:
     control.set_desired_state(controls.Control.State.COOL_DOWN)
     control.process(notifications)
     assert control.state == controls.Control.State.MOVE_UP
+
+    assert control.uninitialize() == True
+    gpio_manager.uninitialize()
+
+
+def test_control_lock() -> None:
+    """Test locking controls."""
+    gpio_manager = gpio.GPIOManager(is_live_mode=False)
+    gpio_manager.initialize()
+
+    timer = test_time_util.TestTimer()
+
+    control = controls.Control(
+        "test_lock",
+        timer,
+        gpio_manager,
+    )
+
+    moving_duration_ms = 5
+    cool_down_duration_ms = 2
+
+    control.initialize(
+        up_gpio_line=1,
+        down_gpio_line=2,
+        moving_duration_ms=moving_duration_ms,
+        cool_down_duration_ms=cool_down_duration_ms,
+    )
+    assert control.locked == False
+
+    # Start moving the control so that we can test that it continues moving
+    # even while locked.
+    notifications: list[str] = []
+    assert control.state == controls.Control.State.IDLE
+    control.set_desired_state(controls.Control.State.MOVE_DOWN)
+    control.process(notifications)
+    assert control.state == controls.Control.State.MOVE_DOWN
+    assert control.locked == False
+
+    # Test trying to unlock a control that is already unlocked.
+    notifications: list[str] = []
+    control.unlock(notifications)
+    assert control.state == controls.Control.State.MOVE_DOWN
+    assert control.locked == False
+    assert len(notifications) == 1
+    assert "The test_lock is already unlocked." in notifications
+
+    notifications: list[str] = []
+    control.process(notifications)
+    assert control.state == controls.Control.State.MOVE_DOWN
+    assert control.locked == False
+    assert len(notifications) == 0
+
+    # Test locking twice.
+    notifications: list[str] = []
+    control.lock(notifications)
+    assert control.state == controls.Control.State.MOVE_DOWN
+    assert control.locked == True
+    assert len(notifications) == 1
+    assert "Locked the test_lock." in notifications
+
+    notifications: list[str] = []
+    control.process(notifications)
+    assert control.state == controls.Control.State.MOVE_DOWN
+    assert control.locked == True
+    assert len(notifications) == 0
+
+    notifications: list[str] = []
+    control.lock(notifications)
+    assert control.state == controls.Control.State.MOVE_DOWN
+    assert control.locked == True
+    assert len(notifications) == 1
+    assert "The test_lock is already locked." in notifications
+
+    notifications: list[str] = []
+    control.process(notifications)
+    assert control.state == controls.Control.State.MOVE_DOWN
+    assert control.locked == True
+    assert len(notifications) == 0
+
+    # Make sure that the control still finishes moving.
+    notifications: list[str] = []
+    timer.set_current_time_ms(moving_duration_ms)
+    control.process(notifications)
+    assert control.state == controls.Control.State.COOL_DOWN
+    assert control.locked == True
+    assert len(notifications) == 1
+
+    notifications: list[str] = []
+    timer.set_current_time_ms(moving_duration_ms + cool_down_duration_ms)
+    control.process(notifications)
+    assert control.state == controls.Control.State.IDLE
+    assert control.locked == True
+    assert len(notifications) == 0
+
+    # Now, unlock.
+    notifications: list[str] = []
+    control.unlock(notifications)
+    assert control.state == controls.Control.State.IDLE
+    assert control.locked == False
+    assert len(notifications) == 1
+    assert "Unlocked the test_lock." in notifications
+
+    notifications: list[str] = []
+    control.process(notifications)
+    assert control.state == controls.Control.State.IDLE
+    assert control.locked == False
+    assert len(notifications) == 0
+
+    # We should be able to move controls again.
+    notifications: list[str] = []
+    assert control.state == controls.Control.State.IDLE
+    control.set_desired_state(controls.Control.State.MOVE_UP)
+    control.process(notifications)
+    assert control.state == controls.Control.State.MOVE_UP
+    assert control.locked == False
 
     assert control.uninitialize() == True
     gpio_manager.uninitialize()

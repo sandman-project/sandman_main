@@ -321,6 +321,7 @@ class Control:
         self.__down_gpio_line: int = -1
         self.__moving_duration_ms: int = -1
         self.__cool_down_duration_ms: int = -1
+        self.__locked = False
         self.__initialized = False
 
     def initialize(
@@ -459,6 +460,31 @@ class Control:
         self.__desired_state = state
 
         self.__logger.info("Set desired state to '%s'.", state.as_string())
+
+    @property
+    def locked(self) -> bool:
+        """Get whether the control is locked."""
+        return self.__locked
+
+    def lock(self, notifications: list[str]) -> None:
+        """Lock the control."""
+        if self.__locked == True:
+            notifications.append(f"The {self.__name} is already locked.")
+            return
+
+        self.__locked = True
+        notifications.append(f"Locked the {self.__name}.")
+        self.__logger.info("Locked.")
+
+    def unlock(self, notifications: list[str]) -> None:
+        """Unlock the control."""
+        if self.__locked == False:
+            notifications.append(f"The {self.__name} is already unlocked.")
+            return
+
+        self.__locked = False
+        notifications.append(f"Unlocked the {self.__name}.")
+        self.__logger.info("Unlocked.")
 
     def process(self, notifications: list[str]) -> None:
         """Process the control."""
