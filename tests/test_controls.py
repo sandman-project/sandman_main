@@ -1152,7 +1152,7 @@ def test_control_manager(tmp_path: pathlib.Path) -> None:
     # Commands for nonexistent controls fail.
     notification_list: list[str] = []
     command = commands.ControlCommand(
-        "chicken", commands.ControlCommand.Direction.DOWN, "test"
+        "chicken", commands.ControlCommand.Action.MOVE_DOWN, "test"
     )
     assert control_manager.process_command(notification_list, command) == False
     assert len(notification_list) == 0
@@ -1164,7 +1164,7 @@ def test_control_manager(tmp_path: pathlib.Path) -> None:
     # Commands for controls that exist succeed, but state doesn't update before
     # processing.
     command = commands.ControlCommand(
-        "back", commands.ControlCommand.Direction.DOWN, "test"
+        "back", commands.ControlCommand.Action.MOVE_DOWN, "test"
     )
     assert control_manager.process_command(notification_list, command) == True
     assert len(notification_list) == 0
@@ -1174,7 +1174,7 @@ def test_control_manager(tmp_path: pathlib.Path) -> None:
     _check_control_state(states, "elevation", controls.Control.State.IDLE)
 
     command = commands.ControlCommand(
-        "elevation", commands.ControlCommand.Direction.UP, "test"
+        "elevation", commands.ControlCommand.Action.MOVE_UP, "test"
     )
     assert control_manager.process_command(notification_list, command) == True
     assert len(notification_list) == 0
@@ -1200,7 +1200,7 @@ def test_control_manager(tmp_path: pathlib.Path) -> None:
     assert event_json["info"] == {
         "type": "control",
         "control": "back",
-        "action": "down",
+        "action": "move down",
         "source": "test",
     }
 
@@ -1210,7 +1210,7 @@ def test_control_manager(tmp_path: pathlib.Path) -> None:
     assert event_json["info"] == {
         "type": "control",
         "control": "elevation",
-        "action": "up",
+        "action": "move up",
         "source": "test",
     }
 

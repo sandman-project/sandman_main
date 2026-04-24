@@ -108,7 +108,7 @@ def test_move_control_intents() -> None:
     )
     assert isinstance(command, commands.ControlCommand)
     assert command.control_name == "legs"
-    assert command.direction == commands.ControlCommand.Direction.UP
+    assert command.action == commands.ControlCommand.Action.MOVE_UP
     assert command.source == "voice"
 
     command = commands.parse_from_intent(
@@ -122,7 +122,7 @@ def test_move_control_intents() -> None:
     )
     assert isinstance(command, commands.ControlCommand)
     assert command.control_name == "legs"
-    assert command.direction == commands.ControlCommand.Direction.DOWN
+    assert command.action == commands.ControlCommand.Action.MOVE_DOWN
     assert command.source == "voice"
 
 

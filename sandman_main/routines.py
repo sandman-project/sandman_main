@@ -23,7 +23,7 @@ class RoutineDesc:
             """Initialize the step."""
             self.__delay_ms = -1
             self.__control_name = ""
-            self.__move_direction = commands.ControlCommand.Direction.UP
+            self.__control_action = commands.ControlCommand.Action.MOVE_UP
 
         @property
         def delay_ms(self) -> int:
@@ -58,22 +58,19 @@ class RoutineDesc:
             self.__control_name = name
 
         @property
-        def move_direction(self) -> commands.ControlCommand.Direction:
-            """Get the move direction."""
-            return self.__move_direction
+        def control_action(self) -> commands.ControlCommand.Action:
+            """Get the control action."""
+            return self.__control_action
 
-        @move_direction.setter
-        def move_direction(
-            self, direction: commands.ControlCommand.Direction
+        @control_action.setter
+        def control_action(
+            self, action: commands.ControlCommand.Action
         ) -> None:
-            """Set the move direction."""
-            if (
-                isinstance(direction, commands.ControlCommand.Direction)
-                == False
-            ):
-                raise TypeError("Move direction must be a direction.")
+            """Set the control action."""
+            if isinstance(action, commands.ControlCommand.Action) == False:
+                raise TypeError("Control action must be a action.")
 
-            self.__move_direction = direction
+            self.__control_action = action
 
         def is_valid(self) -> bool:
             """Check whether this is a valid step."""
@@ -93,7 +90,7 @@ class RoutineDesc:
             return (
                 (self.__delay_ms == other.__delay_ms)
                 and (self.__control_name == other.__control_name)
-                and (self.__move_direction == other.__move_direction)
+                and (self.__control_action == other.__control_action)
             )
 
         @classmethod
@@ -178,13 +175,13 @@ class RoutineDesc:
             else:
                 if isinstance(move_direction, str) == True:
                     if move_direction == "up":
-                        step.move_direction = (
-                            commands.ControlCommand.Direction.UP
+                        step.control_action = (
+                            commands.ControlCommand.Action.MOVE_UP
                         )
 
                     elif move_direction == "down":
-                        step.move_direction = (
-                            commands.ControlCommand.Direction.DOWN
+                        step.control_action = (
+                            commands.ControlCommand.Action.MOVE_DOWN
                         )
 
                     else:
@@ -209,11 +206,12 @@ class RoutineDesc:
             """Get the JSON representation of the step."""
             direction = ""
 
-            if self.__move_direction == commands.ControlCommand.Direction.UP:
+            if self.__control_action == commands.ControlCommand.Action.MOVE_UP:
                 direction = "up"
 
             elif (
-                self.__move_direction == commands.ControlCommand.Direction.DOWN
+                self.__control_action
+                == commands.ControlCommand.Action.MOVE_DOWN
             ):
                 direction = "down"
 
@@ -460,7 +458,7 @@ class Routine:
 
         # Execute the step.
         command = commands.ControlCommand(
-            step.control_name, step.move_direction, "routine"
+            step.control_name, step.control_action, "routine"
         )
         command_list.append(command)
 

@@ -688,24 +688,24 @@ class ControlManager:
             )
             return False
 
-        match command.direction:
-            case commands.ControlCommand.Direction.UP:
+        match command.action:
+            case commands.ControlCommand.Action.MOVE_UP:
                 control.set_desired_state(
                     notification_list, Control.State.MOVE_UP
                 )
                 self.__report_manager.add_control_event(
                     command.control_name,
-                    command.direction.as_string(),
+                    command.action.as_string(),
                     command.source,
                 )
 
-            case commands.ControlCommand.Direction.DOWN:
+            case commands.ControlCommand.Action.MOVE_DOWN:
                 control.set_desired_state(
                     notification_list, Control.State.MOVE_DOWN
                 )
                 self.__report_manager.add_control_event(
                     command.control_name,
-                    command.direction.as_string(),
+                    command.action.as_string(),
                     command.source,
                 )
 

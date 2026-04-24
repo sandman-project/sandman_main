@@ -14,27 +14,29 @@ class StatusCommand:
 
 @dataclasses.dataclass
 class ControlCommand:
-    """A command to move a control."""
+    """A command to do something with a control."""
 
     @enum.unique
-    class Direction(enum.Enum):
-        """Value indicating a direction in which the control can move."""
+    class Action(enum.Enum):
+        """Value indicating an action to perform with a control."""
 
-        UP = enum.auto()
-        DOWN = enum.auto()
+        MOVE_UP = enum.auto()
+        MOVE_DOWN = enum.auto()
 
         def as_string(self) -> str:
-            """Return a readable phrase describing the direction."""
+            """Return a readable phrase describing the action."""
             match self:
-                case ControlCommand.Direction.UP:
-                    return "up"
-                case ControlCommand.Direction.DOWN:
-                    return "down"
+                case ControlCommand.Action.MOVE_UP:
+                    return "move up"
+
+                case ControlCommand.Action.MOVE_DOWN:
+                    return "move down"
+
                 case _:
                     typing.assert_never(self)
 
     control_name: str
-    direction: Direction
+    action: Action
     source: str
 
 
@@ -178,7 +180,7 @@ def _parse_from_move_control_intent(
 
     # Try to find the control name and direction in the slots.
     control_name: str | None = None
-    direction: ControlCommand.Direction | None = None
+    action: ControlCommand.Action | None = None
 
     for slot in slots:
         if slot.name == "name":
@@ -186,25 +188,25 @@ def _parse_from_move_control_intent(
 
         elif slot.name == "direction":
             if slot.value == "raise":
-                direction = ControlCommand.Direction.UP
+                action = ControlCommand.Action.MOVE_UP
 
             elif slot.value == "lower":
-                direction = ControlCommand.Direction.DOWN
+                action = ControlCommand.Action.MOVE_DOWN
 
     if control_name is None:
         _logger.warning("Invalid move control intent: missing control name.")
         return None
 
-    if direction is None:
+    if action is None:
         _logger.warning("Invalid move control intent: missing direction.")
         return None
 
     _logger.info(
-        "Recognized a move control intent: move '%s' '%s'.",
+        "Recognized a move control intent: '%s' '%s'.",
         control_name,
-        direction.as_string(),
+        action.as_string(),
     )
-    return ControlCommand(control_name, direction, "voice")
+    return ControlCommand(control_name, action, "voice")
 
 
 def _parse_from_control_routine_intent(

@@ -13,14 +13,14 @@ import tests.test_time_util as test_time_util
 
 _default_delay_ms = -1
 _default_control_name = ""
-_default_move_direction = commands.ControlCommand.Direction.UP
+_default_control_action = commands.ControlCommand.Action.MOVE_UP
 
 
 def _check_default_routine_step(step: routines.RoutineDesc.Step) -> None:
     """Check whether a step is all default values."""
     assert step.delay_ms == _default_delay_ms
     assert step.control_name == _default_control_name
-    assert step.move_direction == _default_move_direction
+    assert step.control_action == _default_control_action
     assert step.is_valid() == False
 
 
@@ -57,77 +57,77 @@ def test_routine_step_initialization() -> None:
     step.delay_ms = intended_delay_ms
     assert step.delay_ms == intended_delay_ms
     assert step.control_name == _default_control_name
-    assert step.move_direction == _default_move_direction
+    assert step.control_action == _default_control_action
     assert step.is_valid() == False
 
     with pytest.raises(ValueError):
         step.delay_ms = -1
     assert step.delay_ms == intended_delay_ms
     assert step.control_name == _default_control_name
-    assert step.move_direction == _default_move_direction
+    assert step.control_action == _default_control_action
     assert step.is_valid() == False
 
     intended_delay_ms = 1
     step.delay_ms = intended_delay_ms
     assert step.delay_ms == intended_delay_ms
     assert step.control_name == _default_control_name
-    assert step.move_direction == _default_move_direction
+    assert step.control_action == _default_control_action
     assert step.is_valid() == False
 
     with pytest.raises(TypeError):
         step.control_name = 1
     assert step.delay_ms == intended_delay_ms
     assert step.control_name == _default_control_name
-    assert step.move_direction == _default_move_direction
+    assert step.control_action == _default_control_action
     assert step.is_valid() == False
 
     with pytest.raises(ValueError):
         step.control_name = ""
     assert step.delay_ms == intended_delay_ms
     assert step.control_name == _default_control_name
-    assert step.move_direction == _default_move_direction
+    assert step.control_action == _default_control_action
     assert step.is_valid() == False
 
     intended_control_name = "test_control"
     step.control_name = intended_control_name
     assert step.delay_ms == intended_delay_ms
     assert step.control_name == intended_control_name
-    assert step.move_direction == _default_move_direction
+    assert step.control_action == _default_control_action
     assert step.is_valid() == True
 
     with pytest.raises(ValueError):
         step.control_name = ""
     assert step.delay_ms == intended_delay_ms
     assert step.control_name == intended_control_name
-    assert step.move_direction == _default_move_direction
+    assert step.control_action == _default_control_action
     assert step.is_valid() == True
 
     with pytest.raises(TypeError):
-        step.move_direction = ""
+        step.control_action = ""
     assert step.delay_ms == intended_delay_ms
     assert step.control_name == intended_control_name
-    assert step.move_direction == _default_move_direction
+    assert step.control_action == _default_control_action
     assert step.is_valid() == True
 
-    intended_move_direction = commands.ControlCommand.Direction.DOWN
-    step.move_direction = intended_move_direction
+    intended_control_action = commands.ControlCommand.Action.MOVE_DOWN
+    step.control_action = intended_control_action
     assert step.delay_ms == intended_delay_ms
     assert step.control_name == intended_control_name
-    assert step.move_direction == intended_move_direction
+    assert step.control_action == intended_control_action
     assert step.is_valid() == True
 
     with pytest.raises(TypeError):
-        step.move_direction = 1
+        step.control_action = 1
     assert step.delay_ms == intended_delay_ms
     assert step.control_name == intended_control_name
-    assert step.move_direction == intended_move_direction
+    assert step.control_action == intended_control_action
     assert step.is_valid() == True
 
-    intended_move_direction = commands.ControlCommand.Direction.UP
-    step.move_direction = intended_move_direction
+    intended_control_action = commands.ControlCommand.Action.MOVE_UP
+    step.control_action = intended_control_action
     assert step.delay_ms == intended_delay_ms
     assert step.control_name == intended_control_name
-    assert step.move_direction == intended_move_direction
+    assert step.control_action == intended_control_action
     assert step.is_valid() == True
 
 
@@ -214,7 +214,7 @@ def test_routine_desc_initialization() -> None:
 
     first_step.delay_ms = 1
     first_step.control_name = "test_control"
-    first_step.move_direction = commands.ControlCommand.Direction.UP
+    first_step.control_action = commands.ControlCommand.Action.MOVE_UP
     assert first_step.is_valid() == True
     desc.append_step(first_step)
     assert desc.name == intended_name
@@ -225,7 +225,7 @@ def test_routine_desc_initialization() -> None:
     second_step = routines.RoutineDesc.Step()
     second_step.delay_ms = 2
     second_step.control_name = "test_control"
-    second_step.move_direction = commands.ControlCommand.Direction.DOWN
+    second_step.control_action = commands.ControlCommand.Action.MOVE_DOWN
     assert second_step.is_valid() == True
     desc.append_step(second_step)
     assert desc.name == intended_name
@@ -259,13 +259,13 @@ def test_routine_desc_loading() -> None:
     intended_step0 = routines.RoutineDesc.Step()
     intended_step0.delay_ms = 1
     intended_step0.control_name = "test_control"
-    intended_step0.move_direction = commands.ControlCommand.Direction.UP
+    intended_step0.control_action = commands.ControlCommand.Action.MOVE_UP
     assert intended_step0.is_valid() == True
 
     intended_step1 = routines.RoutineDesc.Step()
     intended_step1.delay_ms = 2
     intended_step1.control_name = "test_control"
-    intended_step1.move_direction = commands.ControlCommand.Direction.DOWN
+    intended_step1.control_action = commands.ControlCommand.Action.MOVE_DOWN
     assert intended_step1.is_valid() == True
 
     intended_steps = [intended_step0, intended_step1]
@@ -505,12 +505,12 @@ def test_routines() -> None:
     intended_control_name = "test_control"
     up_command = commands.ControlCommand(
         intended_control_name,
-        commands.ControlCommand.Direction.UP,
+        commands.ControlCommand.Action.MOVE_UP,
         "routine",
     )
     down_command = commands.ControlCommand(
         intended_control_name,
-        commands.ControlCommand.Direction.DOWN,
+        commands.ControlCommand.Action.MOVE_DOWN,
         "routine",
     )
 
@@ -987,11 +987,11 @@ def test_routine_manager(tmp_path: pathlib.Path) -> None:
     assert len(notification_list) == 0
 
     expected_command = commands.ControlCommand(
-        "back", commands.ControlCommand.Direction.UP, "routine"
+        "back", commands.ControlCommand.Action.MOVE_UP, "routine"
     )
     assert expected_command in command_list
     expected_command = commands.ControlCommand(
-        "back", commands.ControlCommand.Direction.DOWN, "routine"
+        "back", commands.ControlCommand.Action.MOVE_DOWN, "routine"
     )
     assert expected_command in command_list
 
@@ -1031,7 +1031,7 @@ def test_routine_manager(tmp_path: pathlib.Path) -> None:
     assert len(notification_list) == 0
 
     expected_command = commands.ControlCommand(
-        "legs", commands.ControlCommand.Direction.DOWN, "routine"
+        "legs", commands.ControlCommand.Action.MOVE_DOWN, "routine"
     )
     assert expected_command in command_list
 
@@ -1061,15 +1061,15 @@ def test_routine_manager(tmp_path: pathlib.Path) -> None:
     assert len(notification_list) == 1
 
     expected_command = commands.ControlCommand(
-        "legs", commands.ControlCommand.Direction.UP, "routine"
+        "legs", commands.ControlCommand.Action.MOVE_UP, "routine"
     )
     assert expected_command in command_list
     expected_command = commands.ControlCommand(
-        "legs", commands.ControlCommand.Direction.DOWN, "routine"
+        "legs", commands.ControlCommand.Action.MOVE_DOWN, "routine"
     )
     assert expected_command in command_list
     expected_command = commands.ControlCommand(
-        "back", commands.ControlCommand.Direction.UP, "routine"
+        "back", commands.ControlCommand.Action.MOVE_UP, "routine"
     )
     assert expected_command in command_list
 
@@ -1089,11 +1089,11 @@ def test_routine_manager(tmp_path: pathlib.Path) -> None:
     assert len(notification_list) == 0
 
     expected_command = commands.ControlCommand(
-        "back", commands.ControlCommand.Direction.UP, "routine"
+        "back", commands.ControlCommand.Action.MOVE_UP, "routine"
     )
     assert expected_command in command_list
     expected_command = commands.ControlCommand(
-        "back", commands.ControlCommand.Direction.DOWN, "routine"
+        "back", commands.ControlCommand.Action.MOVE_DOWN, "routine"
     )
     assert expected_command in command_list
 
@@ -1122,11 +1122,11 @@ def test_routine_manager(tmp_path: pathlib.Path) -> None:
     assert len(notification_list) == 0
 
     expected_command = commands.ControlCommand(
-        "legs", commands.ControlCommand.Direction.UP, "routine"
+        "legs", commands.ControlCommand.Action.MOVE_UP, "routine"
     )
     assert expected_command in command_list
     expected_command = commands.ControlCommand(
-        "legs", commands.ControlCommand.Direction.DOWN, "routine"
+        "legs", commands.ControlCommand.Action.MOVE_DOWN, "routine"
     )
     assert expected_command in command_list
 
