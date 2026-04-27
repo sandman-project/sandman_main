@@ -709,6 +709,22 @@ class ControlManager:
                     command.source,
                 )
 
+            case commands.ControlCommand.Action.LOCK:
+                control.lock(notification_list)
+                self.__report_manager.add_control_event(
+                    command.control_name,
+                    command.action.as_string(),
+                    command.source,
+                )
+
+            case commands.ControlCommand.Action.UNLOCK:
+                control.unlock(notification_list)
+                self.__report_manager.add_control_event(
+                    command.control_name,
+                    command.action.as_string(),
+                    command.source,
+                )
+
             case unknown:
                 typing.assert_never(unknown)
 

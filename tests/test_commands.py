@@ -67,7 +67,7 @@ def test_move_control_intents() -> None:
     command = commands.parse_from_intent(
         {
             "intent": {"intentName": "MovePart"},
-            "slots": [{"slotName": "name"}],
+            "slots": [{"slotName": "direction"}],
         }
     )
     assert command is None
@@ -123,6 +123,108 @@ def test_move_control_intents() -> None:
     assert isinstance(command, commands.ControlCommand)
     assert command.control_name == "legs"
     assert command.action == commands.ControlCommand.Action.MOVE_DOWN
+    assert command.source == "voice"
+
+
+def test_lock_control_intents() -> None:
+    """Test lock control intent constructions."""
+    # These intents must have a slots key.
+    command = commands.parse_from_intent(
+        {"intent": {"intentName": "LockControl"}}
+    )
+    assert command is None
+
+    # Which is expected to be a list.
+    command = commands.parse_from_intent(
+        {"intent": {"intentName": "LockControl"}, "slots": None}
+    )
+    assert command is None
+
+    # Which must contain at least two objects with slotName and rawValue keys.
+    # One slot name must be name and another must be action.
+    command = commands.parse_from_intent(
+        {
+            "intent": {"intentName": "LockControl"},
+            "slots": [{"rawValue": 1}],
+        }
+    )
+    assert command is None
+
+    command = commands.parse_from_intent(
+        {
+            "intent": {"intentName": "LockControl"},
+            "slots": [{"slotName": 1}],
+        }
+    )
+    assert command is None
+
+    command = commands.parse_from_intent(
+        {
+            "intent": {"intentName": "LockControl"},
+            "slots": [{"slotName": "name"}],
+        }
+    )
+    assert command is None
+
+    command = commands.parse_from_intent(
+        {
+            "intent": {"intentName": "LockControl"},
+            "slots": [{"slotName": "action"}],
+        }
+    )
+    assert command is None
+
+    # The raw value of the name slot must be a string and the action slot
+    # must be either lock or unlock.
+    command = commands.parse_from_intent(
+        {
+            "intent": {"intentName": "LockControl"},
+            "slots": [
+                {"slotName": "action", "rawValue": "chicken"},
+                {"slotName": "name", "rawValue": -1},
+            ],
+        }
+    )
+    assert command is None
+
+    command = commands.parse_from_intent(
+        {
+            "intent": {"intentName": "LockControl"},
+            "slots": [
+                {"slotName": "direction", "rawValue": "chicken"},
+                {"slotName": "name", "rawValue": "legs"},
+            ],
+        }
+    )
+    assert command is None
+
+    # Okay, let's check some valid ones.
+    command = commands.parse_from_intent(
+        {
+            "intent": {"intentName": "LockControl"},
+            "slots": [
+                {"slotName": "action", "rawValue": "lock"},
+                {"slotName": "name", "rawValue": "legs"},
+            ],
+        }
+    )
+    assert isinstance(command, commands.ControlCommand)
+    assert command.control_name == "legs"
+    assert command.action == commands.ControlCommand.Action.LOCK
+    assert command.source == "voice"
+
+    command = commands.parse_from_intent(
+        {
+            "intent": {"intentName": "LockControl"},
+            "slots": [
+                {"slotName": "action", "rawValue": "unlock"},
+                {"slotName": "name", "rawValue": "legs"},
+            ],
+        }
+    )
+    assert isinstance(command, commands.ControlCommand)
+    assert command.control_name == "legs"
+    assert command.action == commands.ControlCommand.Action.UNLOCK
     assert command.source == "voice"
 
 
