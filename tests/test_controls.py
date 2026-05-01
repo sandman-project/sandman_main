@@ -1245,6 +1245,77 @@ def test_control_manager(tmp_path: pathlib.Path) -> None:
     _check_control_state(states, "legs", controls.Control.State.IDLE)
     _check_control_state(states, "elevation", controls.Control.State.COOL_DOWN)
 
+    timer.set_current_time_ms(4025)
+    notification_list = []
+    control_manager.process_controls(notification_list)
+    assert len(notification_list) == 0
+    states = control_manager.get_states()
+    _check_control_state(states, "back", controls.Control.State.MOVE_DOWN)
+    _check_control_state(states, "legs", controls.Control.State.IDLE)
+    _check_control_state(states, "elevation", controls.Control.State.IDLE)
+
+    # Test locking/unlocking.
+    notification_list: list[str] = []
+    command = commands.ControlCommand(
+        "elevation", commands.ControlCommand.Action.UNLOCK, "test"
+    )
+    assert control_manager.process_command(notification_list, command) == True
+    assert len(notification_list) == 1
+    assert "The elevation is already unlocked." in notification_list
+    states = control_manager.get_states()
+    _check_control_state(states, "back", controls.Control.State.MOVE_DOWN)
+    _check_control_state(states, "legs", controls.Control.State.IDLE)
+    _check_control_state(states, "elevation", controls.Control.State.IDLE)
+
+    notification_list: list[str] = []
+    command = commands.ControlCommand(
+        "elevation", commands.ControlCommand.Action.LOCK, "test"
+    )
+    assert control_manager.process_command(notification_list, command) == True
+    assert len(notification_list) == 1
+    assert "Locked the elevation." in notification_list
+    states = control_manager.get_states()
+    _check_control_state(states, "back", controls.Control.State.MOVE_DOWN)
+    _check_control_state(states, "legs", controls.Control.State.IDLE)
+    _check_control_state(states, "elevation", controls.Control.State.IDLE)
+
+    notification_list: list[str] = []
+    command = commands.ControlCommand(
+        "elevation", commands.ControlCommand.Action.LOCK, "test"
+    )
+    assert control_manager.process_command(notification_list, command) == True
+    assert len(notification_list) == 1
+    assert "The elevation is already locked." in notification_list
+    states = control_manager.get_states()
+    _check_control_state(states, "back", controls.Control.State.MOVE_DOWN)
+    _check_control_state(states, "legs", controls.Control.State.IDLE)
+    _check_control_state(states, "elevation", controls.Control.State.IDLE)
+
+    notification_list: list[str] = []
+    command = commands.ControlCommand(
+        "elevation", commands.ControlCommand.Action.MOVE_DOWN, "test"
+    )
+    assert control_manager.process_command(notification_list, command) == True
+    control_manager.process_controls(notification_list)
+    assert len(notification_list) == 1
+    assert "Cannot move the elevation, it is locked." in notification_list
+    states = control_manager.get_states()
+    _check_control_state(states, "back", controls.Control.State.MOVE_DOWN)
+    _check_control_state(states, "legs", controls.Control.State.IDLE)
+    _check_control_state(states, "elevation", controls.Control.State.IDLE)
+
+    notification_list: list[str] = []
+    command = commands.ControlCommand(
+        "elevation", commands.ControlCommand.Action.UNLOCK, "test"
+    )
+    assert control_manager.process_command(notification_list, command) == True
+    assert len(notification_list) == 1
+    assert "Unlocked the elevation." in notification_list
+    states = control_manager.get_states()
+    _check_control_state(states, "back", controls.Control.State.MOVE_DOWN)
+    _check_control_state(states, "legs", controls.Control.State.IDLE)
+    _check_control_state(states, "elevation", controls.Control.State.IDLE)
+
 
 def test_control_bootstrap(tmp_path: pathlib.Path) -> None:
     """Test control bootstrapping."""
