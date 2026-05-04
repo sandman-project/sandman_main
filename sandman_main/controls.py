@@ -623,6 +623,15 @@ class ControlManager:
 
         return states
 
+    def get_lock_states(self) -> dict[str, bool]:
+        """Get the names and lock state of each control."""
+        states: dict[str, bool] = {}
+
+        for name, control in self.__controls.items():
+            states[name] = control.locked
+
+        return states
+
     def initialize(self, base_dir: str) -> None:
         """Initialize the manager (load controls)."""
         self.uninitialize()

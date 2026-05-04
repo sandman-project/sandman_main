@@ -1077,6 +1077,16 @@ def _check_control_state(
         assert states[name] == state
 
 
+def _check_control_lock_state(
+    states: dict[str, bool],
+    name: str,
+    state: bool,
+) -> None:
+    """Check that the control with a name has the expected lock state."""
+    if name in states:
+        assert states[name] == state
+
+
 def test_control_manager(tmp_path: pathlib.Path) -> None:
     """Test the control manager."""
     timer = test_time_util.TestTimer()
@@ -1127,6 +1137,9 @@ def test_control_manager(tmp_path: pathlib.Path) -> None:
     states = control_manager.get_states()
     _check_control_state(states, "back", controls.Control.State.IDLE)
     _check_control_state(states, "legs", controls.Control.State.IDLE)
+    lock_states = control_manager.get_lock_states()
+    _check_control_lock_state(lock_states, "back", False)
+    _check_control_lock_state(lock_states, "legs", False)
 
     control_manager.uninitialize()
     assert control_manager.num_controls == 0
@@ -1136,6 +1149,9 @@ def test_control_manager(tmp_path: pathlib.Path) -> None:
     states = control_manager.get_states()
     _check_control_state(states, "back", controls.Control.State.IDLE)
     _check_control_state(states, "elevation", controls.Control.State.IDLE)
+    lock_states = control_manager.get_lock_states()
+    _check_control_lock_state(lock_states, "back", False)
+    _check_control_lock_state(lock_states, "elevation", False)
 
     control_manager.uninitialize()
     assert control_manager.num_controls == 0
@@ -1148,6 +1164,10 @@ def test_control_manager(tmp_path: pathlib.Path) -> None:
     _check_control_state(states, "back", controls.Control.State.IDLE)
     _check_control_state(states, "legs", controls.Control.State.IDLE)
     _check_control_state(states, "elevation", controls.Control.State.IDLE)
+    lock_states = control_manager.get_lock_states()
+    _check_control_lock_state(lock_states, "back", False)
+    _check_control_lock_state(lock_states, "legs", False)
+    _check_control_lock_state(lock_states, "elevation", False)
 
     # Commands for nonexistent controls fail.
     notification_list: list[str] = []
@@ -1160,6 +1180,10 @@ def test_control_manager(tmp_path: pathlib.Path) -> None:
     _check_control_state(states, "back", controls.Control.State.IDLE)
     _check_control_state(states, "legs", controls.Control.State.IDLE)
     _check_control_state(states, "elevation", controls.Control.State.IDLE)
+    lock_states = control_manager.get_lock_states()
+    _check_control_lock_state(lock_states, "back", False)
+    _check_control_lock_state(lock_states, "legs", False)
+    _check_control_lock_state(lock_states, "elevation", False)
 
     # Commands for controls that exist succeed, but state doesn't update before
     # processing.
@@ -1172,6 +1196,10 @@ def test_control_manager(tmp_path: pathlib.Path) -> None:
     _check_control_state(states, "back", controls.Control.State.IDLE)
     _check_control_state(states, "legs", controls.Control.State.IDLE)
     _check_control_state(states, "elevation", controls.Control.State.IDLE)
+    lock_states = control_manager.get_lock_states()
+    _check_control_lock_state(lock_states, "back", False)
+    _check_control_lock_state(lock_states, "legs", False)
+    _check_control_lock_state(lock_states, "elevation", False)
 
     command = commands.ControlCommand(
         "elevation", commands.ControlCommand.Action.MOVE_UP, "test"
@@ -1182,6 +1210,10 @@ def test_control_manager(tmp_path: pathlib.Path) -> None:
     _check_control_state(states, "back", controls.Control.State.IDLE)
     _check_control_state(states, "legs", controls.Control.State.IDLE)
     _check_control_state(states, "elevation", controls.Control.State.IDLE)
+    lock_states = control_manager.get_lock_states()
+    _check_control_lock_state(lock_states, "back", False)
+    _check_control_lock_state(lock_states, "legs", False)
+    _check_control_lock_state(lock_states, "elevation", False)
 
     # Make sure that the correct events were written to the report file.
     report_manager.process()
@@ -1224,6 +1256,10 @@ def test_control_manager(tmp_path: pathlib.Path) -> None:
     _check_control_state(states, "back", controls.Control.State.MOVE_DOWN)
     _check_control_state(states, "legs", controls.Control.State.IDLE)
     _check_control_state(states, "elevation", controls.Control.State.MOVE_UP)
+    lock_states = control_manager.get_lock_states()
+    _check_control_lock_state(lock_states, "back", False)
+    _check_control_lock_state(lock_states, "legs", False)
+    _check_control_lock_state(lock_states, "elevation", False)
 
     # But nothing happens if we process again without advancing time.
     notification_list = []
@@ -1233,6 +1269,10 @@ def test_control_manager(tmp_path: pathlib.Path) -> None:
     _check_control_state(states, "back", controls.Control.State.MOVE_DOWN)
     _check_control_state(states, "legs", controls.Control.State.IDLE)
     _check_control_state(states, "elevation", controls.Control.State.MOVE_UP)
+    lock_states = control_manager.get_lock_states()
+    _check_control_lock_state(lock_states, "back", False)
+    _check_control_lock_state(lock_states, "legs", False)
+    _check_control_lock_state(lock_states, "elevation", False)
 
     # If we advance enough time, the elevation should stop.
     timer.set_current_time_ms(4000)
@@ -1244,6 +1284,10 @@ def test_control_manager(tmp_path: pathlib.Path) -> None:
     _check_control_state(states, "back", controls.Control.State.MOVE_DOWN)
     _check_control_state(states, "legs", controls.Control.State.IDLE)
     _check_control_state(states, "elevation", controls.Control.State.COOL_DOWN)
+    lock_states = control_manager.get_lock_states()
+    _check_control_lock_state(lock_states, "back", False)
+    _check_control_lock_state(lock_states, "legs", False)
+    _check_control_lock_state(lock_states, "elevation", False)
 
     timer.set_current_time_ms(4025)
     notification_list = []
@@ -1253,6 +1297,10 @@ def test_control_manager(tmp_path: pathlib.Path) -> None:
     _check_control_state(states, "back", controls.Control.State.MOVE_DOWN)
     _check_control_state(states, "legs", controls.Control.State.IDLE)
     _check_control_state(states, "elevation", controls.Control.State.IDLE)
+    lock_states = control_manager.get_lock_states()
+    _check_control_lock_state(lock_states, "back", False)
+    _check_control_lock_state(lock_states, "legs", False)
+    _check_control_lock_state(lock_states, "elevation", False)
 
     # Test locking/unlocking.
     notification_list: list[str] = []
@@ -1266,6 +1314,10 @@ def test_control_manager(tmp_path: pathlib.Path) -> None:
     _check_control_state(states, "back", controls.Control.State.MOVE_DOWN)
     _check_control_state(states, "legs", controls.Control.State.IDLE)
     _check_control_state(states, "elevation", controls.Control.State.IDLE)
+    lock_states = control_manager.get_lock_states()
+    _check_control_lock_state(lock_states, "back", False)
+    _check_control_lock_state(lock_states, "legs", False)
+    _check_control_lock_state(lock_states, "elevation", False)
 
     notification_list: list[str] = []
     command = commands.ControlCommand(
@@ -1278,6 +1330,10 @@ def test_control_manager(tmp_path: pathlib.Path) -> None:
     _check_control_state(states, "back", controls.Control.State.MOVE_DOWN)
     _check_control_state(states, "legs", controls.Control.State.IDLE)
     _check_control_state(states, "elevation", controls.Control.State.IDLE)
+    lock_states = control_manager.get_lock_states()
+    _check_control_lock_state(lock_states, "back", False)
+    _check_control_lock_state(lock_states, "legs", False)
+    _check_control_lock_state(lock_states, "elevation", True)
 
     notification_list: list[str] = []
     command = commands.ControlCommand(
@@ -1290,6 +1346,10 @@ def test_control_manager(tmp_path: pathlib.Path) -> None:
     _check_control_state(states, "back", controls.Control.State.MOVE_DOWN)
     _check_control_state(states, "legs", controls.Control.State.IDLE)
     _check_control_state(states, "elevation", controls.Control.State.IDLE)
+    lock_states = control_manager.get_lock_states()
+    _check_control_lock_state(lock_states, "back", False)
+    _check_control_lock_state(lock_states, "legs", False)
+    _check_control_lock_state(lock_states, "elevation", True)
 
     notification_list: list[str] = []
     command = commands.ControlCommand(
@@ -1303,6 +1363,10 @@ def test_control_manager(tmp_path: pathlib.Path) -> None:
     _check_control_state(states, "back", controls.Control.State.MOVE_DOWN)
     _check_control_state(states, "legs", controls.Control.State.IDLE)
     _check_control_state(states, "elevation", controls.Control.State.IDLE)
+    lock_states = control_manager.get_lock_states()
+    _check_control_lock_state(lock_states, "back", False)
+    _check_control_lock_state(lock_states, "legs", False)
+    _check_control_lock_state(lock_states, "elevation", True)
 
     notification_list: list[str] = []
     command = commands.ControlCommand(
@@ -1315,6 +1379,10 @@ def test_control_manager(tmp_path: pathlib.Path) -> None:
     _check_control_state(states, "back", controls.Control.State.MOVE_DOWN)
     _check_control_state(states, "legs", controls.Control.State.IDLE)
     _check_control_state(states, "elevation", controls.Control.State.IDLE)
+    lock_states = control_manager.get_lock_states()
+    _check_control_lock_state(lock_states, "back", False)
+    _check_control_lock_state(lock_states, "legs", False)
+    _check_control_lock_state(lock_states, "elevation", False)
 
 
 def test_control_bootstrap(tmp_path: pathlib.Path) -> None:
