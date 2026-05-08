@@ -687,52 +687,70 @@ class ControlManager:
 
         Returns whether the command was successful.
         """
-        # See if we have a control with a matching name.
-        try:
-            control = self.__controls[command.control_name]
+        self.__report_manager.add_control_event(
+            command.control_name,
+            command.action.as_string(),
+            command.source,
+        )
 
-        except KeyError:
-            _logger.warning(
-                "No control with name '%s' found.", command.control_name
-            )
+        # Maybe this logic should be a function!
+        control_list = []
+
+        if command.control_name == "all":
+            if (command.action == commands.ControlCommand.Action.LOCK) or (
+                command.action == commands.ControlCommand.Action.UNLOCK
+            ):
+                control_list = list(self.__controls.values())
+
+            else:
+                _logger.warning(
+                    "Attempting to apply %s command to all controls.",
+                    command.action.as_string(),
+                )
+                return False
+
+        else:
+            # See if we have a control with a matching name.
+            try:
+                control_list.append(self.__controls[command.control_name])
+
+            except KeyError:
+                _logger.warning(
+                    "No control with name '%s' found.", command.control_name
+                )
+                return False
+
+        if len(control_list) == 0:
             return False
 
         match command.action:
             case commands.ControlCommand.Action.MOVE_UP:
-                control.set_desired_state(
+                control_list[0].set_desired_state(
                     notification_list, Control.State.MOVE_UP
-                )
-                self.__report_manager.add_control_event(
-                    command.control_name,
-                    command.action.as_string(),
-                    command.source,
                 )
 
             case commands.ControlCommand.Action.MOVE_DOWN:
-                control.set_desired_state(
+                control_list[0].set_desired_state(
                     notification_list, Control.State.MOVE_DOWN
-                )
-                self.__report_manager.add_control_event(
-                    command.control_name,
-                    command.action.as_string(),
-                    command.source,
                 )
 
             case commands.ControlCommand.Action.LOCK:
-                control.lock(notification_list)
-                self.__report_manager.add_control_event(
-                    command.control_name,
-                    command.action.as_string(),
-                    command.source,
-                )
+                if command.control_name == "all":
+                    for control in control_list:
+                        if control.locked == False:
+                            control.lock(notification_list)
+
+                else:
+                    control_list[0].lock(notification_list)
 
             case commands.ControlCommand.Action.UNLOCK:
-                control.unlock(notification_list)
-                self.__report_manager.add_control_event(
-                    command.control_name,
-                    command.action.as_string(),
-                    command.source,
-                )
+                if command.control_name == "all":
+                    for control in control_list:
+                        if control.locked == True:
+                            control.unlock(notification_list)
+
+                else:
+                    control_list[0].unlock(notification_list)
 
             case unknown:
                 typing.assert_never(unknown)

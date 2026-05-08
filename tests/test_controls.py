@@ -1215,13 +1215,42 @@ def test_control_manager(tmp_path: pathlib.Path) -> None:
     _check_control_lock_state(lock_states, "legs", False)
     _check_control_lock_state(lock_states, "elevation", False)
 
+    # Commands to move all controls fail.
+    command = commands.ControlCommand(
+        "all", commands.ControlCommand.Action.MOVE_UP, "test"
+    )
+    assert control_manager.process_command(notification_list, command) == False
+    assert len(notification_list) == 0
+    states = control_manager.get_states()
+    _check_control_state(states, "back", controls.Control.State.IDLE)
+    _check_control_state(states, "legs", controls.Control.State.IDLE)
+    _check_control_state(states, "elevation", controls.Control.State.IDLE)
+    lock_states = control_manager.get_lock_states()
+    _check_control_lock_state(lock_states, "back", False)
+    _check_control_lock_state(lock_states, "legs", False)
+    _check_control_lock_state(lock_states, "elevation", False)
+
+    command = commands.ControlCommand(
+        "all", commands.ControlCommand.Action.MOVE_DOWN, "test"
+    )
+    assert control_manager.process_command(notification_list, command) == False
+    assert len(notification_list) == 0
+    states = control_manager.get_states()
+    _check_control_state(states, "back", controls.Control.State.IDLE)
+    _check_control_state(states, "legs", controls.Control.State.IDLE)
+    _check_control_state(states, "elevation", controls.Control.State.IDLE)
+    lock_states = control_manager.get_lock_states()
+    _check_control_lock_state(lock_states, "back", False)
+    _check_control_lock_state(lock_states, "legs", False)
+    _check_control_lock_state(lock_states, "elevation", False)
+
     # Make sure that the correct events were written to the report file.
     report_manager.process()
 
     report_path = reports_path / "sandman2025-09-27.rpt"
     report_lines = _check_file_and_read_lines(report_path)
 
-    assert len(report_lines) == 3
+    assert len(report_lines) == 6
 
     header = json.loads(report_lines[0])
     assert header["version"] == reports.ReportManager.REPORT_VERSION
@@ -1231,7 +1260,7 @@ def test_control_manager(tmp_path: pathlib.Path) -> None:
     assert event_time == first_time
     assert event_json["info"] == {
         "type": "control",
-        "control": "back",
+        "control": "chicken",
         "action": "move down",
         "source": "test",
     }
@@ -1241,8 +1270,38 @@ def test_control_manager(tmp_path: pathlib.Path) -> None:
     assert event_time == first_time
     assert event_json["info"] == {
         "type": "control",
+        "control": "back",
+        "action": "move down",
+        "source": "test",
+    }
+
+    event_json = json.loads(report_lines[3])
+    event_time = whenever.ZonedDateTime.parse_common_iso(event_json["when"])
+    assert event_time == first_time
+    assert event_json["info"] == {
+        "type": "control",
         "control": "elevation",
         "action": "move up",
+        "source": "test",
+    }
+
+    event_json = json.loads(report_lines[4])
+    event_time = whenever.ZonedDateTime.parse_common_iso(event_json["when"])
+    assert event_time == first_time
+    assert event_json["info"] == {
+        "type": "control",
+        "control": "all",
+        "action": "move up",
+        "source": "test",
+    }
+
+    event_json = json.loads(report_lines[5])
+    event_time = whenever.ZonedDateTime.parse_common_iso(event_json["when"])
+    assert event_time == first_time
+    assert event_json["info"] == {
+        "type": "control",
+        "control": "all",
+        "action": "move down",
         "source": "test",
     }
 
@@ -1375,6 +1434,120 @@ def test_control_manager(tmp_path: pathlib.Path) -> None:
     assert control_manager.process_command(notification_list, command) == True
     assert len(notification_list) == 1
     assert "Unlocked the elevation." in notification_list
+    states = control_manager.get_states()
+    _check_control_state(states, "back", controls.Control.State.MOVE_DOWN)
+    _check_control_state(states, "legs", controls.Control.State.IDLE)
+    _check_control_state(states, "elevation", controls.Control.State.IDLE)
+    lock_states = control_manager.get_lock_states()
+    _check_control_lock_state(lock_states, "back", False)
+    _check_control_lock_state(lock_states, "legs", False)
+    _check_control_lock_state(lock_states, "elevation", False)
+
+    # Do some tests involving locking/unlocking all controls.
+    notification_list: list[str] = []
+    command = commands.ControlCommand(
+        "back", commands.ControlCommand.Action.LOCK, "test"
+    )
+    assert control_manager.process_command(notification_list, command) == True
+    assert len(notification_list) == 1
+    assert "Locked the back." in notification_list
+    states = control_manager.get_states()
+    _check_control_state(states, "back", controls.Control.State.MOVE_DOWN)
+    _check_control_state(states, "legs", controls.Control.State.IDLE)
+    _check_control_state(states, "elevation", controls.Control.State.IDLE)
+    lock_states = control_manager.get_lock_states()
+    _check_control_lock_state(lock_states, "back", True)
+    _check_control_lock_state(lock_states, "legs", False)
+    _check_control_lock_state(lock_states, "elevation", False)
+
+    notification_list: list[str] = []
+    command = commands.ControlCommand(
+        "all", commands.ControlCommand.Action.LOCK, "test"
+    )
+    assert control_manager.process_command(notification_list, command) == True
+    assert len(notification_list) == 2
+    assert "Locked the legs." in notification_list
+    assert "Locked the elevation." in notification_list
+    states = control_manager.get_states()
+    _check_control_state(states, "back", controls.Control.State.MOVE_DOWN)
+    _check_control_state(states, "legs", controls.Control.State.IDLE)
+    _check_control_state(states, "elevation", controls.Control.State.IDLE)
+    lock_states = control_manager.get_lock_states()
+    _check_control_lock_state(lock_states, "back", True)
+    _check_control_lock_state(lock_states, "legs", True)
+    _check_control_lock_state(lock_states, "elevation", True)
+
+    notification_list: list[str] = []
+    command = commands.ControlCommand(
+        "all", commands.ControlCommand.Action.LOCK, "test"
+    )
+    assert control_manager.process_command(notification_list, command) == True
+    assert len(notification_list) == 0
+    states = control_manager.get_states()
+    _check_control_state(states, "back", controls.Control.State.MOVE_DOWN)
+    _check_control_state(states, "legs", controls.Control.State.IDLE)
+    _check_control_state(states, "elevation", controls.Control.State.IDLE)
+    lock_states = control_manager.get_lock_states()
+    _check_control_lock_state(lock_states, "back", True)
+    _check_control_lock_state(lock_states, "legs", True)
+    _check_control_lock_state(lock_states, "elevation", True)
+
+    notification_list: list[str] = []
+    command = commands.ControlCommand(
+        "all", commands.ControlCommand.Action.UNLOCK, "test"
+    )
+    assert control_manager.process_command(notification_list, command) == True
+    assert len(notification_list) == 3
+    assert "Unlocked the back." in notification_list
+    assert "Unlocked the legs." in notification_list
+    assert "Unlocked the elevation." in notification_list
+    states = control_manager.get_states()
+    _check_control_state(states, "back", controls.Control.State.MOVE_DOWN)
+    _check_control_state(states, "legs", controls.Control.State.IDLE)
+    _check_control_state(states, "elevation", controls.Control.State.IDLE)
+    lock_states = control_manager.get_lock_states()
+    _check_control_lock_state(lock_states, "back", False)
+    _check_control_lock_state(lock_states, "legs", False)
+    _check_control_lock_state(lock_states, "elevation", False)
+
+    notification_list: list[str] = []
+    command = commands.ControlCommand(
+        "all", commands.ControlCommand.Action.UNLOCK, "test"
+    )
+    assert control_manager.process_command(notification_list, command) == True
+    assert len(notification_list) == 0
+    states = control_manager.get_states()
+    _check_control_state(states, "back", controls.Control.State.MOVE_DOWN)
+    _check_control_state(states, "legs", controls.Control.State.IDLE)
+    _check_control_state(states, "elevation", controls.Control.State.IDLE)
+    lock_states = control_manager.get_lock_states()
+    _check_control_lock_state(lock_states, "back", False)
+    _check_control_lock_state(lock_states, "legs", False)
+    _check_control_lock_state(lock_states, "elevation", False)
+
+    notification_list: list[str] = []
+    command = commands.ControlCommand(
+        "legs", commands.ControlCommand.Action.LOCK, "test"
+    )
+    assert control_manager.process_command(notification_list, command) == True
+    assert len(notification_list) == 1
+    assert "Locked the legs." in notification_list
+    states = control_manager.get_states()
+    _check_control_state(states, "back", controls.Control.State.MOVE_DOWN)
+    _check_control_state(states, "legs", controls.Control.State.IDLE)
+    _check_control_state(states, "elevation", controls.Control.State.IDLE)
+    lock_states = control_manager.get_lock_states()
+    _check_control_lock_state(lock_states, "back", False)
+    _check_control_lock_state(lock_states, "legs", True)
+    _check_control_lock_state(lock_states, "elevation", False)
+
+    notification_list: list[str] = []
+    command = commands.ControlCommand(
+        "all", commands.ControlCommand.Action.UNLOCK, "test"
+    )
+    assert control_manager.process_command(notification_list, command) == True
+    assert len(notification_list) == 1
+    assert "Unlocked the legs."
     states = control_manager.get_states()
     _check_control_state(states, "back", controls.Control.State.MOVE_DOWN)
     _check_control_state(states, "legs", controls.Control.State.IDLE)
