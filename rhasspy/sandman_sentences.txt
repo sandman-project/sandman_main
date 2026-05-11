@@ -13,7 +13,7 @@ raise {direction:up} [the] <part_name>
 lower {direction:down} [the] <part_name>
 
 [LockControl]
-control_name = (back | legs | elevation) {name}
+control_name = (back | legs | elevation | all) {name}
 control_action = (lock | unlock) {action}
 
 <control_action> [the] <control_name>
