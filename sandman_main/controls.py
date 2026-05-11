@@ -693,32 +693,7 @@ class ControlManager:
             command.source,
         )
 
-        # Maybe this logic should be a function!
-        control_list = []
-
-        if command.control_name == "all":
-            if (command.action == commands.ControlCommand.Action.LOCK) or (
-                command.action == commands.ControlCommand.Action.UNLOCK
-            ):
-                control_list = list(self.__controls.values())
-
-            else:
-                _logger.warning(
-                    "Attempting to apply %s command to all controls.",
-                    command.action.as_string(),
-                )
-                return False
-
-        else:
-            # See if we have a control with a matching name.
-            try:
-                control_list.append(self.__controls[command.control_name])
-
-            except KeyError:
-                _logger.warning(
-                    "No control with name '%s' found.", command.control_name
-                )
-                return False
+        control_list = self.__get_matching_controls(command)
 
         if len(control_list) == 0:
             return False
@@ -761,6 +736,34 @@ class ControlManager:
         """Process controls."""
         for _name, control in self.__controls.items():
             control.process(notification_list)
+
+    def __get_matching_controls(
+        self, command: commands.ControlCommand
+    ) -> list[Control]:
+        """Get controls that match a given command."""
+        if command.control_name == "all":
+            if (command.action == commands.ControlCommand.Action.LOCK) or (
+                command.action == commands.ControlCommand.Action.UNLOCK
+            ):
+                return list(self.__controls.values())
+
+            _logger.warning(
+                "Attempting to apply %s command to all controls.",
+                command.action.as_string(),
+            )
+            return []
+
+        # See if we have a control with a matching name.
+        try:
+            control = self.__controls[command.control_name]
+
+        except KeyError:
+            _logger.warning(
+                "No control with name '%s' found.", command.control_name
+            )
+            return []
+
+        return [control]
 
 
 def bootstrap_controls(base_dir: str) -> None:
