@@ -163,19 +163,35 @@ def _parse_slots_from_intent(
             continue
 
         try:
-            slot_value = slot["rawValue"]
+            slot_value = slot["value"]
 
         except KeyError:
             _logger.warning("Intent slot '%s' is missing a value.", slot_name)
             continue
 
-        if type(slot_value) is not str:
+        try:
+            slot_value_value = slot_value["value"]
+
+        except KeyError:
             _logger.warning(
-                "Intent slot value '%s' is not a string.", str(slot_value)
+                "Intent slot '%s' value is missing a value.", slot_name
             )
             continue
 
-        slots.append(_IntentSlot(slot_name, slot_value))
+        except TypeError:
+            _logger.warning(
+                "Intent slot '%s' value is not an object.", slot_name
+            )
+            continue
+
+        if type(slot_value_value) is not str:
+            _logger.warning(
+                "Intent slot value '%s' is not a string.",
+                str(slot_value_value),
+            )
+            continue
+
+        slots.append(_IntentSlot(slot_name, slot_value_value))
 
     return slots
 
@@ -199,10 +215,10 @@ def _parse_from_move_control_intent(
             control_name = slot.value
 
         elif slot.name == "direction":
-            if slot.value == "raise":
+            if slot.value == "up":
                 action = ControlCommand.Action.MOVE_UP
 
-            elif slot.value == "lower":
+            elif slot.value == "down":
                 action = ControlCommand.Action.MOVE_DOWN
 
     if control_name is None:

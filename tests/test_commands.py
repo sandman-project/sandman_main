@@ -38,12 +38,13 @@ def test_move_control_intents() -> None:
     )
     assert command is None
 
-    # Which must contain at least two objects with slotName and rawValue keys.
+    # Which must contain at least two objects with slotName and value keys.
+    # The value object must also have a value key, which is the actual value.
     # One slot name must be name and another must be direction.
     command = commands.parse_from_intent(
         {
             "intent": {"intentName": "MovePart"},
-            "slots": [{"rawValue": 1}],
+            "slots": [{"value": 1}],
         }
     )
     assert command is None
@@ -72,14 +73,26 @@ def test_move_control_intents() -> None:
     )
     assert command is None
 
-    # The raw value of the name slot must be a string and the direction slot
-    # must be either raise or lower.
+    # The value must be an object with a value key.
     command = commands.parse_from_intent(
         {
             "intent": {"intentName": "MovePart"},
             "slots": [
-                {"slotName": "direction", "rawValue": "chicken"},
-                {"slotName": "name", "rawValue": -1},
+                {"slotName": "direction", "value": "chicken"},
+                {"slotName": "name", "value": {"tender": 1}},
+            ],
+        }
+    )
+    assert command is None
+
+    # The value of the name slot must be a string and the direction slot
+    # must be either up or down.
+    command = commands.parse_from_intent(
+        {
+            "intent": {"intentName": "MovePart"},
+            "slots": [
+                {"slotName": "direction", "value": {"value": "chicken"}},
+                {"slotName": "name", "value": {"value": -1}},
             ],
         }
     )
@@ -89,8 +102,8 @@ def test_move_control_intents() -> None:
         {
             "intent": {"intentName": "MovePart"},
             "slots": [
-                {"slotName": "direction", "rawValue": "chicken"},
-                {"slotName": "name", "rawValue": "legs"},
+                {"slotName": "direction", "value": {"value": "chicken"}},
+                {"slotName": "name", "value": {"value": "legs"}},
             ],
         }
     )
@@ -101,8 +114,8 @@ def test_move_control_intents() -> None:
         {
             "intent": {"intentName": "MovePart"},
             "slots": [
-                {"slotName": "direction", "rawValue": "raise"},
-                {"slotName": "name", "rawValue": "legs"},
+                {"slotName": "direction", "value": {"value": "up"}},
+                {"slotName": "name", "value": {"value": "legs"}},
             ],
         }
     )
@@ -115,8 +128,8 @@ def test_move_control_intents() -> None:
         {
             "intent": {"intentName": "MovePart"},
             "slots": [
-                {"slotName": "direction", "rawValue": "lower"},
-                {"slotName": "name", "rawValue": "legs"},
+                {"slotName": "direction", "value": {"value": "down"}},
+                {"slotName": "name", "value": {"value": "legs"}},
             ],
         }
     )
@@ -140,12 +153,13 @@ def test_lock_control_intents() -> None:
     )
     assert command is None
 
-    # Which must contain at least two objects with slotName and rawValue keys.
+    # Which must contain at least two objects with slotName and value keys.
+    # The value object must also have a value key, which is the actual value.
     # One slot name must be name and another must be action.
     command = commands.parse_from_intent(
         {
             "intent": {"intentName": "LockControl"},
-            "slots": [{"rawValue": 1}],
+            "slots": [{"value": 1}],
         }
     )
     assert command is None
@@ -174,14 +188,26 @@ def test_lock_control_intents() -> None:
     )
     assert command is None
 
-    # The raw value of the name slot must be a string and the action slot
+    # The value must be an object with a value key.
+    command = commands.parse_from_intent(
+        {
+            "intent": {"intentName": "LockControl"},
+            "slots": [
+                {"slotName": "action", "value": "chicken"},
+                {"slotName": "name", "value": {"tender": 1}},
+            ],
+        }
+    )
+    assert command is None
+
+    # The value of the name slot must be a string and the action slot
     # must be either lock or unlock.
     command = commands.parse_from_intent(
         {
             "intent": {"intentName": "LockControl"},
             "slots": [
-                {"slotName": "action", "rawValue": "chicken"},
-                {"slotName": "name", "rawValue": -1},
+                {"slotName": "action", "value": {"value": "chicken"}},
+                {"slotName": "name", "value": {"value": -1}},
             ],
         }
     )
@@ -191,8 +217,8 @@ def test_lock_control_intents() -> None:
         {
             "intent": {"intentName": "LockControl"},
             "slots": [
-                {"slotName": "direction", "rawValue": "chicken"},
-                {"slotName": "name", "rawValue": "legs"},
+                {"slotName": "action", "value": {"value": "chicken"}},
+                {"slotName": "name", "value": {"value": "legs"}},
             ],
         }
     )
@@ -203,8 +229,8 @@ def test_lock_control_intents() -> None:
         {
             "intent": {"intentName": "LockControl"},
             "slots": [
-                {"slotName": "action", "rawValue": "lock"},
-                {"slotName": "name", "rawValue": "legs"},
+                {"slotName": "action", "value": {"value": "lock"}},
+                {"slotName": "name", "value": {"value": "legs"}},
             ],
         }
     )
@@ -217,8 +243,8 @@ def test_lock_control_intents() -> None:
         {
             "intent": {"intentName": "LockControl"},
             "slots": [
-                {"slotName": "action", "rawValue": "unlock"},
-                {"slotName": "name", "rawValue": "legs"},
+                {"slotName": "action", "value": {"value": "unlock"}},
+                {"slotName": "name", "value": {"value": "legs"}},
             ],
         }
     )
@@ -242,12 +268,13 @@ def test_control_routine_intents() -> None:
     )
     assert command is None
 
-    # Which must contain at least two objects with slotName and rawValue keys.
+    # Which must contain at least two objects with slotName and value keys.
+    # The value object must also have a value key, which is the actual value.
     # One slot name must be name and another must be action.
     command = commands.parse_from_intent(
         {
             "intent": {"intentName": "ControlRoutine"},
-            "slots": [{"rawValue": 1}],
+            "slots": [{"value": 1}],
         }
     )
     assert command is None
@@ -276,14 +303,26 @@ def test_control_routine_intents() -> None:
     )
     assert command is None
 
-    # The raw value of the name slot must be a string and the action slot
+    # The value must be an object with a value key.
+    command = commands.parse_from_intent(
+        {
+            "intent": {"intentName": "ControlRoutine"},
+            "slots": [
+                {"slotName": "action", "value": "chicken"},
+                {"slotName": "name", "value": {"tender": 1}},
+            ],
+        }
+    )
+    assert command is None
+
+    # The value of the name slot must be a string and the action slot
     # must be either start or stop.
     command = commands.parse_from_intent(
         {
             "intent": {"intentName": "ControlRoutine"},
             "slots": [
-                {"slotName": "action", "rawValue": "chicken"},
-                {"slotName": "name", "rawValue": -1},
+                {"slotName": "action", "value": {"value": "chicken"}},
+                {"slotName": "name", "value": {"value": -1}},
             ],
         }
     )
@@ -293,8 +332,8 @@ def test_control_routine_intents() -> None:
         {
             "intent": {"intentName": "ControlRoutine"},
             "slots": [
-                {"slotName": "action", "rawValue": "chicken"},
-                {"slotName": "name", "rawValue": "wake"},
+                {"slotName": "action", "value": {"value": "chicken"}},
+                {"slotName": "name", "value": {"value": "wake"}},
             ],
         }
     )
@@ -305,8 +344,8 @@ def test_control_routine_intents() -> None:
         {
             "intent": {"intentName": "ControlRoutine"},
             "slots": [
-                {"slotName": "action", "rawValue": "start"},
-                {"slotName": "name", "rawValue": "wake"},
+                {"slotName": "action", "value": {"value": "start"}},
+                {"slotName": "name", "value": {"value": "wake"}},
             ],
         }
     )
@@ -318,8 +357,8 @@ def test_control_routine_intents() -> None:
         {
             "intent": {"intentName": "ControlRoutine"},
             "slots": [
-                {"slotName": "action", "rawValue": "stop"},
-                {"slotName": "name", "rawValue": "wake"},
+                {"slotName": "action", "value": {"value": "stop"}},
+                {"slotName": "name", "value": {"value": "wake"}},
             ],
         }
     )
