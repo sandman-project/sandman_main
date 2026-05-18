@@ -14,9 +14,9 @@ lower {direction:down} [the] <part_name>
 
 [LockControl]
 control_name = (back | legs | elevation | all) {name}
-control_action = (lock | unlock) {action}
 
-<control_action> [the] <control_name>
+freeze {action:lock} [the] <control_name>
+thaw {action:unlock} [the] <control_name>
 
 [ControlRoutine]
 routine_name = (wake | bed | sleep) {name}
