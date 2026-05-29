@@ -881,7 +881,7 @@ def test_routine_manager(tmp_path: pathlib.Path) -> None:
     assert header["version"] == reports.ReportManager.REPORT_VERSION
 
     event_json = json.loads(report_lines[1])
-    event_time = whenever.ZonedDateTime.parse_common_iso(event_json["when"])
+    event_time = whenever.ZonedDateTime.parse_iso(event_json["when"])
     assert event_time == first_time
     assert event_json["info"] == {
         "type": "routine",
@@ -890,7 +890,7 @@ def test_routine_manager(tmp_path: pathlib.Path) -> None:
     }
 
     event_json = json.loads(report_lines[2])
-    event_time = whenever.ZonedDateTime.parse_common_iso(event_json["when"])
+    event_time = whenever.ZonedDateTime.parse_iso(event_json["when"])
     assert event_time == first_time
     assert event_json["info"] == {
         "type": "routine",
@@ -899,7 +899,7 @@ def test_routine_manager(tmp_path: pathlib.Path) -> None:
     }
 
     event_json = json.loads(report_lines[3])
-    event_time = whenever.ZonedDateTime.parse_common_iso(event_json["when"])
+    event_time = whenever.ZonedDateTime.parse_iso(event_json["when"])
     assert event_time == first_time
     assert event_json["info"] == {
         "type": "routine",
@@ -908,7 +908,7 @@ def test_routine_manager(tmp_path: pathlib.Path) -> None:
     }
 
     event_json = json.loads(report_lines[4])
-    event_time = whenever.ZonedDateTime.parse_common_iso(event_json["when"])
+    event_time = whenever.ZonedDateTime.parse_iso(event_json["when"])
     assert event_time == first_time
     assert event_json["info"] == {
         "type": "routine",
@@ -917,7 +917,7 @@ def test_routine_manager(tmp_path: pathlib.Path) -> None:
     }
 
     event_json = json.loads(report_lines[5])
-    event_time = whenever.ZonedDateTime.parse_common_iso(event_json["when"])
+    event_time = whenever.ZonedDateTime.parse_iso(event_json["when"])
     assert event_time == first_time
     assert event_json["info"] == {
         "type": "routine",
@@ -926,7 +926,7 @@ def test_routine_manager(tmp_path: pathlib.Path) -> None:
     }
 
     event_json = json.loads(report_lines[6])
-    event_time = whenever.ZonedDateTime.parse_common_iso(event_json["when"])
+    event_time = whenever.ZonedDateTime.parse_iso(event_json["when"])
     assert event_time == first_time
     assert event_json["info"] == {
         "type": "routine",

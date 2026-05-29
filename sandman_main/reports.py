@@ -124,7 +124,7 @@ class ReportManager:
 
         # Get the start time string for the header.
         start_time = self.__get_start_time_from_time(time)
-        start_time_string = start_time.format_common_iso()
+        start_time_string = start_time.format_iso()
 
         header = {
             "version": self.REPORT_VERSION,
@@ -180,7 +180,7 @@ class ReportManager:
             return
 
         event_json = {
-            "when": event.when.format_common_iso(),
+            "when": event.when.format_iso(),
             "info": event.info,
         }
         event_line = json.dumps(event_json) + "\n"

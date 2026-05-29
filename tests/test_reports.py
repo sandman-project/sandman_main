@@ -82,7 +82,7 @@ def test_report_file_creation(tmp_path: pathlib.Path) -> None:
 
     first_start_time = first_time.add(days=-1)
     first_start_time = first_start_time.replace_time(whenever.Time(17, 0))
-    assert header["start"] == first_start_time.format_common_iso()
+    assert header["start"] == first_start_time.format_iso()
 
     # Processing again without changing time or adding events should not create
     # new files.
@@ -103,7 +103,7 @@ def test_report_file_creation(tmp_path: pathlib.Path) -> None:
 
     header = json.loads(first_report_lines[0])
     assert header["version"] == reports.ReportManager.REPORT_VERSION
-    assert header["start"] == first_start_time.format_common_iso()
+    assert header["start"] == first_start_time.format_iso()
 
     second_report_path = reports_path / "sandman2025-09-28.rpt"
     second_report_lines = _check_file_and_read_lines(second_report_path)
@@ -114,7 +114,7 @@ def test_report_file_creation(tmp_path: pathlib.Path) -> None:
     assert header["version"] == reports.ReportManager.REPORT_VERSION
 
     second_start_time = second_time.replace_time(whenever.Time(17, 0))
-    assert header["start"] == second_start_time.format_common_iso()
+    assert header["start"] == second_start_time.format_iso()
 
 
 def test_report_events(tmp_path: pathlib.Path) -> None:
@@ -158,9 +158,7 @@ def test_report_events(tmp_path: pathlib.Path) -> None:
     assert header["version"] == reports.ReportManager.REPORT_VERSION
 
     first_event = json.loads(first_report_lines[1])
-    first_event_time = whenever.ZonedDateTime.parse_common_iso(
-        first_event["when"]
-    )
+    first_event_time = whenever.ZonedDateTime.parse_iso(first_event["when"])
     assert first_event_time == first_time
     assert first_event["info"] == {"type": "status"}
 
@@ -185,16 +183,12 @@ def test_report_events(tmp_path: pathlib.Path) -> None:
     assert header["version"] == reports.ReportManager.REPORT_VERSION
 
     first_event = json.loads(first_report_lines[1])
-    first_event_time = whenever.ZonedDateTime.parse_common_iso(
-        first_event["when"]
-    )
+    first_event_time = whenever.ZonedDateTime.parse_iso(first_event["when"])
     assert first_event_time == first_time
     assert first_event["info"] == {"type": "status"}
 
     second_event = json.loads(first_report_lines[2])
-    second_event_time = whenever.ZonedDateTime.parse_common_iso(
-        second_event["when"]
-    )
+    second_event_time = whenever.ZonedDateTime.parse_iso(second_event["when"])
     assert second_event_time == first_time
     assert second_event["info"] == {
         "type": "routine",
@@ -212,9 +206,7 @@ def test_report_events(tmp_path: pathlib.Path) -> None:
     assert header["version"] == reports.ReportManager.REPORT_VERSION
 
     first_event = json.loads(second_report_lines[1])
-    first_event_time = whenever.ZonedDateTime.parse_common_iso(
-        first_event["when"]
-    )
+    first_event_time = whenever.ZonedDateTime.parse_iso(first_event["when"])
     assert first_event_time == second_time
     assert first_event["info"] == {
         "type": "routine",
@@ -249,9 +241,7 @@ def test_report_events(tmp_path: pathlib.Path) -> None:
     assert header["version"] == reports.ReportManager.REPORT_VERSION
 
     first_event = json.loads(second_report_lines[1])
-    first_event_time = whenever.ZonedDateTime.parse_common_iso(
-        first_event["when"]
-    )
+    first_event_time = whenever.ZonedDateTime.parse_iso(first_event["when"])
     assert first_event_time == second_time
     assert first_event["info"] == {
         "type": "routine",
@@ -260,9 +250,7 @@ def test_report_events(tmp_path: pathlib.Path) -> None:
     }
 
     second_event = json.loads(second_report_lines[2])
-    second_event_time = whenever.ZonedDateTime.parse_common_iso(
-        second_event["when"]
-    )
+    second_event_time = whenever.ZonedDateTime.parse_iso(second_event["when"])
     assert second_event_time == third_time
     assert second_event["info"] == {
         "type": "control",
@@ -272,9 +260,7 @@ def test_report_events(tmp_path: pathlib.Path) -> None:
     }
 
     third_event = json.loads(second_report_lines[3])
-    third_event_time = whenever.ZonedDateTime.parse_common_iso(
-        third_event["when"]
-    )
+    third_event_time = whenever.ZonedDateTime.parse_iso(third_event["when"])
     assert third_event_time == fourth_time
     assert third_event["info"] == {
         "type": "control",
