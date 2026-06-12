@@ -9,6 +9,7 @@ requires-python = ">=3.12"
 dependencies = [
   "gpiod>=2.4.2",
   "paho-mqtt>=2.1.0",
+  "sandman-core",
   "tzdata>=2026.2",
   "whenever>=0.10.0",
 ]
@@ -56,6 +57,9 @@ ignore = [
   "COM812",
   "COM819",
 ]
+
+[tool.uv.sources]
+sandman-core = { git = "https://github.com/sandman-project/sandman_core", tag = "v1.0.1" }
 
 [dependency-groups]
 dev = [
