@@ -6,16 +6,15 @@ import pathlib
 import time
 import typing
 
-from . import (
-    commands,
-    controls,
-    gpio,
-    mqtt,
-    reports,
-    routines,
-    setting,
-    time_util,
-)
+import sandman_core.commands as commands
+import sandman_core.controls as controls
+import sandman_core.gpio as gpio
+import sandman_core.reports as reports
+import sandman_core.routines as routines
+import sandman_core.setting as setting
+import sandman_core.time_util as time_util
+
+from . import mqtt
 
 
 class Sandman:

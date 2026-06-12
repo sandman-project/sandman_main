@@ -11,8 +11,7 @@ import typing
 import paho.mqtt.client
 import paho.mqtt.enums
 import paho.mqtt.reasoncodes
-
-from . import commands
+import sandman_core.commands as commands
 
 
 @dataclasses.dataclass
