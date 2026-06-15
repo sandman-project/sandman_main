@@ -5,6 +5,10 @@ FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS builder
 # Make a new user with a home directory.
 RUN useradd -m app
 
+# Install some applications we need.
+RUN apt-get update -y && \
+    apt-get install -y git
+
 # Switch to the custom user.
 USER app
 
