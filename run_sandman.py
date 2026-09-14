@@ -1,12 +1,20 @@
 """Main entry point for the Sandman application."""
 
+import time
+
 import sandman_main
-import sandman_main.sandman
 
 if __name__ == "__main__":
-    sandman = sandman_main.sandman.create_app()
+    app = sandman_main.create_app()
 
-    if sandman is None:
-        raise ValueError("Failed to create Sandman application.")
+    app.start()
 
-    sandman.run()
+    try:
+        while True:
+            # Sleep for 10 ms.
+            time.sleep(0.01)
+
+    except KeyboardInterrupt:
+        pass
+
+    app.stop()

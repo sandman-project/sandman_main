@@ -1,11 +1,15 @@
 """Entry point for the Sandman application."""
 
+import dataclasses
 import logging
 import logging.handlers
+import os
 import pathlib
+import threading
 import time
 import typing
 
+import fastapi
 import sandman_core.commands as commands
 import sandman_core.controls as controls
 import sandman_core.gpio as gpio
@@ -13,6 +17,7 @@ import sandman_core.reports as reports
 import sandman_core.routines as routines
 import sandman_core.setting as setting
 import sandman_core.time_util as time_util
+import uvicorn
 
 from . import mqtt
 
@@ -20,12 +25,29 @@ from . import mqtt
 class Sandman:
     """The state and logic to run the Sandman application."""
 
+    __MAX_HEALTHY_HEARTBEAT_TIME_MS = 4000
+    __REST_API_PORT = 8525
+
+    @dataclasses.dataclass
+    class _LockedState:
+        """State that is locked for cross thread access."""
+
+        should_stop: bool
+        last_heartbeat_time: int
+
     def __init__(self) -> None:
         """Initialize the instance."""
         self.__timer = time_util.Timer()
         self.__time_source = time_util.TimeSource()
         # Change this if you want to run off device.
         self.__gpio_manager = gpio.GPIOManager(is_live_mode=True)
+        # This protects certain state from cross thread access.
+        self.__state_lock = threading.Lock()
+        self.__locked_state = Sandman._LockedState(
+            False, self.__timer.get_current_time()
+        )
+        self.__api = fastapi.FastAPI()
+        self.__api_router = fastapi.APIRouter()
 
     def __setup_logging(self) -> None:
         """Set up logging."""
@@ -105,12 +127,27 @@ class Sandman:
         )
         return True
 
+    def start(self) -> None:
+        """Start the program."""
+        with self.__state_lock:
+            self.__locked_state.should_stop = False
+
+        self.__run_thread = threading.Thread(target=self.run)
+        self.__run_thread.start()
+
+    def stop(self) -> None:
+        """Stop the program."""
+        with self.__state_lock:
+            self.__locked_state.should_stop = True
+
     def run(self) -> None:
         """Run the program."""
         self.__logger.info("Starting Sandman...")
 
         self.__control_manager.initialize(self.__base_dir)
         self.__routine_manager.initialize(self.__base_dir)
+
+        self.__start_rest_api()
 
         self.__mqtt_client = mqtt.MQTTClient()
 
@@ -128,15 +165,19 @@ class Sandman:
 
         self.__mqtt_client.play_notification("Sandman initialized.")
 
-        try:
-            while True:
-                self.__process()
+        while True:
+            self.__process()
 
-                # Sleep for 10 µs.
-                time.sleep(0.01)
+            with self.__state_lock:
+                self.__locked_state.last_heartbeat_time = (
+                    self.__timer.get_current_time()
+                )
 
-        except KeyboardInterrupt:
-            pass
+                if self.__locked_state.should_stop == True:
+                    break
+
+            # Sleep for 10 ms.
+            time.sleep(0.01)
 
         self.__mqtt_client.stop()
 
@@ -152,6 +193,50 @@ class Sandman:
     def is_testing(self) -> bool:
         """Return whether the app is in test mode."""
         return self.__is_testing
+
+    def get_health(self) -> dict[str, str]:
+        """Get the health."""
+        with self.__state_lock:
+            last_heartbeat_time = self.__locked_state.last_heartbeat_time
+
+        time_since_heartbeat_ms = self.__timer.get_time_since_ms(
+            last_heartbeat_time
+        )
+
+        if time_since_heartbeat_ms > Sandman.__MAX_HEALTHY_HEARTBEAT_TIME_MS:
+            return {"health": "Unresponsive"}
+
+        return {"health": "Healthy"}
+
+    def __start_rest_api(self) -> None:
+        """Start the REST API."""
+        self.__api_router.add_api_route(
+            "/health", self.get_health, methods=["GET"]
+        )
+
+        self.__api.include_router(self.__api_router)
+
+        self.__api_thread = threading.Thread(
+            target=self.__run_api, daemon=True
+        )
+        self.__api_thread.start()
+
+    def __run_api(self) -> None:
+        """Run the API thread."""
+        # The host is based on whether this is running in a container or not.
+        is_containerized = os.environ.get("CONTAINERIZED", "False")
+
+        host = "127.0.0.1"
+
+        if is_containerized == "True":
+            host = "0.0.0.0"
+
+        uvicorn.run(
+            self.__api,
+            host=host,
+            port=Sandman.__REST_API_PORT,
+            log_level="info",
+        )
 
     def __process(self) -> None:
         """Process during the main loop."""

@@ -16,7 +16,10 @@ services:
       - "/dev/gpiochip0:/dev/gpiochip0"
     networks:
       - sandman_network
+    ports:
+      - 8525:8525
     environment:
+      - CONTAINERIZED=True
       - RHASSPY_HOSTNAME=rhasspy
 
 networks:

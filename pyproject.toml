@@ -1,16 +1,18 @@
 [project]
 name = "sandman_main"
-version = "1.0.4"
+version = "1.1.0"
 description = "The main application for the Sandman bed controller."
 authors = [
   { name="Shawn Lindberg", email="shawn.lindberg@gmail.com" },
 ]
 requires-python = ">=3.12"
 dependencies = [
+  "fastapi>=0.141.1",
   "gpiod>=2.4.2",
   "paho-mqtt>=2.1.0",
   "sandman-core",
   "tzdata>=2026.2",
+  "uvicorn>=0.52.4",
   "whenever>=0.10.0",
 ]
 classifiers = [
